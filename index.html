@@ -36,9 +36,10 @@
     </div>
 
     <script>
+        // Używamy nazwy klietnSupabase, aby uniknąć konfliktu z biblioteką
         const SUPABASE_URL = 'https://bkutgpaoxkvwhvsfznjm.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJrdXRncGFveGt2d2h2c2Z6bmptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc1OTgwMTQsImV4cCI6MjA4MzE3NDAxNH0.ycpuwln6hNlmVEh4dtsMbiRQwWTqN7TQobDyrlLcRCw';
-        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const klientSupabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         async function handleLogin() {
             const email = document.getElementById('email').value;
@@ -55,46 +56,46 @@
                 return;
             }
 
-            // 1. Próba logowania
-            const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
+            // 1. Logowanie
+            const { data, error } = await klientSupabase.auth.signInWithPassword({ email, password });
 
             if (error) {
-                // 2. Jeśli błąd logowania, sprawdzamy czy to próba rejestracji
+                // 2. Rejestracja (jeśli logowanie nie wyszło)
                 if (!nickname) {
-                    msg.innerText = "Błędne dane lub konto nie istnieje. Podaj Imię, aby się zarejestrować.";
+                    msg.innerText = "Błędne dane lub konto nie istnieje. Podaj Imię, aby stworzyć nowe.";
                     msg.style.color = "#f87171";
                     return;
                 }
 
-                const { error: regError } = await _supabase.auth.signUp({ 
+                const { error: regError } = await klientSupabase.auth.signUp({ 
                     email, 
                     password,
                     options: {
                         data: { 
                             display_name: nickname,
-                            is_approved: false // Domyślnie brak dostępu
+                            is_approved: false 
                         }
                     }
                 });
 
                 if (regError) {
-                    msg.innerText = "Błąd rejestracji: " + regError.message;
+                    msg.innerText = "Błąd: " + regError.message;
                     msg.style.color = "#f87171";
                 } else {
-                    msg.innerText = "Konto utworzone! Poczekaj na weryfikację przez administratora.";
+                    msg.innerText = "Konto założone! Poczekaj na weryfikację przez administratora.";
                     msg.style.color = "#34d399";
                 }
             } else {
-                // 3. Logowanie udane - sprawdzamy uprawnienia w metadanych
+                // 3. Sprawdzanie weryfikacji
                 const user = data.user;
-                const isApproved = user.user_metadata.is_approved;
+                // Sprawdzamy czy meta istnieje i czy is_approved to true
+                const isApproved = user.user_metadata && user.user_metadata.is_approved === true;
 
-                if (isApproved === true) {
+                if (isApproved) {
                     window.location.href = 'panel.html';
                 } else {
-                    // Wyloguj użytkownika jeśli nie ma zgody
-                    await _supabase.auth.signOut();
-                    msg.innerText = "Twoje konto oczekuje na akceptację administratora.";
+                    await klientSupabase.auth.signOut();
+                    msg.innerText = "Twoje konto oczekuje na akceptację (ustaw is_approved: true w Supabase).";
                     msg.style.color = "#fbbf24";
                 }
             }
