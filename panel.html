@@ -34,15 +34,15 @@
                 <div class="flex gap-4">
                     <div>
                         <label class="block text-[10px] uppercase text-gray-500 mb-1">Saldo Start (PLN)</label>
-                        <input type="number" id="startBalance" value="1000" oninput="fetchTrades()" class="bg-[#1e293b] border border-gray-700 rounded px-2 py-1 text-sm w-24 outline-none focus:border-gold-text">
+                        <input type="number" id="startBalance" value="1000" oninput="calculateStats()" class="bg-[#1e293b] border border-gray-700 rounded px-2 py-1 text-sm w-24 outline-none focus:border-gold-text">
                     </div>
                     <div>
                         <label class="block text-[10px] uppercase text-gray-500 mb-1">Cel Dzienny (%)</label>
-                        <input type="number" id="dailyGoalPct" value="10" oninput="fetchTrades()" class="bg-[#1e293b] border border-gray-700 rounded px-2 py-1 text-sm w-20 outline-none focus:border-gold-text">
+                        <input type="number" id="dailyGoalPct" value="10" oninput="calculateStats()" class="bg-[#1e293b] border border-gray-700 rounded px-2 py-1 text-sm w-20 outline-none focus:border-gold-text">
                     </div>
                 </div>
                 <div class="text-right">
-                    <p class="text-[10px] uppercase text-gray-500">Postęp Celu</p>
+                    <p class="text-[10px] uppercase text-gray-500">Postęp Celu Dzisiaj</p>
                     <p id="goalStatus" class="text-sm font-bold gold-text">0.00 / 0.00 PLN</p>
                 </div>
             </div>
@@ -113,7 +113,7 @@
                     <h3 class="text-lg font-bold mb-4 gold-text">Nowa Pozycja</h3>
                     <div class="space-y-3">
                         <input type="text" id="pair" placeholder="Para (np. XAUUSD)" class="w-full bg-[#1e293b] p-3 rounded-lg border border-gray-700 text-white focus:border-[#d4af37] outline-none text-sm">
-                        <input type="number" id="profit" placeholder="Wynik PLN" class="w-full bg-[#1e293b] p-3 rounded-lg border border-gray-700 text-white focus:border-[#d4af37] outline-none text-sm">
+                        <input type="number" id="profitInput" placeholder="Wynik PLN" class="w-full bg-[#1e293b] p-3 rounded-lg border border-gray-700 text-white focus:border-[#d4af37] outline-none text-sm">
                         <select id="type" class="w-full bg-[#1e293b] p-3 rounded-lg border border-gray-700 text-white focus:border-[#d4af37] outline-none text-sm">
                             <option value="Long">Long 📈</option>
                             <option value="Short">Short 📉</option>
@@ -153,6 +153,7 @@
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let equityChart, barChart;
+        let allTrades = [];
 
         async function checkUser() {
             const { data: { user } } = await _supabase.auth.getUser();
@@ -166,13 +167,17 @@
             document.getElementById('tabJournal').classList.toggle('hidden', tab !== 'journal');
             document.getElementById('btnDashboard').className = tab === 'dashboard' ? 'pb-2 font-bold text-sm uppercase tracking-widest nav-active' : 'pb-2 font-bold text-sm uppercase tracking-widest text-gray-500';
             document.getElementById('btnJournal').className = tab === 'journal' ? 'pb-2 font-bold text-sm uppercase tracking-widest nav-active' : 'pb-2 font-bold text-sm uppercase tracking-widest text-gray-500';
-            if(tab === 'dashboard') fetchTrades();
+            if(tab === 'dashboard') calculateStats();
         }
 
         async function fetchTrades() {
-            const { data: trades, error } = await _supabase.from('trades').select('*').order('created_at', { ascending: true });
+            const { data, error } = await _supabase.from('trades').select('*').order('created_at', { ascending: true });
             if (error) return;
-            
+            allTrades = data;
+            calculateStats();
+        }
+
+        function calculateStats() {
             const table = document.getElementById('tradesTable');
             let total = 0, wins = 0, losses = 0, sumWins = 0, sumLosses = 0;
             let dailyProfit = 0;
@@ -181,13 +186,12 @@
             const today = new Date().toLocaleDateString();
 
             table.innerHTML = '';
-            [...trades].reverse().forEach((t) => {
+            
+            // Sortujemy do tabeli (najnowsze na górze)
+            [...allTrades].reverse().forEach((t) => {
                 const profit = parseFloat(t.profit);
-                total += profit;
-                if(profit > 0) { wins++; sumWins += profit; }
-                else if(profit < 0) { losses++; sumLosses += Math.abs(profit); }
                 
-                // Liczenie dzisiejszego zysku do paska celu
+                // Liczenie dzisiejszego zysku
                 if(new Date(t.created_at).toLocaleDateString() === today) {
                     dailyProfit += profit;
                 }
@@ -202,23 +206,26 @@
                 `;
             });
 
-            trades.forEach((t, i) => {
-                equityData.push(equityData[equityData.length - 1] + parseFloat(t.profit));
+            // Dane do wykresów (chronologicznie)
+            allTrades.forEach((t, i) => {
+                const profit = parseFloat(t.profit);
+                total += profit;
+                if(profit > 0) { wins++; sumWins += profit; }
+                else if(profit < 0) { losses++; sumLosses += Math.abs(profit); }
+
+                equityData.push(equityData[equityData.length - 1] + profit);
                 labels.push(i + 1);
                 barLabels.push(`#${i+1}`);
-                barData.push(parseFloat(t.profit));
+                barData.push(profit);
             });
 
-            // AKTUALIZACJA PASKA CELU
             updateDailyGoal(dailyProfit);
 
-            // STATYSTYKI
             document.getElementById('totalProfit').innerText = total.toFixed(2) + " PLN";
             document.getElementById('totalProfit').className = `text-2xl md:text-3xl font-black mt-1 ${total >= 0 ? 'text-green-400' : 'text-red-400'}`;
-            document.getElementById('winRate').innerText = (trades.length > 0 ? ((wins / trades.length) * 100).toFixed(0) : 0) + "%";
-            document.getElementById('tradeCount').innerText = trades.length;
+            document.getElementById('winRate').innerText = (allTrades.length > 0 ? ((wins / allTrades.length) * 100).toFixed(0) : 0) + "%";
+            document.getElementById('tradeCount').innerText = allTrades.length;
             document.getElementById('profitFactor').innerText = sumLosses > 0 ? (sumWins / sumLosses).toFixed(2) : sumWins.toFixed(2);
-            
             document.getElementById('avgWin').innerText = "+" + (wins > 0 ? (sumWins / wins).toFixed(2) : "0.00");
             document.getElementById('avgLoss').innerText = "-" + (losses > 0 ? (sumLosses / losses).toFixed(2) : "0.00");
             document.getElementById('riskReward').innerText = (losses > 0 && wins > 0) ? ((sumWins/wins)/(sumLosses/losses)).toFixed(2) : "0.00";
@@ -227,14 +234,15 @@
         }
 
         function updateDailyGoal(currentDailyProfit) {
-            const startBalance = parseFloat(document.getElementById('startBalance').value) || 0;
+            const startBalance = parseFloat(document.getElementById('startBalance').value) || 1;
             const goalPct = parseFloat(document.getElementById('dailyGoalPct').value) || 0;
             const goalAmount = startBalance * (goalPct / 100);
             
             const progressPct = goalAmount > 0 ? Math.min((currentDailyProfit / goalAmount) * 100, 100) : 0;
-            const finalPct = currentDailyProfit > 0 ? progressPct : 0;
+            // Pasek nie może być ujemny wizualnie
+            const barWidth = currentDailyProfit > 0 ? progressPct : 0;
 
-            document.getElementById('goalBar').style.width = `${finalPct}%`;
+            document.getElementById('goalBar').style.width = `${barWidth}%`;
             document.getElementById('goalStatus').innerText = `${currentDailyProfit.toFixed(2)} / ${goalAmount.toFixed(2)} PLN`;
             
             if(currentDailyProfit >= goalAmount && goalAmount > 0) {
@@ -265,34 +273,40 @@
                         backgroundColor: barValues.map(v => v >= 0 ? 'rgba(74, 222, 128, 0.4)' : 'rgba(248, 113, 113, 0.4)'),
                         borderColor: barValues.map(v => v >= 0 ? '#4ade80' : '#f87171'),
                         borderWidth: 1,
-                        barPercentage: 0.3, 
-                        categoryPercentage: 0.8
+                        barPercentage: 0.5
                     }]
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: { 
-                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b', font: { size: 9 } } }, 
-                        x: { ticks: { color: '#64748b', font: { size: 9 } }, grid: { display: false } } 
-                    }
-                }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { ticks: { color: '#64748b', font: { size: 9 } } }, x: { ticks: { display: false } } } }
             });
         }
 
         async function addTrade() {
             const { data: { user } } = await _supabase.auth.getUser();
             const pair = document.getElementById('pair').value;
-            const profit = document.getElementById('profit').value;
-            if(!pair || !profit) return;
-            await _supabase.from('trades').insert([{ user_id: user.id, pair: pair.toUpperCase(), profit: parseFloat(profit), type: document.getElementById('type').value, note: document.getElementById('note').value }]);
-            document.getElementById('pair').value = ''; document.getElementById('profit').value = '';
-            fetchTrades();
+            const profit = document.getElementById('profitInput').value;
+            if(!pair || !profit) { alert("Wypełnij parę i wynik!"); return; }
+
+            const { error } = await _supabase.from('trades').insert([{ 
+                user_id: user.id, 
+                pair: pair.toUpperCase(), 
+                profit: parseFloat(profit), 
+                type: document.getElementById('type').value, 
+                note: document.getElementById('note').value 
+            }]);
+
+            if (error) { alert("Błąd zapisu: " + error.message); }
+            else {
+                document.getElementById('pair').value = ''; 
+                document.getElementById('profitInput').value = '';
+                fetchTrades();
+            }
         }
 
         async function deleteTrade(id) {
-            if(confirm("Usunąć?")) { await _supabase.from('trades').delete().eq('id', id); fetchTrades(); }
+            if(confirm("Usunąć ten trade na stałe?")) { 
+                await _supabase.from('trades').delete().eq('id', id); 
+                fetchTrades(); 
+            }
         }
 
         function filterTrades() {
@@ -302,6 +316,8 @@
         }
 
         async function logout() { await _supabase.auth.signOut(); window.location.href = 'index.html'; }
+        
+        // Start
         checkUser();
     </script>
 </body>
