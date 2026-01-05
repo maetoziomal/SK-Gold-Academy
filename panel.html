@@ -4,162 +4,246 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SK GOLD</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&family=JetBrains+Mono:wght@500;800&family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body { background-color: #020617; color: #f8fafc; font-family: 'Inter', sans-serif; min-height: 100vh; }
-        .gold-text { color: #d4af37; }
-        .gold-dot { color: #d4af37; font-size: 1.2em; line-height: 0; }
-        .card { background-color: #0f172a; border: 1px solid rgba(212, 175, 55, 0.1); }
+        :root {
+            --gold: #d4af37;
+            --dark-bg: #020617;
+            --card-bg: rgba(15, 23, 42, 0.7);
+        }
+        body { 
+            background-color: var(--dark-bg); 
+            color: #f8fafc; 
+            font-family: 'Inter', sans-serif; 
+            min-height: 100vh;
+            background-image: radial-gradient(circle at top right, rgba(212, 175, 55, 0.05), transparent),
+                              radial-gradient(circle at bottom left, rgba(212, 175, 55, 0.05), transparent);
+        }
+        h1, h2, h3, .nav-btn { font-family: 'Montserrat', sans-serif; }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        
+        .gold-text { color: var(--gold); text-shadow: 0 0 10px rgba(212, 175, 55, 0.2); }
+        .gold-dot { color: var(--gold); text-shadow: 0 0 15px var(--gold); }
+        
+        .card { 
+            background: var(--card-bg); 
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(212, 175, 55, 0.15); 
+            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
+        }
+        
         .gold-bg { background: linear-gradient(135deg, #d4af37 0%, #f1c40f 100%); }
         .loss-bg { background: linear-gradient(135deg, #7f1d1d 0%, #ef4444 100%); }
-        .nav-active { border-bottom: 2px solid #d4af37; color: #d4af37; }
+        
+        .nav-active { 
+            border-bottom: 3px solid var(--gold); 
+            color: var(--gold); 
+            text-shadow: 0 0 10px rgba(212, 175, 55, 0.4);
+        }
+        
         .hidden { display: none; }
+        
+        /* Animacja przejścia tabów */
+        .tab-content { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Custom Scrollbar */
         .custom-scroll::-webkit-scrollbar { height: 4px; width: 4px; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: #d4af37; border-radius: 10px; }
-        .progress-bar-fill { transition: width 0.5s ease-in-out; }
-        .emotion-btn { opacity: 0.4; transition: all 0.2s; cursor: pointer; filter: grayscale(1); }
-        .emotion-btn.active { opacity: 1; filter: grayscale(0); transform: scale(1.2); }
-        .danger-glow { box-shadow: 0 0 20px rgba(239, 68, 68, 0.5); border: 1px solid #ef4444; }
-        .external-frame { width: 100%; height: calc(100vh - 400px); min-height: 550px; border-radius: 1rem; overflow: hidden; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 10px; }
+
+        input, select, textarea {
+            transition: all 0.2s ease;
+        }
+        input:focus {
+            box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.2);
+        }
+
+        .danger-glow { 
+            box-shadow: 0 0 30px rgba(239, 68, 68, 0.2); 
+            border: 1px solid rgba(239, 68, 68, 0.5); 
+        }
+
+        .emotion-btn { 
+            filter: grayscale(1); 
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+        }
+        .emotion-btn.active { 
+            filter: grayscale(0); 
+            transform: scale(1.3); 
+            text-shadow: 0 0 15px rgba(255,255,255,0.5);
+        }
     </style>
 </head>
 <body class="p-2 md:p-8">
     <div class="max-w-6xl mx-auto w-full">
-        <header class="flex justify-between items-center mb-6 px-2">
+        <header class="flex justify-between items-center mb-8 px-2">
             <div>
-                <h1 class="text-2xl md:text-3xl font-black italic gold-text tracking-tighter uppercase">SK GOLD<span class="gold-dot">.</span></h1>
-                <p id="welcomeText" class="text-gray-400 text-[10px] md:text-xs uppercase tracking-widest mt-1">Autoryzacja...</p>
+                <h1 class="text-3xl md:text-4xl font-black italic gold-text tracking-tighter uppercase leading-none">
+                    SK GOLD<span class="gold-dot">.</span>
+                </h1>
+                <p id="welcomeText" class="text-gray-500 text-[10px] uppercase tracking-[0.3em] mt-2 font-semibold italic">
+                    Loading account...
+                </p>
             </div>
-            <button onclick="logout()" class="bg-red-900/20 text-red-400 px-3 py-1.5 rounded-lg text-xs hover:bg-red-900/40 transition">Wyloguj</button>
+            <button onclick="logout()" class="bg-red-950/30 text-red-500 border border-red-900/50 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-red-900/50 transition-all">
+                Wyloguj
+            </button>
         </header>
 
-        <div id="statusCard" class="card p-5 rounded-3xl mb-6 border-b-2 border-b-[#d4af37] transition-all duration-500 relative overflow-hidden">
-            <div class="absolute top-4 right-6 opacity-10 pointer-events-none">
-                <span class="text-4xl font-black italic uppercase tracking-tighter">SK GOLD</span>
+        <div id="statusCard" class="card p-6 rounded-[2rem] mb-8 relative overflow-hidden transition-all duration-700">
+            <div class="absolute -right-10 -top-10 opacity-[0.03] select-none">
+                <span class="text-[12rem] font-black italic tracking-tighter uppercase">GOLD</span>
             </div>
             
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div class="grid grid-cols-3 gap-3">
-                    <div>
-                        <label class="block text-[9px] uppercase text-gray-500 mb-1 font-bold">Saldo Start</label>
-                        <input type="number" id="startBalance" value="1000" oninput="saveSettings()" class="bg-[#1e293b] border border-gray-700 rounded-lg px-3 py-2 text-sm w-full outline-none focus:border-gold-text">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8 relative z-10">
+                <div class="grid grid-cols-3 gap-4 w-full md:w-auto">
+                    <div class="group">
+                        <label class="block text-[10px] uppercase text-gray-500 mb-1 font-bold tracking-widest">Saldo Start</label>
+                        <input type="number" id="startBalance" value="1000" oninput="saveSettings()" class="mono bg-slate-900/50 border border-slate-800 rounded-xl px-4 py-2.5 text-sm w-full outline-none focus:border-gold-text text-white font-bold">
                     </div>
                     <div>
-                        <label class="block text-[9px] uppercase text-gray-500 mb-1 font-bold">Cel (%)</label>
-                        <input type="number" id="dailyGoalPct" value="10" oninput="saveSettings()" class="bg-[#1e293b] border border-gray-700 rounded-lg px-3 py-2 text-sm w-full outline-none focus:border-gold-text">
+                        <label class="block text-[10px] uppercase text-gray-500 mb-1 font-bold tracking-widest">Cel (%)</label>
+                        <input type="number" id="dailyGoalPct" value="10" oninput="saveSettings()" class="mono bg-slate-900/50 border border-slate-800 rounded-xl px-4 py-2.5 text-sm w-full outline-none focus:border-gold-text text-white font-bold">
                     </div>
                     <div>
-                        <label class="block text-[9px] uppercase text-red-500/70 mb-1 font-bold">Limit Strat (%)</label>
-                        <input type="number" id="dailyLossLimit" value="3" oninput="saveSettings()" class="bg-[#1e293b] border border-red-900/30 rounded-lg px-3 py-2 text-sm w-full outline-none focus:border-red-500">
+                        <label class="block text-[10px] uppercase text-red-500/70 mb-1 font-bold tracking-widest">Limit (%)</label>
+                        <input type="number" id="dailyLossLimit" value="3" oninput="saveSettings()" class="mono bg-red-950/20 border border-red-900/30 rounded-xl px-4 py-2.5 text-sm w-full outline-none focus:border-red-500 text-red-400 font-bold">
                     </div>
                 </div>
-                <div class="flex flex-col justify-center items-end">
-                    <h2 class="text-xl md:text-2xl font-black italic gold-text tracking-widest uppercase mb-1">PANEL TRADERA</h2>
-                    <p id="limitAlert" class="text-[10px] uppercase text-gray-500 tracking-widest font-bold">Ryzyko pod kontrolą</p>
+                <div class="text-right w-full md:w-auto">
+                    <h2 class="text-2xl md:text-3xl font-black italic gold-text tracking-tighter uppercase mb-1">PANEL TRADERA</h2>
+                    <p id="limitAlert" class="text-[10px] uppercase text-slate-500 tracking-[0.4em] font-black flex items-center justify-end gap-2">
+                        <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> Risk Guard Active
+                    </p>
                 </div>
             </div>
 
-            <div class="mb-4">
-                <div class="flex justify-between text-[10px] uppercase mb-1.5 font-bold tracking-tight">
-                    <span class="text-gray-400">Postęp Celu Dnia (Automatyczny Reset 00:00)</span>
-                    <span id="goalStatus" class="gold-text">0.00 / 0.00 USD</span>
+            <div class="space-y-5 relative z-10">
+                <div class="group">
+                    <div class="flex justify-between text-[10px] uppercase mb-2 font-black tracking-widest">
+                        <span class="text-slate-400">Profit Target Progress</span>
+                        <span id="goalStatus" class="gold-text mono text-xs">0.00 / 0.00</span>
+                    </div>
+                    <div class="w-full bg-slate-950/80 rounded-full h-3.5 border border-slate-800 p-0.5">
+                        <div id="goalBar" class="progress-bar-fill gold-bg h-full rounded-full w-[0%]"></div>
+                    </div>
                 </div>
-                <div class="w-full bg-black/40 rounded-full h-4 overflow-hidden border border-gray-800 p-[2px]">
-                    <div id="goalBar" class="progress-bar-fill gold-bg h-full rounded-full w-[0%] shadow-[0_0_15px_rgba(212,175,55,0.4)]"></div>
-                </div>
-            </div>
 
-            <div>
-                <div class="flex justify-between text-[10px] uppercase mb-1.5 font-bold tracking-tight">
-                    <span class="text-gray-400">Wykorzystany Limit Straty</span>
-                    <span id="lossStatus" class="text-red-400">0.00 / 0.00 USD</span>
-                </div>
-                <div class="w-full bg-black/40 rounded-full h-4 overflow-hidden border border-gray-800 p-[2px]">
-                    <div id="lossBar" class="progress-bar-fill loss-bg h-full rounded-full w-[0%] shadow-[0_0_15px_rgba(239,68,68,0.3)]"></div>
+                <div>
+                    <div class="flex justify-between text-[10px] uppercase mb-2 font-black tracking-widest">
+                        <span class="text-slate-400">Daily Loss Usage</span>
+                        <span id="lossStatus" class="text-red-500 mono text-xs">0.00 / 0.00</span>
+                    </div>
+                    <div class="w-full bg-slate-950/80 rounded-full h-3.5 border border-slate-800 p-0.5">
+                        <div id="lossBar" class="progress-bar-fill loss-bg h-full rounded-full w-[0%]"></div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <nav class="flex gap-8 mb-8 border-b border-gray-800 px-2 overflow-x-auto custom-scroll whitespace-nowrap">
-            <button id="btnDashboard" onclick="switchTab('dashboard')" class="pb-3 font-bold text-xs uppercase tracking-[0.2em] nav-active">Dashboard</button>
-            <button id="btnJournal" onclick="switchTab('journal')" class="pb-3 font-bold text-xs uppercase tracking-[0.2em] text-gray-500">Dziennik</button>
-            <button id="btnChart" onclick="switchTab('chart')" class="pb-3 font-bold text-xs uppercase tracking-[0.2em] text-gray-500">Wykres TV</button>
-            <button id="btnCalendar" onclick="switchTab('calendar')" class="pb-3 font-bold text-xs uppercase tracking-[0.2em] text-gray-500">Kalendarz</button>
-            <button id="btnReports" onclick="switchTab('reports')" class="pb-3 font-bold text-xs uppercase tracking-[0.2em] text-gray-500">Raporty</button>
-            <button id="btnCalc" onclick="switchTab('calc')" class="pb-3 font-bold text-xs uppercase tracking-[0.2em] text-gray-500">Kalkulator</button>
+        <nav class="flex gap-8 mb-8 border-b border-slate-800/50 px-4 overflow-x-auto custom-scroll whitespace-nowrap">
+            <button id="btnDashboard" onclick="switchTab('dashboard')" class="nav-btn pb-4 font-black text-[11px] uppercase tracking-[0.25em] nav-active transition-all">Dashboard</button>
+            <button id="btnJournal" onclick="switchTab('journal')" class="nav-btn pb-4 font-black text-[11px] uppercase tracking-[0.25em] text-slate-500 hover:text-slate-300 transition-all">Journal</button>
+            <button id="btnChart" onclick="switchTab('chart')" class="nav-btn pb-4 font-black text-[11px] uppercase tracking-[0.25em] text-slate-500 hover:text-slate-300 transition-all">Chart TV</button>
+            <button id="btnCalendar" onclick="switchTab('calendar')" class="nav-btn pb-4 font-black text-[11px] uppercase tracking-[0.25em] text-slate-500 hover:text-slate-300 transition-all">Calendar</button>
+            <button id="btnReports" onclick="switchTab('reports')" class="nav-btn pb-4 font-black text-[11px] uppercase tracking-[0.25em] text-slate-500 hover:text-slate-300 transition-all">Reports</button>
+            <button id="btnCalc" onclick="switchTab('calc')" class="nav-btn pb-4 font-black text-[11px] uppercase tracking-[0.25em] text-slate-500 hover:text-slate-300 transition-all">Calc</button>
         </nav>
 
-        <div id="tabDashboard">
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-                <div class="lg:col-span-2 card p-6 rounded-3xl">
-                    <h3 class="font-bold mb-4 text-gray-500 uppercase text-[10px] tracking-widest">Krzywa Kapitału (USD)</h3>
-                    <div class="h-[300px]"><canvas id="equityChart"></canvas></div>
+        <div id="tabDashboard" class="tab-content">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                <div class="lg:col-span-2 card p-6 rounded-[2rem]">
+                    <h3 class="font-black mb-6 text-slate-500 uppercase text-[10px] tracking-[0.3em]">Equity Growth Curve</h3>
+                    <div class="h-[320px]"><canvas id="equityChart"></canvas></div>
                 </div>
                 <div class="space-y-6">
-                    <div class="card p-8 rounded-3xl text-center border-r-2 border-r-[#d4af37]">
-                        <p class="text-gray-500 uppercase text-[10px] tracking-widest mb-2">Wynik Całkowity</p>
-                        <h2 id="totalProfit" class="text-4xl font-black tracking-tighter italic">0.00</h2>
+                    <div class="card p-8 rounded-[2rem] text-center border-r-4 border-r-gold">
+                        <p class="text-slate-500 uppercase text-[10px] font-black tracking-[0.3em] mb-3">Total P/L</p>
+                        <h2 id="totalProfit" class="mono text-5xl font-black italic tracking-tighter">0.00</h2>
                     </div>
-                    <div class="card p-6 rounded-3xl">
-                        <h3 class="text-center text-[10px] text-gray-500 uppercase mb-4 tracking-widest font-bold">Zysk wg Sesji</h3>
-                        <div class="h-[160px]"><canvas id="sessionChart"></canvas></div>
+                    <div class="card p-6 rounded-[2rem]">
+                        <h3 class="text-center text-[10px] text-slate-500 uppercase mb-6 tracking-[0.3em] font-black">Performance per Session</h3>
+                        <div class="h-[180px]"><canvas id="sessionChart"></canvas></div>
                     </div>
                 </div>
             </div>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                <div class="card p-5 rounded-2xl text-center"><p class="text-[9px] text-gray-500 uppercase font-bold">Win Rate</p><p id="winRate" class="gold-text font-black text-xl">0%</p></div>
-                <div class="card p-5 rounded-2xl text-center"><p class="text-[9px] text-gray-500 uppercase font-bold">Profit Factor</p><p id="profitFactor" class="text-white font-black text-xl">0.00</p></div>
-                <div class="card p-5 rounded-2xl text-center"><p class="text-[9px] text-gray-500 uppercase font-bold">Trades</p><p id="tradeCount" class="text-white font-black text-xl">0</p></div>
-                <div class="card p-5 rounded-2xl text-center"><p class="text-[9px] text-gray-500 uppercase font-bold">Risk:Reward</p><p id="riskReward" class="text-white font-black text-xl">0.00</p></div>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-10">
+                <div class="card p-6 rounded-2xl text-center group hover:border-gold/50 transition-all">
+                    <p class="text-[10px] text-slate-500 uppercase font-black tracking-widest mb-1">Win Rate</p>
+                    <p id="winRate" class="mono gold-text font-black text-2xl">0%</p>
+                </div>
+                <div class="card p-6 rounded-2xl text-center group hover:border-white/30 transition-all">
+                    <p class="text-[10px] text-slate-500 uppercase font-black tracking-widest mb-1">Profit Factor</p>
+                    <p id="profitFactor" class="mono text-white font-black text-2xl">0.00</p>
+                </div>
+                <div class="card p-6 rounded-2xl text-center group hover:border-white/30 transition-all">
+                    <p class="text-[10px] text-slate-500 uppercase font-black tracking-widest mb-1">Total Trades</p>
+                    <p id="tradeCount" class="mono text-white font-black text-2xl">0</p>
+                </div>
+                <div class="card p-6 rounded-2xl text-center group hover:border-white/30 transition-all">
+                    <p class="text-[10px] text-slate-500 uppercase font-black tracking-widest mb-1">Avg R:R</p>
+                    <p id="riskReward" class="mono text-white font-black text-2xl">0.00</p>
+                </div>
             </div>
         </div>
 
-        <div id="tabJournal" class="hidden">
-            <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
-                <div class="card p-6 rounded-3xl h-fit sticky top-4">
-                    <h3 class="text-lg font-black mb-6 gold-text uppercase italic tracking-tighter">Nowa Pozycja</h3>
-                    <div class="space-y-4">
-                        <input type="text" id="pair" placeholder="Para (np. XAUUSD)" class="w-full bg-[#1e293b] p-3.5 rounded-xl border border-gray-700 text-white focus:border-[#d4af37] outline-none text-sm font-bold uppercase tracking-widest">
-                        <input type="number" id="profitInput" placeholder="Wynik USD" class="w-full bg-[#1e293b] p-3.5 rounded-xl border border-gray-700 text-white focus:border-[#d4af37] outline-none text-sm font-bold">
-                        <div class="grid grid-cols-2 gap-3">
-                            <select id="type" class="bg-[#1e293b] p-3.5 rounded-xl border border-gray-700 text-white focus:border-[#d4af37] outline-none text-xs font-bold uppercase">
+        <div id="tabJournal" class="tab-content hidden">
+            <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
+                <div class="card p-8 rounded-[2.5rem] h-fit sticky top-4 border-t-4 border-t-gold">
+                    <h3 class="text-xl font-black mb-8 gold-text uppercase italic tracking-tighter">Log New Trade</h3>
+                    <div class="space-y-5">
+                        <input type="text" id="pair" placeholder="INSTRUMENT (XAUUSD)" class="w-full bg-slate-900 border border-slate-800 p-4 rounded-2xl text-white focus:border-gold-text outline-none text-sm font-black uppercase tracking-widest">
+                        <input type="number" id="profitInput" placeholder="PROFIT/LOSS ($)" class="mono w-full bg-slate-900 border border-slate-800 p-4 rounded-2xl text-white focus:border-gold-text outline-none text-sm font-black">
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <select id="type" class="bg-slate-900 p-4 rounded-2xl border border-slate-800 text-white focus:border-gold-text outline-none text-[11px] font-black uppercase">
                                 <option value="Long">Long 📈</option>
                                 <option value="Short">Short 📉</option>
                             </select>
-                            <select id="strategy" class="bg-[#1e293b] p-3.5 rounded-xl border border-gray-700 text-white focus:border-[#d4af37] outline-none text-xs font-bold uppercase">
+                            <select id="strategy" class="bg-slate-900 p-4 rounded-2xl border border-slate-800 text-white focus:border-gold-text outline-none text-[11px] font-black uppercase">
                                 <option value="Scalping">Scalping</option>
-                                <option value="Trend">Trend Following</option>
+                                <option value="Trend">Trend Follow</option>
                                 <option value="Reversal">Reversal</option>
-                                <option value="News">News Trading</option>
+                                <option value="News">News</option>
                             </select>
                         </div>
-                        <div class="py-2">
-                            <label class="text-[9px] text-gray-500 uppercase mb-3 block tracking-widest font-bold text-center">Twoje emocje przy wejściu:</label>
-                            <div class="flex justify-between bg-black/20 p-3 rounded-2xl border border-gray-800">
-                                <span onclick="selectEmotion('🧘‍♂️', this)" class="emotion-btn text-2xl active">🧘‍♂️</span>
-                                <span onclick="selectEmotion('🤑', this)" class="emotion-btn text-2xl">🤑</span>
-                                <span onclick="selectEmotion('😡', this)" class="emotion-btn text-2xl">😡</span>
-                                <span onclick="selectEmotion('🏃‍♂️', this)" class="emotion-btn text-2xl">🏃‍♂️</span>
-                                <span onclick="selectEmotion('😨', this)" class="emotion-btn text-2xl">😨</span>
+
+                        <div class="py-4">
+                            <p class="text-[10px] text-slate-500 uppercase mb-4 block tracking-[0.2em] font-black text-center">Entry Mindset</p>
+                            <div class="flex justify-between bg-black/40 p-4 rounded-2xl border border-slate-800">
+                                <span onclick="selectEmotion('🧘‍♂️', this)" class="emotion-btn text-3xl active cursor-pointer">🧘‍♂️</span>
+                                <span onclick="selectEmotion('🤑', this)" class="emotion-btn text-3xl cursor-pointer">🤑</span>
+                                <span onclick="selectEmotion('😡', this)" class="emotion-btn text-3xl cursor-pointer">😡</span>
+                                <span onclick="selectEmotion('🏃‍♂️', this)" class="emotion-btn text-3xl cursor-pointer">🏃‍♂️</span>
+                                <span onclick="selectEmotion('😨', this)" class="emotion-btn text-3xl cursor-pointer">😨</span>
                             </div>
                             <input type="hidden" id="emotionValue" value="🧘‍♂️">
                         </div>
-                        <input type="text" id="note" placeholder="Notatka (np. dlaczego to wziąłeś?)" class="w-full bg-[#1e293b] p-3.5 rounded-xl border border-gray-700 text-white focus:border-[#d4af37] outline-none text-sm">
-                        <button id="addTradeBtn" onclick="addTrade()" class="gold-bg w-full text-black font-black py-4 rounded-xl hover:scale-[1.02] transition-all text-sm uppercase mt-4 shadow-lg">DODAJ TRADE</button>
+
+                        <input type="text" id="note" placeholder="Trade justification..." class="w-full bg-slate-900 border border-slate-800 p-4 rounded-2xl text-white focus:border-gold-text outline-none text-sm">
+                        
+                        <button id="addTradeBtn" onclick="addTrade()" class="gold-bg w-full text-black font-black py-5 rounded-2xl hover:scale-[1.02] active:scale-95 transition-all text-[11px] uppercase mt-4 shadow-xl shadow-gold/10 tracking-[0.2em]">
+                            Lock Trade Data
+                        </button>
                     </div>
                 </div>
-                <div class="xl:col-span-2 space-y-4">
-                    <input type="text" id="filterInput" onkeyup="filterTrades()" placeholder="Szukaj po parze lub emocji..." class="w-full bg-[#0f172a] border border-gray-800 p-3.5 rounded-xl text-xs outline-none focus:border-gold-text">
-                    <div class="card rounded-3xl overflow-hidden">
-                        <table class="w-full text-left">
-                            <thead class="bg-[#1e293b]/50 text-gray-500 text-[10px] uppercase font-bold tracking-widest">
+
+                <div class="xl:col-span-2 space-y-6">
+                    <div class="card rounded-[2rem] overflow-hidden">
+                        <table class="w-full text-left border-collapse">
+                            <thead class="bg-slate-900/80 text-slate-500 text-[10px] uppercase font-black tracking-[0.2em]">
                                 <tr>
-                                    <th class="p-5">Instrument</th>
-                                    <th class="p-5">Wynik</th>
-                                    <th class="p-5 text-center">Emocja</th>
-                                    <th class="p-5 text-right">Akcja</th>
+                                    <th class="p-6">Position</th>
+                                    <th class="p-6">P/L Results</th>
+                                    <th class="p-6 text-center">Mindset</th>
+                                    <th class="p-6 text-right">Delete</th>
                                 </tr>
                             </thead>
                             <tbody id="tradesTable" class="text-sm"></tbody>
@@ -169,14 +253,14 @@
             </div>
         </div>
 
-        <div id="tabChart" class="hidden">
-            <div class="external-frame card overflow-hidden border-2 border-gold-text/20">
+        <div id="tabChart" class="tab-content hidden">
+            <div class="external-frame card overflow-hidden border-2 border-gold/10 p-1 rounded-[2rem]">
                 <div id="tv_chart_container" style="height: 100%; width: 100%;"></div>
             </div>
         </div>
 
-        <div id="tabCalendar" class="hidden">
-            <div class="external-frame card">
+        <div id="tabCalendar" class="tab-content hidden">
+            <div class="external-frame card rounded-[2rem]">
                 <div class="tradingview-widget-container">
                     <div class="tradingview-widget-container__widget"></div>
                     <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-events.js" async>
@@ -186,35 +270,35 @@
             </div>
         </div>
 
-        <div id="tabReports" class="hidden">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="card p-8 rounded-3xl border-t-2 border-t-gold-text">
-                    <h3 class="gold-text font-black mb-6 uppercase text-sm italic tracking-widest">Wynik Tygodnia (Pon-Pt)</h3>
-                    <div id="weeklyReportContent" class="space-y-4 text-sm"></div>
+        <div id="tabReports" class="tab-content hidden">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="card p-10 rounded-[2.5rem] border-l-4 border-l-gold">
+                    <h3 class="gold-text font-black mb-8 uppercase text-xs italic tracking-[0.3em]">Weekly Performance</h3>
+                    <div id="weeklyReportContent" class="space-y-6 text-sm"></div>
                 </div>
-                <div class="card p-8 rounded-3xl border-t-2 border-t-gray-700">
-                    <h3 class="text-gray-400 font-black mb-6 uppercase text-sm italic tracking-widest">Lekcja Tygodnia</h3>
-                    <textarea id="weeklyLesson" oninput="saveWeeklyLesson()" class="w-full h-40 bg-[#1e293b] border border-gray-700 rounded-2xl p-5 text-white text-sm outline-none focus:border-gold-text transition-all" placeholder="Najważniejszy wniosek z tego tygodnia..."></textarea>
+                <div class="card p-10 rounded-[2.5rem]">
+                    <h3 class="text-slate-400 font-black mb-8 uppercase text-xs italic tracking-[0.3em]">Weekly Lesson Learned</h3>
+                    <textarea id="weeklyLesson" oninput="saveWeeklyLesson()" class="w-full h-48 bg-slate-900/50 border border-slate-800 rounded-3xl p-6 text-white text-sm outline-none focus:border-gold-text transition-all leading-relaxed" placeholder="Write down your mistakes or successes..."></textarea>
                 </div>
             </div>
         </div>
 
-        <div id="tabCalc" class="hidden">
-            <div class="max-w-md mx-auto card p-10 rounded-[3rem] border-t-8 border-t-[#d4af37] shadow-2xl">
-                <h3 class="text-2xl font-black gold-text mb-8 text-center uppercase tracking-tighter italic">Risk Calculator</h3>
-                <div class="space-y-6">
+        <div id="tabCalc" class="tab-content hidden">
+            <div class="max-w-md mx-auto card p-12 rounded-[3.5rem] border-b-8 border-b-gold shadow-2xl">
+                <h3 class="text-2xl font-black gold-text mb-10 text-center uppercase tracking-tighter italic">Position Sizing</h3>
+                <div class="space-y-8">
                     <div>
-                        <label class="block text-[10px] uppercase text-gray-500 mb-2 font-bold tracking-widest">Ryzyko na transakcję (%)</label>
-                        <input type="number" id="riskPct" value="1" oninput="calculateLot()" class="w-full bg-[#1e293b] p-5 rounded-2xl border border-gray-700 text-white focus:border-gold-text outline-none text-xl font-black">
+                        <label class="block text-[11px] uppercase text-slate-500 mb-3 font-black tracking-widest text-center">Risk per Trade (%)</label>
+                        <input type="number" id="riskPct" value="1" oninput="calculateLot()" class="mono w-full bg-slate-900 p-5 rounded-2xl border border-slate-800 text-white focus:border-gold-text outline-none text-2xl font-black text-center">
                     </div>
                     <div>
-                        <label class="block text-[10px] uppercase text-gray-500 mb-2 font-bold tracking-widest">Stop Loss (Pips)</label>
-                        <input type="number" id="slPips" value="20" oninput="calculateLot()" class="w-full bg-[#1e293b] p-5 rounded-2xl border border-gray-700 text-white focus:border-gold-text outline-none text-xl font-black">
+                        <label class="block text-[11px] uppercase text-slate-500 mb-3 font-black tracking-widest text-center">Stop Loss (Pips)</label>
+                        <input type="number" id="slPips" value="20" oninput="calculateLot()" class="mono w-full bg-slate-900 p-5 rounded-2xl border border-slate-800 text-white focus:border-gold-text outline-none text-2xl font-black text-center">
                     </div>
-                    <div class="bg-black/60 p-8 rounded-[2rem] border border-dashed border-[#d4af37]/30 text-center mt-8">
-                        <p class="text-gray-500 text-[10px] uppercase mb-2 font-bold tracking-widest">Zalecana wielkość pozycji</p>
-                        <h2 id="resultLot" class="text-5xl font-black gold-text tracking-tighter">0.00</h2>
-                        <p class="text-[11px] text-gray-500 mt-4 italic">Ryzykujesz gotówką: <span id="riskAmount" class="text-white font-bold">0.00</span> USD</p>
+                    <div class="bg-black/40 p-10 rounded-[2.5rem] border border-dashed border-gold/20 text-center mt-10">
+                        <p class="text-slate-500 text-[11px] uppercase mb-4 font-black tracking-widest">Recommended Lot Size</p>
+                        <h2 id="resultLot" class="mono text-6xl font-black gold-text tracking-tighter">0.00</h2>
+                        <p class="text-[12px] text-slate-400 mt-6 italic font-semibold">Cash at Risk: <span id="riskAmount" class="text-white mono">$ 0.00</span></p>
                     </div>
                 </div>
             </div>
@@ -231,7 +315,6 @@
         let allTrades = [];
         let currentTotalBalance = 0;
 
-        // Reset cotygodniowy (Lekcja + Raport) w poniedziałki rano
         async function checkWeeklyReset() {
             const now = new Date();
             if (now.getDay() === 1) { 
@@ -258,7 +341,7 @@
         async function checkUser() {
             const { data: { user } } = await _supabase.auth.getUser();
             if (!user) { window.location.href = 'index.html'; return; }
-            document.getElementById('welcomeText').innerHTML = `Witaj, <span class="text-white font-black italic tracking-normal">${user.user_metadata.display_name || "Traderze"}</span>`;
+            document.getElementById('welcomeText').innerHTML = `Active Session: <span class="text-white font-black italic tracking-normal">${user.user_metadata.display_name || "PRO TRADER"}</span>`;
             await loadSettings();
             await checkWeeklyReset();
             fetchTrades();
@@ -294,8 +377,8 @@
         function switchTab(tab) {
             document.querySelectorAll('[id^="tab"]').forEach(el => el.classList.add('hidden'));
             document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.remove('hidden');
-            document.querySelectorAll('nav button').forEach(btn => btn.className = 'pb-3 font-bold text-xs uppercase tracking-[0.2em] text-gray-500');
-            document.getElementById('btn' + tab.charAt(0).toUpperCase() + tab.slice(1)).className = 'pb-3 font-bold text-xs uppercase tracking-[0.2em] nav-active';
+            document.querySelectorAll('nav button').forEach(btn => btn.classList.remove('nav-active', 'text-gold'));
+            document.getElementById('btn' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('nav-active');
             if(tab === 'dashboard') calculateStats();
         }
 
@@ -308,7 +391,7 @@
         function calculateStats() {
             const table = document.getElementById('tradesTable');
             let total = 0, wins = 0, losses = 0, sumWins = 0, sumLosses = 0, dailyProfit = 0;
-            let equityData = [0], labels = ['Start'];
+            let equityData = [0], labels = ['0'];
             let sessionStats = { 'London 🇬🇧': 0, 'New York 🇺🇸': 0, 'Asia 🇯🇵': 0 };
             const today = new Date().toLocaleDateString();
             table.innerHTML = '';
@@ -317,24 +400,28 @@
                 const profit = parseFloat(t.profit);
                 if (new Date(t.created_at).toLocaleDateString() === today) dailyProfit += profit;
 
-                let emotion = "🧘‍♂️", strategy = "Scalping", session = "London 🇬🇧";
+                let emotion = "🧘‍♂️", strategy = "Scalp", session = "London 🇬🇧";
                 if (t.note && t.note.includes('|')) {
                     const parts = t.note.split('|');
                     emotion = parts[0]?.trim() || "🧘‍♂️";
-                    strategy = parts[1]?.trim() || "Scalping";
+                    strategy = parts[1]?.trim() || "Scalp";
                     if(parts[3]) session = parts[3].trim();
                 }
                 sessionStats[session] = (sessionStats[session] || 0) + profit;
 
                 table.innerHTML += `
-                    <tr class="border-b border-gray-800/50 text-white hover:bg-white/[0.02] transition">
-                        <td class="p-5">
-                            <div class="font-black text-xs uppercase italic">${t.pair} <span class="gold-text ml-2 text-[9px] not-italic font-bold">${session}</span></div>
-                            <div class="text-[9px] text-gray-500 uppercase tracking-widest mt-1">${strategy}</div>
+                    <tr class="border-b border-slate-800/50 text-white hover:bg-white/[0.03] transition">
+                        <td class="p-6">
+                            <div class="font-black text-xs uppercase italic">${t.pair} <span class="gold-text ml-3 mono text-[10px] not-italic">${session}</span></div>
+                            <div class="text-[10px] text-slate-500 uppercase font-black tracking-widest mt-1">${strategy}</div>
                         </td>
-                        <td class="p-5 font-black italic ${profit >= 0 ? 'text-green-400' : 'text-red-400'}">${profit.toFixed(2)} $</td>
-                        <td class="p-5 text-center text-2xl">${emotion}</td>
-                        <td class="p-5 text-right"><button onclick="deleteTrade(${t.id})" class="text-red-500/50 hover:text-red-500 bg-red-500/10 px-3 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all">Usuń</button></td>
+                        <td class="p-6 font-black mono italic text-lg ${profit >= 0 ? 'text-green-400' : 'text-red-400'}">
+                            ${profit >= 0 ? '+' : ''}${profit.toFixed(2)}
+                        </td>
+                        <td class="p-6 text-center text-3xl">${emotion}</td>
+                        <td class="p-6 text-right">
+                            <button onclick="deleteTrade(${t.id})" class="text-red-900/50 hover:text-red-500 transition-all font-black text-[10px] uppercase">Remove</button>
+                        </td>
                     </tr>`;
             });
 
@@ -349,7 +436,8 @@
             });
 
             currentTotalBalance = startBalance + total;
-            document.getElementById('totalProfit').innerText = total.toFixed(2) + " $";
+            document.getElementById('totalProfit').innerText = (total >= 0 ? '+' : '') + total.toFixed(2);
+            document.getElementById('totalProfit').className = `mono text-5xl font-black italic tracking-tighter ${total >= 0 ? 'text-green-400' : 'text-red-400'}`;
             document.getElementById('winRate').innerText = (allTrades.length > 0 ? ((wins / allTrades.length) * 100).toFixed(0) : 0) + "%";
             document.getElementById('tradeCount').innerText = allTrades.length;
             document.getElementById('profitFactor').innerText = sumLosses > 0 ? (sumWins / sumLosses).toFixed(2) : sumWins.toFixed(2);
@@ -360,31 +448,59 @@
             generateWeeklyReport();
         }
 
-        function generateWeeklyReport() {
-            const now = new Date();
-            const dayOfWeek = now.getDay(); 
-            const diff = now.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
-            const monday = new Date(now.setDate(diff));
-            monday.setHours(0,0,0,0);
-            const weeklyTrades = allTrades.filter(t => new Date(t.created_at) >= monday);
-            let wProfit = 0, wWins = 0;
-            weeklyTrades.forEach(t => {
-                wProfit += parseFloat(t.profit);
-                if(parseFloat(t.profit) > 0) wWins++;
-            });
-            document.getElementById('weeklyReportContent').innerHTML = `
-                <div class="flex justify-between border-b border-gray-800 pb-3 mb-2"><span>Zysk od Poniedziałku:</span><span class="${wProfit >= 0 ? 'text-green-400' : 'text-red-400'} font-black italic">${wProfit.toFixed(2)} $</span></div>
-                <div class="flex justify-between border-b border-gray-800 pb-3 mb-2"><span>Liczba wejść:</span><span class="text-white font-bold">${weeklyTrades.length}</span></div>
-                <div class="flex justify-between border-b border-gray-800 pb-3"><span>Skuteczność:</span><span class="gold-text font-bold">${weeklyTrades.length > 0 ? ((wWins/weeklyTrades.length)*100).toFixed(0) : 0}%</span></div>`;
-        }
-
         function updateCharts(labels, equity, sessionData) {
             const ctx1 = document.getElementById('equityChart').getContext('2d');
             if (equityChart) equityChart.destroy();
-            equityChart = new Chart(ctx1, { type: 'line', data: { labels: labels, datasets: [{ data: equity, borderColor: '#d4af37', borderWidth: 3, fill: true, backgroundColor: 'rgba(212, 175, 55, 0.05)', tension: 0.4, pointRadius: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: '#475569', font: { size: 9 } }, grid: { display: false } }, y: { ticks: { color: '#475569', font: { size: 9 } }, grid: { color: '#1e293b' } } } } });
+            equityChart = new Chart(ctx1, { 
+                type: 'line', 
+                data: { 
+                    labels: labels, 
+                    datasets: [{ 
+                        data: equity, 
+                        borderColor: '#d4af37', 
+                        borderWidth: 4, 
+                        fill: true, 
+                        backgroundColor: 'rgba(212, 175, 55, 0.05)', 
+                        tension: 0.4, 
+                        pointRadius: 0,
+                        pointHoverRadius: 6,
+                        pointBackgroundColor: '#d4af37'
+                    }] 
+                }, 
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    plugins: { legend: { display: false } }, 
+                    scales: { 
+                        x: { ticks: { color: '#475569', font: { size: 9, family: 'JetBrains Mono' } }, grid: { display: false } }, 
+                        y: { ticks: { color: '#475569', font: { size: 9, family: 'JetBrains Mono' } }, grid: { color: 'rgba(71, 85, 105, 0.1)' } } 
+                    } 
+                } 
+            });
             const ctx2 = document.getElementById('sessionChart').getContext('2d');
             if (sessionChart) sessionChart.destroy();
-            sessionChart = new Chart(ctx2, { type: 'bar', data: { labels: Object.keys(sessionData), datasets: [{ data: Object.values(sessionData), backgroundColor: Object.values(sessionData).map(v => v >= 0 ? '#10b981' : '#ef4444'), borderRadius: 8 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { color: '#475569', font: { size: 8 } }, grid: { color: '#1e293b' } }, x: { ticks: { color: '#475569', font: { size: 8 } }, grid: { display: false } } } } });
+            sessionChart = new Chart(ctx2, { 
+                type: 'bar', 
+                data: { 
+                    labels: Object.keys(sessionData), 
+                    datasets: [{ 
+                        data: Object.values(sessionData), 
+                        backgroundColor: Object.values(sessionData).map(v => v >= 0 ? 'rgba(16, 185, 129, 0.6)' : 'rgba(239, 68, 68, 0.6)'),
+                        borderRadius: 12,
+                        borderWidth: 1,
+                        borderColor: 'rgba(255,255,255,0.1)'
+                    }] 
+                }, 
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    plugins: { legend: { display: false } }, 
+                    scales: { 
+                        y: { beginAtZero: true, ticks: { display: false }, grid: { display: false } }, 
+                        x: { ticks: { color: '#475569', font: { size: 8, family: 'Montserrat', weight: '900' } }, grid: { display: false } } 
+                    } 
+                } 
+            });
         }
 
         async function addTrade() {
@@ -404,7 +520,7 @@
 
         function calculateLot() {
             const riskAmount = currentTotalBalance * (parseFloat(document.getElementById('riskPct').value) / 100);
-            document.getElementById('riskAmount').innerText = riskAmount.toFixed(2);
+            document.getElementById('riskAmount').innerText = "$ " + riskAmount.toFixed(2);
             const sl = parseFloat(document.getElementById('slPips').value);
             document.getElementById('resultLot').innerText = sl > 0 ? (riskAmount / sl).toFixed(2) : "0.00";
         }
@@ -413,27 +529,54 @@
             const goalAmount = startBalance * (parseFloat(document.getElementById('dailyGoalPct').value) / 100);
             const lossLimitAmount = startBalance * (parseFloat(document.getElementById('dailyLossLimit').value) / 100);
             document.getElementById('goalBar').style.width = `${goalAmount > 0 ? Math.max(0, Math.min((dailyProfit / goalAmount) * 100, 100)) : 0}%`;
-            document.getElementById('goalStatus').innerText = `${dailyProfit.toFixed(2)} / ${goalAmount.toFixed(2)} USD`;
+            document.getElementById('goalStatus').innerText = `${dailyProfit.toFixed(2)} / ${goalAmount.toFixed(2)}`;
             const dailyLoss = dailyProfit < 0 ? Math.abs(dailyProfit) : 0;
             document.getElementById('lossBar').style.width = `${lossLimitAmount > 0 ? Math.max(0, Math.min((dailyLoss / lossLimitAmount) * 100, 100)) : 0}%`;
-            document.getElementById('lossStatus').innerText = `${dailyLoss.toFixed(2)} / ${lossLimitAmount.toFixed(2)} USD`;
+            document.getElementById('lossStatus').innerText = `${dailyLoss.toFixed(2)} / ${lossLimitAmount.toFixed(2)}`;
             const statusCard = document.getElementById('statusCard');
             const addBtn = document.getElementById('addTradeBtn');
             if (dailyProfit <= -lossLimitAmount && lossLimitAmount !== 0) {
                 statusCard.classList.add('danger-glow');
-                document.getElementById('limitAlert').innerText = "🔴 LIMIT STRAT PRZEKROCZONY - KONIEC HANDLU";
-                addBtn.disabled = true; addBtn.classList.add('grayscale');
+                document.getElementById('limitAlert').innerHTML = `<span class="w-2 h-2 rounded-full bg-red-500"></span> TERMINATED: LIMIT REACHED`;
+                addBtn.disabled = true; addBtn.classList.add('grayscale', 'opacity-50');
             } else {
                 statusCard.classList.remove('danger-glow');
-                document.getElementById('limitAlert').innerText = "Ryzyko pod kontrolą";
-                addBtn.disabled = false; addBtn.classList.remove('grayscale');
+                document.getElementById('limitAlert').innerHTML = `<span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> Risk Guard Active`;
+                addBtn.disabled = false; addBtn.classList.remove('grayscale', 'opacity-100');
             }
         }
 
         function selectEmotion(emo, el) { document.querySelectorAll('.emotion-btn').forEach(b => b.classList.remove('active')); el.classList.add('active'); document.getElementById('emotionValue').value = emo; }
-        function filterTrades() { const input = document.getElementById('filterInput').value.toUpperCase(); const rows = document.getElementById('tradesTable').getElementsByTagName('tr'); for (let row of rows) { row.style.display = row.textContent.toUpperCase().includes(input) ? "" : "none"; } }
-        async function deleteTrade(id) { if(confirm("Usunąć ten wpis z dziennika?")) { await _supabase.from('trades').delete().eq('id', id); fetchTrades(); } }
+        async function deleteTrade(id) { if(confirm("Permanently delete this record?")) { await _supabase.from('trades').delete().eq('id', id); fetchTrades(); } }
         async function logout() { await _supabase.auth.signOut(); window.location.href = 'index.html'; }
+        
+        function generateWeeklyReport() {
+            const now = new Date();
+            const dayOfWeek = now.getDay(); 
+            const diff = now.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
+            const monday = new Date(now.setDate(diff));
+            monday.setHours(0,0,0,0);
+            const weeklyTrades = allTrades.filter(t => new Date(t.created_at) >= monday);
+            let wProfit = 0, wWins = 0;
+            weeklyTrades.forEach(t => {
+                wProfit += parseFloat(t.profit);
+                if(parseFloat(t.profit) > 0) wWins++;
+            });
+            document.getElementById('weeklyReportContent').innerHTML = `
+                <div class="flex justify-between border-b border-slate-800/50 pb-4">
+                    <span class="font-black text-slate-500 uppercase text-[10px] tracking-widest">Net Weekly P/L</span>
+                    <span class="mono font-black ${wProfit >= 0 ? 'text-green-400' : 'text-red-400'} text-lg italic">${wProfit.toFixed(2)} $</span>
+                </div>
+                <div class="flex justify-between border-b border-slate-800/50 pb-4">
+                    <span class="font-black text-slate-500 uppercase text-[10px] tracking-widest">Execution Count</span>
+                    <span class="text-white font-black mono text-lg">${weeklyTrades.length}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="font-black text-slate-500 uppercase text-[10px] tracking-widest">Accuracy</span>
+                    <span class="gold-text font-black mono text-lg">${weeklyTrades.length > 0 ? ((wWins/weeklyTrades.length)*100).toFixed(0) : 0}%</span>
+                </div>`;
+        }
+
         checkUser();
     </script>
 </body>
