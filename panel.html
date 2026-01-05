@@ -77,7 +77,7 @@
             </div>
 
             <div class="card p-4 md:p-6 rounded-2xl mb-6">
-                <h3 class="font-bold mb-4 text-gray-400 uppercase text-[10px] tracking-widest text-center">Analiza Poszczególnych Trade (Słupki)</h3>
+                <h3 class="font-bold mb-4 text-gray-400 uppercase text-[10px] tracking-widest text-center">Analiza Poszczególnych Trade</h3>
                 <div class="h-[200px]">
                     <canvas id="tradesBarChart"></canvas>
                 </div>
@@ -96,7 +96,7 @@
                             <option value="Short">Short 📉</option>
                         </select>
                         <input type="text" id="note" placeholder="Notatka" class="w-full bg-[#1e293b] p-3 rounded-lg border border-gray-700 text-white focus:border-[#d4af37] outline-none text-sm">
-                        <button onclick="addTrade()" class="gold-bg w-full text-black font-extrabold py-3 rounded-lg hover:opacity-90 transition active:scale-95 text-sm uppercase tracking-tighter">Dodaj Trade</button>
+                        <button onclick="addTrade()" class="gold-bg w-full text-black font-extrabold py-3 rounded-lg hover:opacity-90 transition text-sm uppercase">Dodaj Trade</button>
                     </div>
                 </div>
 
@@ -171,42 +171,35 @@
                 `;
             });
 
-            let currentEquity = 0;
             trades.forEach((t, i) => {
-                currentEquity += parseFloat(t.profit);
-                equityData.push(currentEquity);
+                equityData.push(equityData[equityData.length - 1] + parseFloat(t.profit));
                 labels.push(i + 1);
-                barLabels.push(`#${i+1} ${t.pair}`);
+                barLabels.push(`#${i+1}`);
                 barData.push(parseFloat(t.profit));
             });
 
-            // STATYSTYKI
             document.getElementById('totalProfit').innerText = total.toFixed(2) + " PLN";
             document.getElementById('totalProfit').className = `text-2xl md:text-3xl font-black mt-1 ${total >= 0 ? 'text-green-400' : 'text-red-400'}`;
             document.getElementById('winRate').innerText = (trades.length > 0 ? ((wins / trades.length) * 100).toFixed(0) : 0) + "%";
             document.getElementById('tradeCount').innerText = trades.length;
             document.getElementById('profitFactor').innerText = sumLosses > 0 ? (sumWins / sumLosses).toFixed(2) : sumWins.toFixed(2);
             
-            const avgW = wins > 0 ? (sumWins / wins).toFixed(2) : "0.00";
-            const avgL = losses > 0 ? (sumLosses / losses).toFixed(2) : "0.00";
-            document.getElementById('avgWin').innerText = "+" + avgW;
-            document.getElementById('avgLoss').innerText = "-" + avgL;
-            document.getElementById('riskReward').innerText = avgL > 0 ? (avgW / avgL).toFixed(2) : "0.00";
+            document.getElementById('avgWin').innerText = "+" + (wins > 0 ? (sumWins / wins).toFixed(2) : "0.00");
+            document.getElementById('avgLoss').innerText = "-" + (losses > 0 ? (sumLosses / losses).toFixed(2) : "0.00");
+            document.getElementById('riskReward').innerText = (losses > 0 && wins > 0) ? ((sumWins/wins)/(sumLosses/losses)).toFixed(2) : "0.00";
 
             updateCharts(labels, equityData, barLabels, barData);
         }
 
         function updateCharts(labels, equity, barLabels, barValues) {
-            // Wykres Liniowy
             const ctx1 = document.getElementById('equityChart').getContext('2d');
             if (equityChart) equityChart.destroy();
             equityChart = new Chart(ctx1, {
                 type: 'line',
-                data: { labels: labels, datasets: [{ data: equity, borderColor: '#d4af37', borderWidth: 2, fill: true, backgroundColor: 'rgba(212, 175, 55, 0.1)', tension: 0.3 }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+                data: { labels: labels, datasets: [{ data: equity, borderColor: '#d4af37', borderWidth: 2, fill: true, backgroundColor: 'rgba(212, 175, 55, 0.1)', tension: 0.3, pointRadius: 2 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: '#64748b', font: { size: 9 } } }, y: { ticks: { color: '#64748b', font: { size: 9 } } } } }
             });
 
-            // Wykres Słupkowy
             const ctx2 = document.getElementById('tradesBarChart').getContext('2d');
             if (barChart) barChart.destroy();
             barChart = new Chart(ctx2, {
@@ -215,16 +208,22 @@
                     labels: barLabels,
                     datasets: [{
                         data: barValues,
-                        backgroundColor: barValues.map(v => v >= 0 ? 'rgba(74, 222, 128, 0.6)' : 'rgba(248, 113, 113, 0.6)'),
+                        backgroundColor: barValues.map(v => v >= 0 ? 'rgba(74, 222, 128, 0.4)' : 'rgba(248, 113, 113, 0.4)'),
                         borderColor: barValues.map(v => v >= 0 ? '#4ade80' : '#f87171'),
-                        borderWidth: 1
+                        borderWidth: 1,
+                        // KLUCZOWE PARAMETRY DLA WĄSKICH SŁUPKÓW:
+                        barPercentage: 0.3, 
+                        categoryPercentage: 0.8
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
-                    scales: { y: { grid: { color: 'rgba(255,255,255,0.05)' } }, x: { display: false } }
+                    scales: { 
+                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b', font: { size: 9 } } }, 
+                        x: { ticks: { color: '#64748b', font: { size: 9 } }, grid: { display: false } } 
+                    }
                 }
             });
         }
