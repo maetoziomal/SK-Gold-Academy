@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel Tradera USD - SK Gold Academy</title>
+    <title>Panel Tradera USD - SK Gold Academy Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -19,6 +19,7 @@
         .progress-bar-fill { transition: width 0.5s ease-in-out; }
         .emotion-btn { opacity: 0.4; transition: all 0.2s; cursor: pointer; filter: grayscale(1); }
         .emotion-btn.active { opacity: 1; filter: grayscale(0); transform: scale(1.2); }
+        .danger-glow { box-shadow: 0 0 20px rgba(239, 68, 68, 0.5); border: 1px solid #ef4444; }
     </style>
 </head>
 <body class="p-2 md:p-8">
@@ -31,20 +32,24 @@
             <button onclick="logout()" class="bg-red-900/20 text-red-400 px-3 py-1.5 rounded-lg text-xs hover:bg-red-900/40 transition">Wyloguj</button>
         </header>
 
-        <div class="card p-4 rounded-2xl mb-6 border-b-2 border-b-[#d4af37]">
+        <div id="statusCard" class="card p-4 rounded-2xl mb-6 border-b-2 border-b-[#d4af37] transition-all duration-500">
             <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-4">
-                <div class="flex gap-4">
+                <div class="grid grid-cols-3 gap-4">
                     <div>
-                        <label class="block text-[10px] uppercase text-gray-500 mb-1">Saldo Start (USD)</label>
-                        <input type="number" id="startBalance" value="1000" oninput="saveSettings()" class="bg-[#1e293b] border border-gray-700 rounded px-2 py-1 text-sm w-24 outline-none focus:border-gold-text">
+                        <label class="block text-[10px] uppercase text-gray-500 mb-1">Saldo Start</label>
+                        <input type="number" id="startBalance" value="1000" oninput="saveSettings()" class="bg-[#1e293b] border border-gray-700 rounded px-2 py-1 text-sm w-full outline-none focus:border-gold-text">
                     </div>
                     <div>
-                        <label class="block text-[10px] uppercase text-gray-500 mb-1">Cel Dzienny (%)</label>
-                        <input type="number" id="dailyGoalPct" value="10" oninput="saveSettings()" class="bg-[#1e293b] border border-gray-700 rounded px-2 py-1 text-sm w-20 outline-none focus:border-gold-text">
+                        <label class="block text-[10px] uppercase text-gray-500 mb-1">Cel (%)</label>
+                        <input type="number" id="dailyGoalPct" value="10" oninput="saveSettings()" class="bg-[#1e293b] border border-gray-700 rounded px-2 py-1 text-sm w-full outline-none focus:border-gold-text">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] uppercase text-red-500/70 mb-1">Max Strata (%)</label>
+                        <input type="number" id="dailyLossLimit" value="3" oninput="saveSettings()" class="bg-[#1e293b] border border-red-900/30 rounded px-2 py-1 text-sm w-full outline-none focus:border-red-500">
                     </div>
                 </div>
                 <div class="text-right">
-                    <p class="text-[10px] uppercase text-gray-500">Postęp Celu Dzisiaj</p>
+                    <p id="limitAlert" class="text-[10px] uppercase text-gray-500">Postęp Celu Dzisiaj</p>
                     <p id="goalStatus" class="text-sm font-bold gold-text">0.00 / 0.00 USD</p>
                 </div>
             </div>
@@ -53,10 +58,11 @@
             </div>
         </div>
 
-        <nav class="flex gap-6 mb-8 border-b border-gray-800 px-2">
+        <nav class="flex gap-6 mb-8 border-b border-gray-800 px-2 overflow-x-auto custom-scroll whitespace-nowrap">
             <button id="btnDashboard" onclick="switchTab('dashboard')" class="pb-2 font-bold text-sm uppercase tracking-widest nav-active">Dashboard</button>
-            <button id="btnJournal" onclick="switchTab('journal')" class="pb-2 font-bold text-sm uppercase tracking-widest text-gray-500">Dziennik Tradera</button>
-            <button id="btnCalc" onclick="switchTab('calc')" class="pb-2 font-bold text-sm uppercase tracking-widest text-gray-500">Kalkulator Lot 🧮</button>
+            <button id="btnJournal" onclick="switchTab('journal')" class="pb-2 font-bold text-sm uppercase tracking-widest text-gray-500">Dziennik</button>
+            <button id="btnReports" onclick="switchTab('reports')" class="pb-2 font-bold text-sm uppercase tracking-widest text-gray-500">Raporty</button>
+            <button id="btnCalc" onclick="switchTab('calc')" class="pb-2 font-bold text-sm uppercase tracking-widest text-gray-500">Kalkulator Lot</button>
         </nav>
 
         <div id="tabDashboard">
@@ -67,42 +73,35 @@
                         <canvas id="equityChart"></canvas>
                     </div>
                 </div>
-                <div class="grid grid-cols-2 lg:flex lg:flex-col gap-4">
-                    <div class="card p-6 rounded-2xl text-center flex flex-col justify-center">
+                <div class="space-y-4">
+                    <div class="card p-6 rounded-2xl text-center">
                         <p class="text-gray-400 uppercase text-[10px] tracking-widest">Wynik Total</p>
                         <h2 id="totalProfit" class="text-2xl md:text-3xl font-black mt-1">0.00</h2>
                     </div>
-                    <div class="card p-4 rounded-2xl text-center flex flex-col justify-center border-l-4 border-l-[#d4af37]">
-                        <p class="text-gray-400 uppercase text-[10px] tracking-widest">Win Rate</p>
-                        <h2 id="winRate" class="text-xl md:text-2xl font-black mt-1 gold-text">0%</h2>
-                        <hr class="my-2 border-gray-800">
-                        <p class="text-gray-400 uppercase text-[9px] tracking-widest">Profit Factor</p>
-                        <h2 id="profitFactor" class="text-lg font-bold text-white">0.00</h2>
+                    <div class="card p-4 rounded-2xl">
+                        <h3 class="text-center text-[10px] text-gray-500 uppercase mb-4">Skuteczność Strategii</h3>
+                        <div class="h-[150px]">
+                            <canvas id="strategyChart"></canvas>
+                        </div>
                     </div>
                 </div>
             </div>
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                 <div class="card p-4 rounded-xl text-center">
-                    <p class="text-[9px] text-gray-500 uppercase">Średni Zysk</p>
-                    <p id="avgWin" class="text-green-400 font-bold">0.00</p>
+                    <p class="text-[9px] text-gray-500 uppercase">Win Rate</p>
+                    <p id="winRate" class="gold-text font-bold text-lg">0%</p>
                 </div>
                 <div class="card p-4 rounded-xl text-center">
-                    <p class="text-[9px] text-gray-500 uppercase">Średnia Strata</p>
-                    <p id="avgLoss" class="text-red-400 font-bold">0.00</p>
+                    <p class="text-[9px] text-gray-500 uppercase">Profit Factor</p>
+                    <p id="profitFactor" class="text-white font-bold text-lg">0.00</p>
                 </div>
                 <div class="card p-4 rounded-xl text-center">
-                    <p class="text-[9px] text-gray-500 uppercase">Ratio (Avg W/L)</p>
-                    <p id="riskReward" class="text-white font-bold">0.00</p>
+                    <p class="text-[9px] text-gray-500 uppercase">Avg W/L</p>
+                    <p id="riskReward" class="text-white font-bold text-lg">0.00</p>
                 </div>
                 <div class="card p-4 rounded-xl text-center">
-                    <p class="text-[9px] text-gray-500 uppercase">Ilość Trade</p>
-                    <p id="tradeCount" class="text-white font-bold">0</p>
-                </div>
-            </div>
-            <div class="card p-4 md:p-6 rounded-2xl mb-6">
-                <h3 class="font-bold mb-4 text-gray-400 uppercase text-[10px] tracking-widest text-center">Analiza Poszczególnych Trade</h3>
-                <div class="h-[200px]">
-                    <canvas id="tradesBarChart"></canvas>
+                    <p class="text-[9px] text-gray-500 uppercase">Trade Count</p>
+                    <p id="tradeCount" class="text-white font-bold text-lg">0</p>
                 </div>
             </div>
         </div>
@@ -114,52 +113,69 @@
                     <div class="space-y-3">
                         <input type="text" id="pair" placeholder="Para (np. XAUUSD)" class="w-full bg-[#1e293b] p-3 rounded-lg border border-gray-700 text-white focus:border-[#d4af37] outline-none text-sm font-bold uppercase">
                         <input type="number" id="profitInput" placeholder="Wynik USD" class="w-full bg-[#1e293b] p-3 rounded-lg border border-gray-700 text-white focus:border-[#d4af37] outline-none text-sm font-bold">
-                        <select id="type" class="w-full bg-[#1e293b] p-3 rounded-lg border border-gray-700 text-white focus:border-[#d4af37] outline-none text-sm uppercase">
-                            <option value="Long">Long 📈</option>
-                            <option value="Short">Short 📉</option>
-                        </select>
+                        <div class="grid grid-cols-2 gap-2">
+                            <select id="type" class="bg-[#1e293b] p-3 rounded-lg border border-gray-700 text-white focus:border-[#d4af37] outline-none text-xs uppercase">
+                                <option value="Long">Long 📈</option>
+                                <option value="Short">Short 📉</option>
+                            </select>
+                            <select id="strategy" class="bg-[#1e293b] p-3 rounded-lg border border-gray-700 text-white focus:border-[#d4af37] outline-none text-xs uppercase">
+                                <option value="Scalping">Scalping</option>
+                                <option value="Trend">Trend Following</option>
+                                <option value="Reversal">Reversal</option>
+                                <option value="News">News Trading</option>
+                            </select>
+                        </div>
                         <div class="pt-2">
-                            <label class="text-[10px] text-gray-500 uppercase mb-2 block tracking-widest">Twoje Emocje przy wejściu:</label>
+                            <label class="text-[10px] text-gray-500 uppercase mb-2 block tracking-widest">Emocje:</label>
                             <div class="flex justify-between bg-[#1e293b] p-2 rounded-lg border border-gray-700">
-                                <span onclick="selectEmotion('🧘‍♂️', this)" class="emotion-btn text-xl" title="Spokój">🧘‍♂️</span>
+                                <span onclick="selectEmotion('🧘‍♂️', this)" class="emotion-btn text-xl active" title="Spokój">🧘‍♂️</span>
                                 <span onclick="selectEmotion('🤑', this)" class="emotion-btn text-xl" title="Chciwość">🤑</span>
-                                <span onclick="selectEmotion('😡', this)" class="emotion-btn text-xl" title="Złość/Zemsta">😡</span>
+                                <span onclick="selectEmotion('😡', this)" class="emotion-btn text-xl" title="Złość">😡</span>
                                 <span onclick="selectEmotion('🏃‍♂️', this)" class="emotion-btn text-xl" title="FOMO">🏃‍♂️</span>
                                 <span onclick="selectEmotion('😨', this)" class="emotion-btn text-xl" title="Strach">😨</span>
                             </div>
                             <input type="hidden" id="emotionValue" value="🧘‍♂️">
                         </div>
-                        <input type="text" id="note" placeholder="Notatka (np. dlaczego to wziąłeś?)" class="w-full bg-[#1e293b] p-3 rounded-lg border border-gray-700 text-white focus:border-[#d4af37] outline-none text-sm">
-                        <button onclick="addTrade()" class="gold-bg w-full text-black font-extrabold py-3 rounded-lg hover:opacity-90 transition text-sm uppercase mt-4">Dodaj Trade</button>
+                        <input type="text" id="note" placeholder="Notatka..." class="w-full bg-[#1e293b] p-3 rounded-lg border border-gray-700 text-white focus:border-[#d4af37] outline-none text-sm">
+                        <button id="addTradeBtn" onclick="addTrade()" class="gold-bg w-full text-black font-extrabold py-3 rounded-lg hover:opacity-90 transition text-sm uppercase mt-4">Dodaj Trade</button>
                     </div>
                 </div>
                 <div class="xl:col-span-2 space-y-4">
-                    <div class="flex gap-2">
-                        <input type="text" id="filterInput" onkeyup="filterTrades()" placeholder="Szukaj po parze lub emocji..." class="flex-1 bg-[#0f172a] border border-gray-800 p-2 rounded-lg text-xs outline-none focus:border-gold">
-                    </div>
+                    <input type="text" id="filterInput" onkeyup="filterTrades()" placeholder="Szukaj..." class="w-full bg-[#0f172a] border border-gray-800 p-2 rounded-lg text-xs outline-none focus:border-gold">
                     <div class="card rounded-2xl overflow-hidden">
-                        <div class="overflow-x-auto custom-scroll">
-                            <table class="w-full text-left" id="journalTable">
-                                <thead class="bg-[#1e293b]/50 text-gray-500 text-[10px] uppercase">
-                                    <tr>
-                                        <th class="p-4">Instrument / Notatka</th>
-                                        <th class="p-4">Wynik</th>
-                                        <th class="p-4 text-center">Emocja</th>
-                                        <th class="p-4">Data</th>
-                                        <th class="p-4 text-right">Akcja</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="tradesTable" class="text-sm"></tbody>
-                            </table>
-                        </div>
+                        <table class="w-full text-left">
+                            <thead class="bg-[#1e293b]/50 text-gray-500 text-[10px] uppercase">
+                                <tr>
+                                    <th class="p-4">Instrument / Strategia</th>
+                                    <th class="p-4">Wynik</th>
+                                    <th class="p-4 text-center">Emocja</th>
+                                    <th class="p-4 text-right">Akcja</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tradesTable" class="text-sm"></tbody>
+                        </table>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="tabReports" class="hidden">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="card p-6 rounded-2xl">
+                    <h3 class="gold-text font-bold mb-4 uppercase text-sm">Podsumowanie Tygodnia</h3>
+                    <div id="weeklyReportContent" class="space-y-4 text-sm">
+                        </div>
+                </div>
+                <div class="card p-6 rounded-2xl">
+                    <h3 class="text-gray-400 font-bold mb-4 uppercase text-sm">Lekcja Tygodnia</h3>
+                    <textarea id="weeklyLesson" oninput="saveWeeklyLesson()" class="w-full h-32 bg-[#1e293b] border border-gray-700 rounded-xl p-4 text-white text-sm outline-none focus:border-gold-text" placeholder="Czego nauczyłeś się w tym tygodniu?"></textarea>
                 </div>
             </div>
         </div>
 
         <div id="tabCalc" class="hidden">
             <div class="max-w-md mx-auto card p-8 rounded-3xl border-t-4 border-t-[#d4af37]">
-                <h3 class="text-xl font-bold gold-text mb-6 text-center uppercase tracking-widest">Risk Calculator XAUUSD</h3>
+                <h3 class="text-xl font-bold gold-text mb-6 text-center uppercase tracking-widest">Risk Calculator</h3>
                 <div class="space-y-6">
                     <div>
                         <label class="block text-[10px] uppercase text-gray-500 mb-2">Ryzyko na transakcję (%)</label>
@@ -170,7 +186,7 @@
                         <input type="number" id="slPips" value="20" oninput="calculateLot()" class="w-full bg-[#1e293b] p-4 rounded-xl border border-gray-700 text-white focus:border-gold-text outline-none text-lg font-bold">
                     </div>
                     <div class="bg-black/40 p-6 rounded-2xl border border-dashed border-gray-700 text-center">
-                        <p class="text-gray-500 text-[10px] uppercase mb-1">Rekomendowana Wielkość Pozycji</p>
+                        <p class="text-gray-500 text-[10px] uppercase mb-1">Lot size</p>
                         <h2 id="resultLot" class="text-4xl font-black gold-text">0.05</h2>
                         <p class="text-[10px] text-gray-500 mt-2 italic">Ryzykujesz: <span id="riskAmount" class="text-white">0.00</span> USD</p>
                     </div>
@@ -184,7 +200,7 @@
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJrdXRncGFveGt2d2h2c2Z6bmptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc1OTgwMTQsImV4cCI6MjA4MzE3NDAxNH0.ycpuwln6hNlmVEh4dtsMbiRQwWTqN7TQobDyrlLcRCw';
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        let equityChart, barChart;
+        let equityChart, strategyChart;
         let allTrades = [];
         let currentTotalBalance = 0;
 
@@ -192,15 +208,17 @@
             const { data: { user } } = await _supabase.auth.getUser();
             if (!user) { window.location.href = 'index.html'; return; }
             document.getElementById('welcomeText').innerHTML = `Witaj, <span class="text-white font-bold">${user.user_metadata.display_name || "Traderze"}</span>`;
-            await loadSettings(user.id);
+            await loadSettings();
             fetchTrades();
         }
 
-        async function loadSettings(userId) {
+        async function loadSettings() {
             const { data } = await _supabase.from('user_settings').select('*').single();
             if (data) {
                 document.getElementById('startBalance').value = data.start_balance;
                 document.getElementById('dailyGoalPct').value = data.daily_goal_pct;
+                document.getElementById('dailyLossLimit').value = data.daily_loss_limit || 3;
+                document.getElementById('weeklyLesson').value = data.weekly_lesson || "";
             }
         }
 
@@ -209,9 +227,18 @@
             await _supabase.from('user_settings').upsert({ 
                 user_id: user.id, 
                 start_balance: parseFloat(document.getElementById('startBalance').value) || 0, 
-                daily_goal_pct: parseFloat(document.getElementById('dailyGoalPct').value) || 0 
+                daily_goal_pct: parseFloat(document.getElementById('dailyGoalPct').value) || 0,
+                daily_loss_limit: parseFloat(document.getElementById('dailyLossLimit').value) || 3
             });
             calculateStats();
+        }
+
+        async function saveWeeklyLesson() {
+            const { data: { user } } = await _supabase.auth.getUser();
+            await _supabase.from('user_settings').upsert({ 
+                user_id: user.id, 
+                weekly_lesson: document.getElementById('weeklyLesson').value
+            });
         }
 
         function switchTab(tab) {
@@ -222,7 +249,6 @@
             });
             document.getElementById('btn' + tab.charAt(0).toUpperCase() + tab.slice(1)).className = 'pb-2 font-bold text-sm uppercase tracking-widest nav-active';
             if(tab === 'dashboard') calculateStats();
-            if(tab === 'calc') calculateLot();
         }
 
         function selectEmotion(emo, el) {
@@ -237,39 +263,38 @@
             calculateStats();
         }
 
-        // NAPRAWIONA FUNKCJA WYŚWIETLANIA STATYSTYK I TABELI
         function calculateStats() {
             const table = document.getElementById('tradesTable');
-            let total = 0, wins = 0, losses = 0, sumWins = 0, sumLosses = 0;
-            let dailyProfit = 0;
-            let equityData = [0], labels = ['Start'], barLabels = [], barData = [];
+            let total = 0, wins = 0, losses = 0, sumWins = 0, sumLosses = 0, dailyProfit = 0;
+            let equityData = [0], labels = ['Start'];
+            let strategyStats = {};
+            
             const today = new Date().toLocaleDateString();
             table.innerHTML = '';
             
             [...allTrades].reverse().forEach((t) => {
                 const profit = parseFloat(t.profit);
-                if(new Date(t.created_at).toLocaleDateString() === today) dailyProfit += profit;
+                const isToday = new Date(t.created_at).toLocaleDateString() === today;
+                if(isToday) dailyProfit += profit;
 
-                // WYCIĄGANIE EMOCJI I NOTATKI
-                let emotion = "🧘‍♂️";
-                let pureNote = "";
+                let emotion = "🧘‍♂️", strategy = "Scalping", note = "";
                 if (t.note && t.note.includes('|')) {
                     const parts = t.note.split('|');
-                    emotion = parts[0].trim();
-                    pureNote = parts[1].trim();
-                } else {
-                    pureNote = t.note || "";
+                    emotion = parts[0]?.trim() || "🧘‍♂️";
+                    strategy = parts[1]?.trim() || "Scalping";
+                    note = parts[2]?.trim() || "";
                 }
+
+                strategyStats[strategy] = (strategyStats[strategy] || 0) + profit;
 
                 table.innerHTML += `
                     <tr class="border-b border-gray-800 text-white hover:bg-white/5 transition">
                         <td class="p-4">
-                            <div class="font-bold text-xs md:text-sm uppercase">${t.pair} <span class="text-[9px] text-gray-500 font-normal ml-2">${t.type}</span></div>
-                            <div class="text-[11px] text-gold-text mt-1 italic opacity-80">${pureNote}</div>
+                            <div class="font-bold text-xs uppercase">${t.pair} <span class="text-gold-text ml-2 text-[10px]">[${strategy}]</span></div>
+                            <div class="text-[10px] text-gray-500 italic">${note}</div>
                         </td>
                         <td class="p-4 font-bold ${profit >= 0 ? 'text-green-400' : 'text-red-400'}">${profit.toFixed(2)} $</td>
                         <td class="p-4 text-center text-xl">${emotion}</td>
-                        <td class="p-4 text-gray-500 text-[10px]">${new Date(t.created_at).toLocaleDateString()}</td>
                         <td class="p-4 text-right"><button onclick="deleteTrade(${t.id})" class="text-red-900 bg-red-500/10 px-2 py-1 rounded text-[10px]">X</button></td>
                     </tr>
                 `;
@@ -283,21 +308,93 @@
                 else if(profit < 0) { losses++; sumLosses += Math.abs(profit); }
                 equityData.push(equityData[equityData.length - 1] + profit);
                 labels.push(i + 1);
-                barLabels.push(`#${i+1}`);
-                barData.push(profit);
             });
 
             currentTotalBalance = startBalance + total;
-            updateDailyGoal(dailyProfit);
+            
+            // UI Updates
+            updateDailyGoalAndSafety(dailyProfit, startBalance);
             document.getElementById('totalProfit').innerText = total.toFixed(2) + " $";
             document.getElementById('totalProfit').className = `text-2xl md:text-3xl font-black mt-1 ${total >= 0 ? 'text-green-400' : 'text-red-400'}`;
             document.getElementById('winRate').innerText = (allTrades.length > 0 ? ((wins / allTrades.length) * 100).toFixed(0) : 0) + "%";
             document.getElementById('tradeCount').innerText = allTrades.length;
             document.getElementById('profitFactor').innerText = sumLosses > 0 ? (sumWins / sumLosses).toFixed(2) : sumWins.toFixed(2);
-            document.getElementById('avgWin').innerText = "+" + (wins > 0 ? (sumWins / wins).toFixed(2) : "0.00");
-            document.getElementById('avgLoss').innerText = "-" + (losses > 0 ? (sumLosses / losses).toFixed(2) : "0.00");
             document.getElementById('riskReward').innerText = (losses > 0 && wins > 0) ? ((sumWins/wins)/(sumLosses/losses)).toFixed(2) : "0.00";
-            updateCharts(labels, equityData, barLabels, barData);
+            
+            updateCharts(labels, equityData, strategyStats);
+            generateWeeklyReport();
+        }
+
+        function updateDailyGoalAndSafety(dailyProfit, startBalance) {
+            const goalPct = parseFloat(document.getElementById('dailyGoalPct').value) || 0;
+            const lossLimitPct = parseFloat(document.getElementById('dailyLossLimit').value) || 3;
+            const goalAmount = startBalance * (goalPct / 100);
+            const lossLimitAmount = - (startBalance * (lossLimitPct / 100));
+            
+            const statusCard = document.getElementById('statusCard');
+            const alertText = document.getElementById('limitAlert');
+            const addBtn = document.getElementById('addTradeBtn');
+
+            if (dailyProfit <= lossLimitAmount) {
+                statusCard.classList.add('danger-glow');
+                alertText.innerHTML = "🛑 LIMIT STRAT OSIĄGNIĘTY! ODEJDŹ OD WYKRESU!";
+                alertText.className = "text-[10px] uppercase text-red-500 font-bold animate-pulse";
+                addBtn.disabled = true;
+                addBtn.classList.add('grayscale');
+            } else {
+                statusCard.classList.remove('danger-glow');
+                alertText.innerText = "Postęp Celu Dzisiaj";
+                alertText.className = "text-[10px] uppercase text-gray-500";
+                addBtn.disabled = false;
+                addBtn.classList.remove('grayscale');
+            }
+
+            const progressPct = goalAmount > 0 ? Math.max(0, Math.min((dailyProfit / goalAmount) * 100, 100)) : 0;
+            document.getElementById('goalBar').style.width = `${progressPct}%`;
+            document.getElementById('goalStatus').innerText = `${dailyProfit.toFixed(2)} / ${goalAmount.toFixed(2)} USD`;
+        }
+
+        function generateWeeklyReport() {
+            const oneWeekAgo = new Date();
+            oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+            const weeklyTrades = allTrades.filter(t => new Date(t.created_at) > oneWeekAgo);
+            
+            let wProfit = 0, wWins = 0;
+            weeklyTrades.forEach(t => {
+                wProfit += parseFloat(t.profit);
+                if(t.profit > 0) wWins++;
+            });
+
+            const content = document.getElementById('weeklyReportContent');
+            content.innerHTML = `
+                <div class="flex justify-between border-b border-gray-800 pb-2"><span>Zysk 7d:</span><span class="${wProfit >= 0 ? 'text-green-400' : 'text-red-400'} font-bold">${wProfit.toFixed(2)} $</span></div>
+                <div class="flex justify-between border-b border-gray-800 pb-2"><span>Transakcje:</span><span class="text-white">${weeklyTrades.length}</span></div>
+                <div class="flex justify-between border-b border-gray-800 pb-2"><span>Skuteczność:</span><span class="text-gold-text">${weeklyTrades.length > 0 ? ((wWins/weeklyTrades.length)*100).toFixed(0) : 0}%</span></div>
+            `;
+        }
+
+        function updateCharts(labels, equity, strategyData) {
+            const ctx1 = document.getElementById('equityChart').getContext('2d');
+            if (equityChart) equityChart.destroy();
+            equityChart = new Chart(ctx1, {
+                type: 'line',
+                data: { labels: labels, datasets: [{ data: equity, borderColor: '#d4af37', borderWidth: 2, fill: true, backgroundColor: 'rgba(212, 175, 55, 0.1)', tension: 0.3, pointRadius: 2 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: '#64748b', font: { size: 9 } } }, y: { ticks: { color: '#64748b', font: { size: 9 } } } } }
+            });
+
+            const ctx2 = document.getElementById('strategyChart').getContext('2d');
+            if (strategyChart) strategyChart.destroy();
+            strategyChart = new Chart(ctx2, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(strategyData),
+                    datasets: [{
+                        data: Object.values(strategyData),
+                        backgroundColor: ['#d4af37', '#1e293b', '#334155', '#4ade80', '#f87171']
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#64748b', font: { size: 8 } } } } }
+            });
         }
 
         async function addTrade() {
@@ -305,9 +402,12 @@
             const pair = document.getElementById('pair').value;
             const profit = document.getElementById('profitInput').value;
             const emotion = document.getElementById('emotionValue').value;
+            const strategy = document.getElementById('strategy').value;
             const noteContent = document.getElementById('note').value;
+            
             if(!pair || !profit) return;
-            const finalNote = emotion + " | " + noteContent;
+            const finalNote = `${emotion} | ${strategy} | ${noteContent}`;
+
             await _supabase.from('trades').insert([{ 
                 user_id: user.id, 
                 pair: pair.toUpperCase(), 
@@ -315,6 +415,7 @@
                 type: document.getElementById('type').value, 
                 note: finalNote 
             }]);
+            
             document.getElementById('pair').value = ''; 
             document.getElementById('profitInput').value = '';
             document.getElementById('note').value = '';
@@ -327,41 +428,6 @@
             const riskAmount = currentTotalBalance * (riskPct / 100);
             document.getElementById('riskAmount').innerText = riskAmount.toFixed(2);
             document.getElementById('resultLot').innerText = slPips > 0 ? (riskAmount / slPips).toFixed(2) : "0.00";
-        }
-
-        function updateDailyGoal(currentDailyProfit) {
-            const startBalance = parseFloat(document.getElementById('startBalance').value) || 1;
-            const goalPct = parseFloat(document.getElementById('dailyGoalPct').value) || 0;
-            const goalAmount = startBalance * (goalPct / 100);
-            const progressPct = goalAmount > 0 ? Math.min((currentDailyProfit / goalAmount) * 100, 100) : 0;
-            document.getElementById('goalBar').style.width = `${currentDailyProfit > 0 ? progressPct : 0}%`;
-            document.getElementById('goalStatus').innerText = `${currentDailyProfit.toFixed(2)} / ${goalAmount.toFixed(2)} USD`;
-        }
-
-        function updateCharts(labels, equity, barLabels, barValues) {
-            const ctx1 = document.getElementById('equityChart').getContext('2d');
-            if (equityChart) equityChart.destroy();
-            equityChart = new Chart(ctx1, {
-                type: 'line',
-                data: { labels: labels, datasets: [{ data: equity, borderColor: '#d4af37', borderWidth: 2, fill: true, backgroundColor: 'rgba(212, 175, 55, 0.1)', tension: 0.3, pointRadius: 2 }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: '#64748b', font: { size: 9 } } }, y: { ticks: { color: '#64748b', font: { size: 9 } } } } }
-            });
-            const ctx2 = document.getElementById('tradesBarChart').getContext('2d');
-            if (barChart) barChart.destroy();
-            barChart = new Chart(ctx2, {
-                type: 'bar',
-                data: {
-                    labels: barLabels,
-                    datasets: [{
-                        data: barValues,
-                        backgroundColor: barValues.map(v => v >= 0 ? 'rgba(74, 222, 128, 0.4)' : 'rgba(248, 113, 113, 0.4)'),
-                        borderColor: barValues.map(v => v >= 0 ? '#4ade80' : '#f87171'),
-                        borderWidth: 1,
-                        barPercentage: 0.5
-                    }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { ticks: { color: '#64748b', font: { size: 9 } } }, x: { ticks: { display: false } } } }
-            });
         }
 
         async function deleteTrade(id) { if(confirm("Usunąć?")) { await _supabase.from('trades').delete().eq('id', id); fetchTrades(); } }
