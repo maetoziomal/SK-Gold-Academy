@@ -20,13 +20,15 @@
         </div>
 
         <div class="space-y-4">
+            <input type="text" id="nickname" placeholder="Twoje Imię / Nick" class="w-full bg-[#1e293b] border border-gray-700 rounded-lg p-3 focus:outline-none focus:border-[#d4af37] text-white">
+            
             <input type="email" id="email" placeholder="Email" class="w-full bg-[#1e293b] border border-gray-700 rounded-lg p-3 focus:outline-none focus:border-[#d4af37] text-white">
             <input type="password" id="password" placeholder="Hasło" class="w-full bg-[#1e293b] border border-gray-700 rounded-lg p-3 focus:outline-none focus:border-[#d4af37] text-white">
             
             <button onclick="handleLogin()" class="gold-bg w-full py-3 rounded-lg font-bold text-black hover:scale-[1.02] transition-transform">
                 Zaloguj / Rejestracja
             </button>
-            <p id="msg" class="text-center text-xs mt-2"></p>
+            <p id="msg" class="text-center text-xs mt-2 font-medium"></p>
         </div>
     </div>
 
@@ -39,17 +41,43 @@
         async function handleLogin() {
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
+            const nickname = document.getElementById('nickname').value;
             const msg = document.getElementById('msg');
+
+            if (!email || !password) {
+                msg.innerText = "Podaj email i hasło!";
+                msg.style.color = "#f87171";
+                return;
+            }
 
             // Próba logowania
             const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
             if (error) {
-                // Jeśli nie ma użytkownika, spróbuj zarejestrować
-                const { error: regError } = await supabase.auth.signUp({ email, password });
-                if (regError) msg.innerText = "Błąd: " + regError.message;
-                else msg.innerText = "Konto stworzone! Sprawdź email (jeśli wymagane) lub zaloguj się ponownie.";
+                // Jeśli logowanie się nie uda, rejestrujemy nowego użytkownika z imieniem w metadanych
+                if (!nickname) {
+                    msg.innerText = "Dla nowych kont pole 'Imię' jest wymagane!";
+                    msg.style.color = "#f87171";
+                    return;
+                }
+
+                const { error: regError } = await supabase.auth.signUp({ 
+                    email, 
+                    password,
+                    options: {
+                        data: { display_name: nickname }
+                    }
+                });
+
+                if (regError) {
+                    msg.innerText = "Błąd: " + regError.message;
+                    msg.style.color = "#f87171";
+                } else {
+                    msg.innerText = "Konto stworzone! Możesz się teraz zalogować.";
+                    msg.style.color = "#34d399";
+                }
             } else {
+                // Logowanie udane
                 window.location.href = 'panel.html';
             }
         }
