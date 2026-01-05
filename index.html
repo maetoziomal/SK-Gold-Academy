@@ -12,28 +12,30 @@
         .gold-bg { background: linear-gradient(135deg, #d4af37 0%, #f1c40f 100%); }
     </style>
 </head>
-<body class="flex items-center justify-center min-h-screen">
-    <div class="bg-[#0f172a] p-10 rounded-2xl gold-border shadow-2xl w-full max-w-md">
+<body class="flex items-center justify-center min-h-screen p-4">
+    <div class="bg-[#0f172a] p-8 md:p-10 rounded-2xl gold-border shadow-2xl w-full max-w-md">
         <div class="text-center mb-8">
             <h1 class="text-3xl font-bold tracking-tighter text-[#d4af37]">SK GOLD ACADEMY</h1>
             <p class="text-gray-400 text-sm mt-2">Zaloguj się do swojego terminala</p>
         </div>
 
         <div class="space-y-4">
-            <input type="text" id="nickname" placeholder="Twoje Imię / Nick" class="w-full bg-[#1e293b] border border-gray-700 rounded-lg p-3 focus:outline-none focus:border-[#d4af37] text-white">
+            <div>
+                <label class="text-[10px] uppercase tracking-widest text-gray-500 ml-1">Imię / Nick (tylko przy rejestracji)</label>
+                <input type="text" id="nickname" placeholder="np. Mateusz" class="w-full bg-[#1e293b] border border-gray-700 rounded-lg p-3 focus:outline-none focus:border-[#d4af37] text-white mt-1">
+            </div>
             
             <input type="email" id="email" placeholder="Email" class="w-full bg-[#1e293b] border border-gray-700 rounded-lg p-3 focus:outline-none focus:border-[#d4af37] text-white">
             <input type="password" id="password" placeholder="Hasło" class="w-full bg-[#1e293b] border border-gray-700 rounded-lg p-3 focus:outline-none focus:border-[#d4af37] text-white">
             
-            <button onclick="handleLogin()" class="gold-bg w-full py-3 rounded-lg font-bold text-black hover:scale-[1.02] transition-transform">
+            <button onclick="handleLogin()" class="gold-bg w-full py-3 rounded-lg font-bold text-black hover:scale-[1.02] transition-transform active:scale-95">
                 Zaloguj / Rejestracja
             </button>
-            <p id="msg" class="text-center text-xs mt-2 font-medium"></p>
+            <p id="msg" class="text-center text-xs mt-2 font-medium px-2"></p>
         </div>
     </div>
 
     <script>
-        // KONFIGURACJA SUPABASE - ZMIANA NAZWY ZMIENNEJ NA _supabase
         const SUPABASE_URL = 'https://bkutgpaoxkvwhvsfznjm.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJrdXRncGFveGt2d2h2c2Z6bmptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc1OTgwMTQsImV4cCI6MjA4MzE3NDAxNH0.ycpuwln6hNlmVEh4dtsMbiRQwWTqN7TQobDyrlLcRCw';
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -44,19 +46,22 @@
             const nickname = document.getElementById('nickname').value;
             const msg = document.getElementById('msg');
 
+            msg.innerText = "Przetwarzanie...";
+            msg.style.color = "#94a3b8";
+
             if (!email || !password) {
                 msg.innerText = "Podaj email i hasło!";
                 msg.style.color = "#f87171";
                 return;
             }
 
-            // Próba logowania przy użyciu _supabase
+            // 1. Próba logowania
             const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
 
             if (error) {
-                // Rejestracja nowego użytkownika
+                // 2. Jeśli błąd logowania, sprawdzamy czy to próba rejestracji
                 if (!nickname) {
-                    msg.innerText = "Dla nowych kont pole 'Imię' jest wymagane!";
+                    msg.innerText = "Błędne dane lub konto nie istnieje. Podaj Imię, aby się zarejestrować.";
                     msg.style.color = "#f87171";
                     return;
                 }
@@ -65,19 +70,33 @@
                     email, 
                     password,
                     options: {
-                        data: { display_name: nickname }
+                        data: { 
+                            display_name: nickname,
+                            is_approved: false // Domyślnie brak dostępu
+                        }
                     }
                 });
 
                 if (regError) {
-                    msg.innerText = "Błąd: " + regError.message;
+                    msg.innerText = "Błąd rejestracji: " + regError.message;
                     msg.style.color = "#f87171";
                 } else {
-                    msg.innerText = "Konto stworzone! Możesz się teraz zalogować.";
+                    msg.innerText = "Konto utworzone! Poczekaj na weryfikację przez administratora.";
                     msg.style.color = "#34d399";
                 }
             } else {
-                window.location.href = 'panel.html';
+                // 3. Logowanie udane - sprawdzamy uprawnienia w metadanych
+                const user = data.user;
+                const isApproved = user.user_metadata.is_approved;
+
+                if (isApproved === true) {
+                    window.location.href = 'panel.html';
+                } else {
+                    // Wyloguj użytkownika jeśli nie ma zgody
+                    await _supabase.auth.signOut();
+                    msg.innerText = "Twoje konto oczekuje na akceptację administratora.";
+                    msg.style.color = "#fbbf24";
+                }
             }
         }
     </script>
