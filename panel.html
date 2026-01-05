@@ -51,10 +51,10 @@
             </div>
         </div>
 
-        <nav class="flex gap-6 mb-8 border-b border-gray-800 px-2 overflow-x-auto custom-scroll whitespace-nowrap">
+        <nav class="flex gap-6 mb-8 border-b border-gray-800 px-2">
             <button id="btnDashboard" onclick="switchTab('dashboard')" class="pb-2 font-bold text-sm uppercase tracking-widest nav-active">Dashboard</button>
             <button id="btnJournal" onclick="switchTab('journal')" class="pb-2 font-bold text-sm uppercase tracking-widest text-gray-500">Dziennik Tradera</button>
-            <button id="btnPlanning" onclick="switchTab('planning')" class="pb-2 font-bold text-sm uppercase tracking-widest text-gray-500">Planowanie 🚀</button>
+            <button id="btnCalc" onclick="switchTab('calc')" class="pb-2 font-bold text-sm uppercase tracking-widest text-gray-500">Kalkulator Lot 🧮</button>
         </nav>
 
         <div id="tabDashboard">
@@ -147,24 +147,25 @@
             </div>
         </div>
 
-        <div id="tabPlanning" class="hidden">
-            <div class="card p-6 rounded-2xl mb-6">
-                <h3 class="text-xl font-bold gold-text mb-2">Projekcja Twojego Wyniku</h3>
-                <p class="text-gray-400 text-xs mb-6 uppercase tracking-wider">Symulacja 30 dni przy utrzymaniu celu dziennego</p>
+        <div id="tabCalc" class="hidden">
+            <div class="max-w-md mx-auto card p-8 rounded-3xl border-t-4 border-t-[#d4af37]">
+                <h3 class="text-xl font-bold gold-text mb-6 text-center uppercase tracking-widest">Risk Calculator XAUUSD</h3>
                 
-                <div class="overflow-x-auto custom-scroll">
-                    <table class="w-full text-left">
-                        <thead class="bg-[#1e293b] text-gray-500 text-[10px] uppercase">
-                            <tr>
-                                <th class="p-3">Dzień</th>
-                                <th class="p-3">Saldo Startowe</th>
-                                <th class="p-3">Zysk (${document.getElementById('dailyGoalPct')?.value || 10}%)</th>
-                                <th class="p-3">Saldo Końcowe</th>
-                            </tr>
-                        </thead>
-                        <tbody id="planningTable" class="text-sm">
-                            </tbody>
-                    </table>
+                <div class="space-y-6">
+                    <div>
+                        <label class="block text-[10px] uppercase text-gray-500 mb-2">Ryzyko na transakcję (%)</label>
+                        <input type="number" id="riskPct" value="1" oninput="calculateLot()" class="w-full bg-[#1e293b] p-4 rounded-xl border border-gray-700 text-white focus:border-gold-text outline-none text-lg font-bold">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] uppercase text-gray-500 mb-2">Stop Loss (Pips)</label>
+                        <input type="number" id="slPips" value="20" oninput="calculateLot()" class="w-full bg-[#1e293b] p-4 rounded-xl border border-gray-700 text-white focus:border-gold-text outline-none text-lg font-bold">
+                    </div>
+
+                    <div class="bg-black/40 p-6 rounded-2xl border border-dashed border-gray-700 text-center">
+                        <p class="text-gray-500 text-[10px] uppercase mb-1">Rekomendowana Wielkość Pozycji</p>
+                        <h2 id="resultLot" class="text-4xl font-black gold-text">0.05</h2>
+                        <p class="text-[10px] text-gray-500 mt-2 italic">Ryzykujesz: <span id="riskAmount" class="text-white">0.00</span> USD</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -177,6 +178,7 @@
 
         let equityChart, barChart;
         let allTrades = [];
+        let currentTotalBalance = 0;
 
         async function checkUser() {
             const { data: { user } } = await _supabase.auth.getUser();
@@ -194,7 +196,6 @@
             } else {
                 await _supabase.from('user_settings').insert([{ user_id: userId, start_balance: 1000, daily_goal_pct: 10 }]);
             }
-            updatePlanning();
         }
 
         async function saveSettings() {
@@ -207,20 +208,19 @@
                 daily_goal_pct: parseFloat(goal) || 0 
             });
             calculateStats();
-            updatePlanning();
         }
 
         function switchTab(tab) {
             document.getElementById('tabDashboard').classList.toggle('hidden', tab !== 'dashboard');
             document.getElementById('tabJournal').classList.toggle('hidden', tab !== 'journal');
-            document.getElementById('tabPlanning').classList.toggle('hidden', tab !== 'planning');
+            document.getElementById('tabCalc').classList.toggle('hidden', tab !== 'calc');
             
             document.getElementById('btnDashboard').className = tab === 'dashboard' ? 'pb-2 font-bold text-sm uppercase tracking-widest nav-active' : 'pb-2 font-bold text-sm uppercase tracking-widest text-gray-500';
             document.getElementById('btnJournal').className = tab === 'journal' ? 'pb-2 font-bold text-sm uppercase tracking-widest nav-active' : 'pb-2 font-bold text-sm uppercase tracking-widest text-gray-500';
-            document.getElementById('btnPlanning').className = tab === 'planning' ? 'pb-2 font-bold text-sm uppercase tracking-widest nav-active' : 'pb-2 font-bold text-sm uppercase tracking-widest text-gray-500';
+            document.getElementById('btnCalc').className = tab === 'calc' ? 'pb-2 font-bold text-sm uppercase tracking-widest nav-active' : 'pb-2 font-bold text-sm uppercase tracking-widest text-gray-500';
             
             if(tab === 'dashboard') calculateStats();
-            if(tab === 'planning') updatePlanning();
+            if(tab === 'calc') calculateLot();
         }
 
         async function fetchTrades() {
@@ -251,6 +251,7 @@
                 `;
             });
 
+            const startBalanceFromInput = parseFloat(document.getElementById('startBalance').value) || 0;
             allTrades.forEach((t, i) => {
                 const profit = parseFloat(t.profit);
                 total += profit;
@@ -262,6 +263,7 @@
                 barData.push(profit);
             });
 
+            currentTotalBalance = startBalanceFromInput + total;
             updateDailyGoal(dailyProfit);
 
             document.getElementById('totalProfit').innerText = total.toFixed(2) + " $";
@@ -276,27 +278,23 @@
             updateCharts(labels, equityData, barLabels, barData);
         }
 
-        function updatePlanning() {
-            const table = document.getElementById('planningTable');
-            const startBal = parseFloat(document.getElementById('startBalance').value) || 0;
-            const dailyPct = parseFloat(document.getElementById('dailyGoalPct').value) || 0;
+        function calculateLot() {
+            // Kalkulacja dla Złota (XAUUSD) - 1 pip na złocie przy 0.01 lota to zazwyczaj 0.01 USD (przy 2 cyfrach)
+            // Ale standardowo: Lot = (Kwota Ryzyka) / (SL w pipsach * Wartość pipsa)
+            // Dla ułatwienia przyjmujemy standard: SL 10 pips = 1 USD zmiany na cenie złota.
             
-            table.innerHTML = '';
-            let currentBal = startBal;
+            const riskPct = parseFloat(document.getElementById('riskPct').value) || 0;
+            const slPips = parseFloat(document.getElementById('slPips').value) || 0;
+            
+            const riskAmount = currentTotalBalance * (riskPct / 100);
+            document.getElementById('riskAmount').innerText = riskAmount.toFixed(2);
 
-            for(let i = 1; i <= 30; i++) {
-                let profit = currentBal * (dailyPct / 100);
-                let nextBal = currentBal + profit;
-                
-                table.innerHTML += `
-                    <tr class="border-b border-gray-800/50 hover:bg-white/5 transition">
-                        <td class="p-3 text-gray-500 font-bold">Dzień ${i}</td>
-                        <td class="p-3 font-mono text-xs">${currentBal.toFixed(2)} $</td>
-                        <td class="p-3 text-green-400 font-bold text-xs">+${profit.toFixed(2)} $</td>
-                        <td class="p-3 font-bold text-gold-text text-xs">${nextBal.toFixed(2)} $</td>
-                    </tr>
-                `;
-                currentBal = nextBal;
+            if(slPips > 0) {
+                // Wzór: Ryzyko $ / (SL pips * 10) -> dla Gold
+                const lot = riskAmount / slPips;
+                document.getElementById('resultLot').innerText = lot.toFixed(2);
+            } else {
+                document.getElementById('resultLot').innerText = "0.00";
             }
         }
 
