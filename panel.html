@@ -11,6 +11,7 @@
         .gold-text { color: #d4af37; }
         .card { background-color: #0f172a; border: 1px solid rgba(212, 175, 55, 0.1); }
         .gold-bg { background: linear-gradient(135deg, #d4af37 0%, #f1c40f 100%); }
+        canvas { max-width: 100% !important; }
     </style>
 </head>
 <body class="p-4 md:p-8">
@@ -35,8 +36,8 @@
                     <h2 id="totalProfit" class="text-4xl font-black mt-2">0.00 PLN</h2>
                 </div>
                 <div class="card p-6 rounded-2xl flex-1 flex flex-col justify-center items-center text-center border-green-500/20">
-                    <p class="text-gray-400 uppercase text-xs tracking-widest">Skuteczność</p>
-                    <h2 id="winRate" class="text-4xl font-black mt-2 text-gold">0%</h2>
+                    <p class="text-gray-400 uppercase text-xs tracking-widest">Skuteczność (Win Rate)</p>
+                    <h2 id="winRate" class="text-4xl font-black mt-2 gold-text">0%</h2>
                 </div>
             </div>
         </div>
@@ -45,13 +46,13 @@
             <div class="card p-6 rounded-2xl h-fit">
                 <h3 class="text-xl font-bold mb-6 gold-text">Dodaj Trade</h3>
                 <div class="space-y-4">
-                    <input type="text" id="pair" placeholder="Para (np. XAUUSD)" class="w-full bg-[#1e293b] p-3 rounded-lg border border-gray-700 text-white focus:border-gold outline-none">
-                    <input type="number" id="profit" placeholder="Wynik w PLN" class="w-full bg-[#1e293b] p-3 rounded-lg border border-gray-700 text-white focus:border-gold outline-none">
-                    <select id="type" class="w-full bg-[#1e293b] p-3 rounded-lg border border-gray-700 text-white focus:border-gold outline-none">
+                    <input type="text" id="pair" placeholder="Para (np. XAUUSD)" class="w-full bg-[#1e293b] p-3 rounded-lg border border-gray-700 text-white focus:border-[#d4af37] outline-none">
+                    <input type="number" id="profit" placeholder="Wynik w PLN" class="w-full bg-[#1e293b] p-3 rounded-lg border border-gray-700 text-white focus:border-[#d4af37] outline-none">
+                    <select id="type" class="w-full bg-[#1e293b] p-3 rounded-lg border border-gray-700 text-white focus:border-[#d4af37] outline-none">
                         <option value="Long">Long 📈</option>
                         <option value="Short">Short 📉</option>
                     </select>
-                    <input type="text" id="note" placeholder="Krótka notatka" class="w-full bg-[#1e293b] p-3 rounded-lg border border-gray-700 text-white focus:border-gold outline-none">
+                    <input type="text" id="note" placeholder="Krótka notatka" class="w-full bg-[#1e293b] p-3 rounded-lg border border-gray-700 text-white focus:border-[#d4af37] outline-none">
                     <button onclick="addTrade()" class="gold-bg w-full text-black font-extrabold py-3 rounded-lg hover:opacity-90 transition transform active:scale-95">DODAJ DO DZIENNIKA</button>
                 </div>
             </div>
@@ -70,8 +71,7 @@
                                 <th class="p-4">Data</th>
                             </tr>
                         </thead>
-                        <tbody id="tradesTable" class="text-sm">
-                            </tbody>
+                        <tbody id="tradesTable" class="text-sm"></tbody>
                     </table>
                 </div>
             </div>
@@ -89,7 +89,6 @@
             const { data: { user } } = await _supabase.auth.getUser();
             if (!user) { window.location.href = 'index.html'; return; }
 
-            // POBIERANIE IMIENIA Z METADANYCH
             const name = user.user_metadata.display_name || "Traderze";
             document.getElementById('welcomeText').innerHTML = `Witaj ponownie, <span class="text-white font-bold">${name}</span>! Gotowy na sesję?`;
             
@@ -100,7 +99,7 @@
             const { data: trades, error } = await _supabase
                 .from('trades')
                 .select('*')
-                .order('created_at', { ascending: true });
+                .order('created_at', { ascending: true }); // Pobieramy od najstarszych dla wykresu
 
             if (error) return;
             
@@ -115,25 +114,26 @@
             
             table.innerHTML = '';
 
-            trades.reverse().forEach((t, index) => {
+            // Renderowanie tabeli (najnowsze na górze)
+            [...trades].reverse().forEach((t) => {
                 total += parseFloat(t.profit);
                 if(t.profit > 0) wins++;
                 
                 table.innerHTML += `
-                    <tr class="border-b border-gray-800 hover:bg-white/5 transition">
-                        <td class="p-4 font-bold text-white">${t.pair}</td>
-                        <td class="p-4"><span class="px-2 py-1 rounded text-[10px] ${t.type === 'Long' ? 'bg-blue-500/20 text-blue-400' : 'bg-orange-500/20 text-orange-400'}">${t.type}</span></td>
-                        <td class="p-4 font-mono font-bold ${t.profit >= 0 ? 'text-green-400' : 'text-red-400'}">${t.profit > 0 ? '+' : ''}${t.profit} PLN</td>
+                    <tr class="border-b border-gray-800 hover:bg-white/5 transition text-white">
+                        <td class="p-4 font-bold">${t.pair}</td>
+                        <td class="p-4 text-xs">${t.type}</td>
+                        <td class="p-4 font-bold ${t.profit >= 0 ? 'text-green-400' : 'text-red-400'}">${t.profit > 0 ? '+' : ''}${t.profit} PLN</td>
                         <td class="p-4 text-gray-500 text-xs">${new Date(t.created_at).toLocaleDateString()}</td>
                     </tr>
                 `;
             });
 
-            // Przygotowanie danych do wykresu (chronologicznie)
-            let runningTotal = 0;
-            trades.reverse().forEach((t) => {
-                runningTotal += parseFloat(t.profit);
-                equityData.push(runningTotal);
+            // Obliczanie krzywej kapitału dla wykresu
+            let currentEquity = 0;
+            trades.forEach(t => {
+                currentEquity += parseFloat(t.profit);
+                equityData.push(currentEquity);
                 labels.push(new Date(t.created_at).toLocaleDateString());
             });
 
@@ -155,18 +155,17 @@
                 data: {
                     labels: labels,
                     datasets: [{
-                        label: 'Kapitał',
                         data: data,
                         borderColor: '#d4af37',
-                        borderWidth: 3,
+                        borderWidth: 2,
                         backgroundColor: 'rgba(212, 175, 55, 0.1)',
                         fill: true,
-                        tension: 0.4,
-                        pointRadius: 4,
-                        pointBackgroundColor: '#d4af37'
+                        tension: 0.3,
+                        pointRadius: 2
                     }]
                 },
                 options: {
+                    responsive: true,
                     plugins: { legend: { display: false } },
                     scales: {
                         y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b' } },
@@ -185,13 +184,13 @@
 
             const { error } = await _supabase.from('trades').insert([{
                 user_id: user.id,
-                pair: pair,
+                pair: pair.toUpperCase(),
                 profit: parseFloat(profit),
                 type: document.getElementById('type').value,
                 note: document.getElementById('note').value
             }]);
 
-            if (error) alert(error.message);
+            if (error) alert("Błąd zapisu: " + error.message);
             else {
                 document.getElementById('pair').value = '';
                 document.getElementById('profit').value = '';
