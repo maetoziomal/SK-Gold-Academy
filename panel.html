@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel Tradera USD - SK Gold Academy Pro</title>
+    <title>SK GOLD ACADEMY PRO</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body { background-color: #020617; color: #f8fafc; font-family: 'Inter', sans-serif; height: 100vh; display: flex; flex-direction: column; }
+        body { background-color: #020617; color: #f8fafc; font-family: 'Inter', sans-serif; min-height: 100vh; }
         .gold-text { color: #d4af37; }
         .card { background-color: #0f172a; border: 1px solid rgba(212, 175, 55, 0.1); }
         .gold-bg { background: linear-gradient(135deg, #d4af37 0%, #f1c40f 100%); }
@@ -21,15 +21,14 @@
         .emotion-btn { opacity: 0.4; transition: all 0.2s; cursor: pointer; filter: grayscale(1); }
         .emotion-btn.active { opacity: 1; filter: grayscale(0); transform: scale(1.2); }
         .danger-glow { box-shadow: 0 0 20px rgba(239, 68, 68, 0.5); border: 1px solid #ef4444; }
-        /* Styl dla kontenerów iframe */
-        .external-frame { width: 100%; height: calc(100vh - 350px); min-height: 500px; border-radius: 1rem; overflow: hidden; }
+        .external-frame { width: 100%; height: calc(100vh - 400px); min-height: 550px; border-radius: 1rem; overflow: hidden; }
     </style>
 </head>
 <body class="p-2 md:p-8">
     <div class="max-w-6xl mx-auto w-full">
         <header class="flex justify-between items-center mb-6 px-2">
             <div>
-                <h1 class="text-2xl md:text-3xl font-black italic gold-text tracking-tighter uppercase">SK GOLD</h1>
+                <h1 class="text-2xl md:text-3xl font-black italic gold-text tracking-tighter uppercase">SK GOLD ACADEMY PRO</h1>
                 <p id="welcomeText" class="text-gray-400 text-xs md:text-sm">Autoryzacja...</p>
             </div>
             <button onclick="logout()" class="bg-red-900/20 text-red-400 px-3 py-1.5 rounded-lg text-xs hover:bg-red-900/40 transition">Wyloguj</button>
@@ -58,7 +57,7 @@
 
             <div class="mb-3">
                 <div class="flex justify-between text-[10px] uppercase mb-1">
-                    <span class="text-gray-400">Postęp Celu</span>
+                    <span class="text-gray-400">Postęp Celu (Reset 00:00)</span>
                     <span id="goalStatus" class="gold-text font-bold">0.00 / 0.00 USD</span>
                 </div>
                 <div class="w-full bg-gray-800 rounded-full h-3 overflow-hidden border border-gray-700">
@@ -175,28 +174,20 @@
                 <div class="tradingview-widget-container">
                     <div class="tradingview-widget-container__widget"></div>
                     <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-events.js" async>
-                    {
-                    "colorTheme": "dark",
-                    "isTransparent": true,
-                    "width": "100%",
-                    "height": "100%",
-                    "locale": "pl",
-                    "importanceFilter": "-1,0,1",
-                    "currencyFilter": "USD"
-                    }
+                    { "colorTheme": "dark", "isTransparent": true, "width": "100%", "height": "100%", "locale": "pl", "importanceFilter": "-1,0,1", "currencyFilter": "USD" }
                     </script>
                 </div>
-                </div>
+            </div>
         </div>
 
         <div id="tabReports" class="hidden">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="card p-6 rounded-2xl">
-                    <h3 class="gold-text font-bold mb-4 uppercase text-sm">Podsumowanie Tygodnia (Ostatnie 7 dni)</h3>
+                    <h3 class="gold-text font-bold mb-4 uppercase text-sm">Podsumowanie (od Poniedziałku)</h3>
                     <div id="weeklyReportContent" class="space-y-4 text-sm"></div>
                 </div>
                 <div class="card p-6 rounded-2xl">
-                    <h3 class="text-gray-400 font-bold mb-4 uppercase text-sm">Lekcja Tygodnia</h3>
+                    <h3 class="text-gray-400 font-bold mb-4 uppercase text-sm">Lekcja Tygodnia (Reset w Pon.)</h3>
                     <textarea id="weeklyLesson" oninput="saveWeeklyLesson()" class="w-full h-32 bg-[#1e293b] border border-gray-700 rounded-xl p-4 text-white text-sm outline-none focus:border-gold-text" placeholder="Czego nauczyłeś się w tym tygodniu?"></textarea>
                 </div>
             </div>
@@ -234,30 +225,25 @@
         let allTrades = [];
         let currentTotalBalance = 0;
 
-        // Inicjalizacja TradingView
-        function initTV() {
-            tvWidget = new TradingView.widget({
-                "autosize": true,
-                "symbol": "OANDA:XAUUSD",
-                "interval": "15",
-                "timezone": "Europe/Warsaw",
-                "theme": "dark",
-                "style": "1",
-                "locale": "pl",
-                "toolbar_bg": "#0f172a",
-                "enable_publishing": false,
-                "hide_side_toolbar": false, // PANEL BOCZNY WŁĄCZONY
-                "allow_symbol_change": true,
-                "container_id": "tv_chart_container"
-            });
+        async function checkWeeklyReset() {
+            const now = new Date();
+            if (now.getDay() === 1) { // Poniedziałek
+                const lastReset = localStorage.getItem('lastWeeklyReset');
+                if (lastReset !== now.toLocaleDateString()) {
+                    const { data: { user } } = await _supabase.auth.getUser();
+                    await _supabase.from('user_settings').upsert({ user_id: user.id, weekly_lesson: "" });
+                    document.getElementById('weeklyLesson').value = "";
+                    localStorage.setItem('lastWeeklyReset', now.toLocaleDateString());
+                }
+            }
         }
 
-        function getTradingSession(dateString) {
-            const date = dateString ? new Date(dateString) : new Date();
-            const hour = date.getHours();
-            if (hour >= 8 && hour < 14) return 'London 🇬🇧';
-            if (hour >= 14 && hour < 21) return 'New York 🇺🇸';
-            return 'Asia 🇯🇵';
+        function initTV() {
+            tvWidget = new TradingView.widget({
+                "autosize": true, "symbol": "OANDA:XAUUSD", "interval": "15", "timezone": "Europe/Warsaw",
+                "theme": "dark", "style": "1", "locale": "pl", "toolbar_bg": "#0f172a", "enable_publishing": false,
+                "hide_side_toolbar": false, "allow_symbol_change": true, "container_id": "tv_chart_container"
+            });
         }
 
         async function checkUser() {
@@ -265,8 +251,9 @@
             if (!user) { window.location.href = 'index.html'; return; }
             document.getElementById('welcomeText').innerHTML = `Witaj, <span class="text-white font-bold">${user.user_metadata.display_name || "Traderze"}</span>`;
             await loadSettings();
+            await checkWeeklyReset();
             fetchTrades();
-            initTV(); // Start wykresu
+            initTV();
         }
 
         async function loadSettings() {
@@ -303,12 +290,6 @@
             if(tab === 'dashboard') calculateStats();
         }
 
-        function selectEmotion(emo, el) {
-            document.querySelectorAll('.emotion-btn').forEach(b => b.classList.remove('active'));
-            el.classList.add('active');
-            document.getElementById('emotionValue').value = emo;
-        }
-
         async function fetchTrades() {
             const { data } = await _supabase.from('trades').select('*').order('created_at', { ascending: true });
             allTrades = data || [];
@@ -320,7 +301,6 @@
             let total = 0, wins = 0, losses = 0, sumWins = 0, sumLosses = 0, dailyProfit = 0;
             let equityData = [0], labels = ['Start'];
             let sessionStats = { 'London 🇬🇧': 0, 'New York 🇺🇸': 0, 'Asia 🇯🇵': 0 };
-            
             const today = new Date().toLocaleDateString();
             table.innerHTML = '';
             
@@ -328,7 +308,7 @@
                 const profit = parseFloat(t.profit);
                 if (new Date(t.created_at).toLocaleDateString() === today) dailyProfit += profit;
 
-                let emotion = "🧘‍♂️", strategy = "Scalping", session = getTradingSession(t.created_at);
+                let emotion = "🧘‍♂️", strategy = "Scalping", session = "London 🇬🇧";
                 if (t.note && t.note.includes('|')) {
                     const parts = t.note.split('|');
                     emotion = parts[0]?.trim() || "🧘‍♂️";
@@ -337,14 +317,7 @@
                 }
                 sessionStats[session] = (sessionStats[session] || 0) + profit;
 
-                table.innerHTML += `
-                    <tr class="border-b border-gray-800 text-white hover:bg-white/5 transition">
-                        <td class="p-4"><div class="font-bold text-xs uppercase">${t.pair} <span class="text-gold-text ml-2 text-[10px]">${session}</span></div><div class="text-[10px] text-gray-400 uppercase tracking-tighter">${strategy}</div></td>
-                        <td class="p-4 font-bold ${profit >= 0 ? 'text-green-400' : 'text-red-400'}">${profit.toFixed(2)} $</td>
-                        <td class="p-4 text-center text-xl">${emotion}</td>
-                        <td class="p-4 text-right"><button onclick="deleteTrade(${t.id})" class="text-red-500 bg-red-500/10 px-2 py-1 rounded text-[10px]">X</button></td>
-                    </tr>
-                `;
+                table.innerHTML += `<tr class="border-b border-gray-800 text-white hover:bg-white/5 transition"><td class="p-4"><div class="font-bold text-xs uppercase">${t.pair} <span class="text-gold-text ml-2 text-[10px]">${session}</span></div><div class="text-[10px] text-gray-400 uppercase tracking-tighter">${strategy}</div></td><td class="p-4 font-bold ${profit >= 0 ? 'text-green-400' : 'text-red-400'}">${profit.toFixed(2)} $</td><td class="p-4 text-center text-xl">${emotion}</td><td class="p-4 text-right"><button onclick="deleteTrade(${t.id})" class="text-red-500 bg-red-500/10 px-2 py-1 rounded text-[10px]">X</button></td></tr>`;
             });
 
             const startBalance = parseFloat(document.getElementById('startBalance').value) || 0;
@@ -370,38 +343,30 @@
         }
 
         function generateWeeklyReport() {
-            const sevenDaysAgo = new Date();
-            sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-            const weeklyTrades = allTrades.filter(t => new Date(t.created_at) >= sevenDaysAgo);
+            const now = new Date();
+            const dayOfWeek = now.getDay(); 
+            const diff = now.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
+            const monday = new Date(now.setDate(diff));
+            monday.setHours(0,0,0,0);
+            const weeklyTrades = allTrades.filter(t => new Date(t.created_at) >= monday);
             let wProfit = 0, wWins = 0;
             weeklyTrades.forEach(t => {
                 wProfit += parseFloat(t.profit);
                 if(parseFloat(t.profit) > 0) wWins++;
             });
-            const content = document.getElementById('weeklyReportContent');
-            content.innerHTML = `
-                <div class="flex justify-between border-b border-gray-800 pb-2"><span>Zysk 7d:</span><span class="${wProfit >= 0 ? 'text-green-400' : 'text-red-400'} font-bold">${wProfit.toFixed(2)} $</span></div>
+            document.getElementById('weeklyReportContent').innerHTML = `
+                <div class="flex justify-between border-b border-gray-800 pb-2"><span>Zysk od Pon:</span><span class="${wProfit >= 0 ? 'text-green-400' : 'text-red-400'} font-bold">${wProfit.toFixed(2)} $</span></div>
                 <div class="flex justify-between border-b border-gray-800 pb-2"><span>Transakcje:</span><span class="text-white">${weeklyTrades.length}</span></div>
-                <div class="flex justify-between border-b border-gray-800 pb-2"><span>Skuteczność:</span><span class="text-gold-text">${weeklyTrades.length > 0 ? ((wWins/weeklyTrades.length)*100).toFixed(0) : 0}%</span></div>
-            `;
+                <div class="flex justify-between border-b border-gray-800 pb-2"><span>Skuteczność:</span><span class="text-gold-text">${weeklyTrades.length > 0 ? ((wWins/weeklyTrades.length)*100).toFixed(0) : 0}%</span></div>`;
         }
 
         function updateCharts(labels, equity, sessionData) {
             const ctx1 = document.getElementById('equityChart').getContext('2d');
             if (equityChart) equityChart.destroy();
-            equityChart = new Chart(ctx1, {
-                type: 'line',
-                data: { labels: labels, datasets: [{ data: equity, borderColor: '#d4af37', borderWidth: 2, fill: true, backgroundColor: 'rgba(212, 175, 55, 0.1)', tension: 0.3, pointRadius: 2 }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: '#64748b', font: { size: 9 } } }, y: { ticks: { color: '#64748b', font: { size: 9 } } } } }
-            });
-
+            equityChart = new Chart(ctx1, { type: 'line', data: { labels: labels, datasets: [{ data: equity, borderColor: '#d4af37', borderWidth: 2, fill: true, backgroundColor: 'rgba(212, 175, 55, 0.1)', tension: 0.3, pointRadius: 2 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: '#64748b', font: { size: 9 } } }, y: { ticks: { color: '#64748b', font: { size: 9 } } } } } });
             const ctx2 = document.getElementById('sessionChart').getContext('2d');
             if (sessionChart) sessionChart.destroy();
-            sessionChart = new Chart(ctx2, {
-                type: 'bar',
-                data: { labels: Object.keys(sessionData), datasets: [{ data: Object.values(sessionData), backgroundColor: Object.values(sessionData).map(v => v >= 0 ? '#4ade80' : '#f87171') }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { color: '#64748b', font: { size: 8 } } }, x: { ticks: { color: '#64748b', font: { size: 8 } } } } }
-            });
+            sessionChart = new Chart(ctx2, { type: 'bar', data: { labels: Object.keys(sessionData), datasets: [{ data: Object.values(sessionData), backgroundColor: Object.values(sessionData).map(v => v >= 0 ? '#4ade80' : '#f87171') }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { color: '#64748b', font: { size: 8 } } }, x: { ticks: { color: '#64748b', font: { size: 8 } } } } } });
         }
 
         async function addTrade() {
@@ -411,33 +376,29 @@
             if(!pair || !profit) return;
             const emotion = document.getElementById('emotionValue').value;
             const strategy = document.getElementById('strategy').value;
-            const finalNote = `${emotion} | ${strategy} | ${document.getElementById('note').value} | ${getTradingSession()}`;
+            const hour = new Date().getHours();
+            let session = (hour >= 8 && hour < 14) ? 'London 🇬🇧' : (hour >= 14 && hour < 21) ? 'New York 🇺🇸' : 'Asia 🇯🇵';
+            const finalNote = `${emotion} | ${strategy} | ${document.getElementById('note').value} | ${session}`;
             await _supabase.from('trades').insert([{ user_id: user.id, pair: pair.toUpperCase(), profit: parseFloat(profit), type: document.getElementById('type').value, note: finalNote }]);
             document.getElementById('pair').value = ''; document.getElementById('profitInput').value = ''; document.getElementById('note').value = '';
             fetchTrades();
         }
 
         function calculateLot() {
-            const riskPct = parseFloat(document.getElementById('riskPct').value) || 0;
-            const slPips = parseFloat(document.getElementById('slPips').value) || 0;
-            const riskAmount = currentTotalBalance * (riskPct / 100);
+            const riskAmount = currentTotalBalance * (parseFloat(document.getElementById('riskPct').value) / 100);
             document.getElementById('riskAmount').innerText = riskAmount.toFixed(2);
-            document.getElementById('resultLot').innerText = slPips > 0 ? (riskAmount / slPips).toFixed(2) : "0.00";
+            const sl = parseFloat(document.getElementById('slPips').value);
+            document.getElementById('resultLot').innerText = sl > 0 ? (riskAmount / sl).toFixed(2) : "0.00";
         }
 
         function updateDailyGoalAndSafety(dailyProfit, startBalance) {
-            const goalPct = parseFloat(document.getElementById('dailyGoalPct').value) || 0;
-            const lossLimitPct = parseFloat(document.getElementById('dailyLossLimit').value) || 3;
-            const goalAmount = startBalance * (goalPct / 100);
-            const lossLimitAmount = startBalance * (lossLimitPct / 100);
-            
+            const goalAmount = startBalance * (parseFloat(document.getElementById('dailyGoalPct').value) / 100);
+            const lossLimitAmount = startBalance * (parseFloat(document.getElementById('dailyLossLimit').value) / 100);
             document.getElementById('goalBar').style.width = `${goalAmount > 0 ? Math.max(0, Math.min((dailyProfit / goalAmount) * 100, 100)) : 0}%`;
             document.getElementById('goalStatus').innerText = `${dailyProfit.toFixed(2)} / ${goalAmount.toFixed(2)} USD`;
-
             const dailyLoss = dailyProfit < 0 ? Math.abs(dailyProfit) : 0;
             document.getElementById('lossBar').style.width = `${lossLimitAmount > 0 ? Math.max(0, Math.min((dailyLoss / lossLimitAmount) * 100, 100)) : 0}%`;
             document.getElementById('lossStatus').innerText = `${dailyLoss.toFixed(2)} / ${lossLimitAmount.toFixed(2)} USD`;
-
             const statusCard = document.getElementById('statusCard');
             const addBtn = document.getElementById('addTradeBtn');
             if (dailyProfit <= -lossLimitAmount && lossLimitAmount !== 0) {
@@ -451,12 +412,8 @@
             }
         }
 
-        function filterTrades() {
-            const input = document.getElementById('filterInput').value.toUpperCase();
-            const rows = document.getElementById('tradesTable').getElementsByTagName('tr');
-            for (let row of rows) { row.style.display = row.textContent.toUpperCase().includes(input) ? "" : "none"; }
-        }
-
+        function selectEmotion(emo, el) { document.querySelectorAll('.emotion-btn').forEach(b => b.classList.remove('active')); el.classList.add('active'); document.getElementById('emotionValue').value = emo; }
+        function filterTrades() { const input = document.getElementById('filterInput').value.toUpperCase(); const rows = document.getElementById('tradesTable').getElementsByTagName('tr'); for (let row of rows) { row.style.display = row.textContent.toUpperCase().includes(input) ? "" : "none"; } }
         async function deleteTrade(id) { if(confirm("Usunąć?")) { await _supabase.from('trades').delete().eq('id', id); fetchTrades(); } }
         async function logout() { await _supabase.auth.signOut(); window.location.href = 'index.html'; }
         checkUser();
