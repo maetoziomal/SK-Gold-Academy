@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel Tradera - SK Gold Academy</title>
+    <title>Panel Tradera USD - SK Gold Academy</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -33,7 +33,7 @@
             <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-4">
                 <div class="flex gap-4">
                     <div>
-                        <label class="block text-[10px] uppercase text-gray-500 mb-1">Saldo Start (PLN)</label>
+                        <label class="block text-[10px] uppercase text-gray-500 mb-1">Saldo Start (USD)</label>
                         <input type="number" id="startBalance" value="1000" oninput="saveSettings()" class="bg-[#1e293b] border border-gray-700 rounded px-2 py-1 text-sm w-24 outline-none focus:border-gold-text">
                     </div>
                     <div>
@@ -43,7 +43,7 @@
                 </div>
                 <div class="text-right">
                     <p class="text-[10px] uppercase text-gray-500">Postęp Celu Dzisiaj</p>
-                    <p id="goalStatus" class="text-sm font-bold gold-text">0.00 / 0.00 PLN</p>
+                    <p id="goalStatus" class="text-sm font-bold gold-text">0.00 / 0.00 USD</p>
                 </div>
             </div>
             <div class="w-full bg-gray-800 rounded-full h-4 overflow-hidden border border-gray-700">
@@ -59,7 +59,7 @@
         <div id="tabDashboard">
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
                 <div class="lg:col-span-2 card p-4 md:p-6 rounded-2xl">
-                    <h3 class="font-bold mb-4 text-gray-400 uppercase text-[10px] tracking-widest">Krzywa Kapitału (PLN)</h3>
+                    <h3 class="font-bold mb-4 text-gray-400 uppercase text-[10px] tracking-widest">Krzywa Kapitału (USD)</h3>
                     <div class="h-[250px] md:h-[300px]">
                         <canvas id="equityChart"></canvas>
                     </div>
@@ -113,7 +113,7 @@
                     <h3 class="text-lg font-bold mb-4 gold-text">Nowa Pozycja</h3>
                     <div class="space-y-3">
                         <input type="text" id="pair" placeholder="Para (np. XAUUSD)" class="w-full bg-[#1e293b] p-3 rounded-lg border border-gray-700 text-white focus:border-[#d4af37] outline-none text-sm">
-                        <input type="number" id="profitInput" placeholder="Wynik PLN" class="w-full bg-[#1e293b] p-3 rounded-lg border border-gray-700 text-white focus:border-[#d4af37] outline-none text-sm">
+                        <input type="number" id="profitInput" placeholder="Wynik USD" class="w-full bg-[#1e293b] p-3 rounded-lg border border-gray-700 text-white focus:border-[#d4af37] outline-none text-sm">
                         <select id="type" class="w-full bg-[#1e293b] p-3 rounded-lg border border-gray-700 text-white focus:border-[#d4af37] outline-none text-sm">
                             <option value="Long">Long 📈</option>
                             <option value="Short">Short 📉</option>
@@ -159,24 +159,16 @@
             const { data: { user } } = await _supabase.auth.getUser();
             if (!user) { window.location.href = 'index.html'; return; }
             document.getElementById('welcomeText').innerHTML = `Witaj, <span class="text-white font-bold">${user.user_metadata.display_name || "Traderze"}</span>`;
-            
-            // 1. Najpierw ładujemy ustawienia użytkownika
             await loadSettings(user.id);
-            // 2. Potem ładujemy trade'y
             fetchTrades();
         }
 
         async function loadSettings(userId) {
-            const { data, error } = await _supabase
-                .from('user_settings')
-                .select('*')
-                .single();
-
+            const { data } = await _supabase.from('user_settings').select('*').single();
             if (data) {
                 document.getElementById('startBalance').value = data.start_balance;
                 document.getElementById('dailyGoalPct').value = data.daily_goal_pct;
             } else {
-                // Jeśli użytkownik nie ma jeszcze ustawień w bazie, tworzymy je
                 await _supabase.from('user_settings').insert([{ user_id: userId, start_balance: 1000, daily_goal_pct: 10 }]);
             }
         }
@@ -185,14 +177,11 @@
             const { data: { user } } = await _supabase.auth.getUser();
             const balance = document.getElementById('startBalance').value;
             const goal = document.getElementById('dailyGoalPct').value;
-
-            // Używamy upsert - jeśli istnieje to aktualizuje, jeśli nie to tworzy
             await _supabase.from('user_settings').upsert({ 
                 user_id: user.id, 
                 start_balance: parseFloat(balance) || 0, 
                 daily_goal_pct: parseFloat(goal) || 0 
             });
-
             calculateStats();
         }
 
@@ -205,9 +194,8 @@
         }
 
         async function fetchTrades() {
-            const { data, error } = await _supabase.from('trades').select('*').order('created_at', { ascending: true });
-            if (error) return;
-            allTrades = data;
+            const { data } = await _supabase.from('trades').select('*').order('created_at', { ascending: true });
+            allTrades = data || [];
             calculateStats();
         }
 
@@ -216,20 +204,17 @@
             let total = 0, wins = 0, losses = 0, sumWins = 0, sumLosses = 0;
             let dailyProfit = 0;
             let equityData = [0], labels = ['Start'], barLabels = [], barData = [];
-            
             const today = new Date().toLocaleDateString();
             table.innerHTML = '';
             
             [...allTrades].reverse().forEach((t) => {
                 const profit = parseFloat(t.profit);
-                if(new Date(t.created_at).toLocaleDateString() === today) {
-                    dailyProfit += profit;
-                }
+                if(new Date(t.created_at).toLocaleDateString() === today) dailyProfit += profit;
 
                 table.innerHTML += `
                     <tr class="border-b border-gray-800 text-white hover:bg-white/5 transition">
                         <td class="p-4 font-bold text-xs md:text-sm">${t.pair} <br><span class="text-[9px] text-gray-500 uppercase">${t.type}</span></td>
-                        <td class="p-4 font-bold ${profit >= 0 ? 'text-green-400' : 'text-red-400'}">${profit.toFixed(2)} PLN</td>
+                        <td class="p-4 font-bold ${profit >= 0 ? 'text-green-400' : 'text-red-400'}">${profit.toFixed(2)} $</td>
                         <td class="p-4 text-gray-500 text-[10px]">${new Date(t.created_at).toLocaleDateString()}</td>
                         <td class="p-4 text-right"><button onclick="deleteTrade(${t.id})" class="text-red-900 bg-red-500/10 px-2 py-1 rounded text-[10px]">X</button></td>
                     </tr>
@@ -249,7 +234,7 @@
 
             updateDailyGoal(dailyProfit);
 
-            document.getElementById('totalProfit').innerText = total.toFixed(2) + " PLN";
+            document.getElementById('totalProfit').innerText = total.toFixed(2) + " $";
             document.getElementById('totalProfit').className = `text-2xl md:text-3xl font-black mt-1 ${total >= 0 ? 'text-green-400' : 'text-red-400'}`;
             document.getElementById('winRate').innerText = (allTrades.length > 0 ? ((wins / allTrades.length) * 100).toFixed(0) : 0) + "%";
             document.getElementById('tradeCount').innerText = allTrades.length;
@@ -265,19 +250,10 @@
             const startBalance = parseFloat(document.getElementById('startBalance').value) || 1;
             const goalPct = parseFloat(document.getElementById('dailyGoalPct').value) || 0;
             const goalAmount = startBalance * (goalPct / 100);
-            
             const progressPct = goalAmount > 0 ? Math.min((currentDailyProfit / goalAmount) * 100, 100) : 0;
-            const barWidth = currentDailyProfit > 0 ? progressPct : 0;
-
-            document.getElementById('goalBar').style.width = `${barWidth}%`;
-            document.getElementById('goalStatus').innerText = `${currentDailyProfit.toFixed(2)} / ${goalAmount.toFixed(2)} PLN`;
-            
-            if(currentDailyProfit >= goalAmount && goalAmount > 0) {
-                document.getElementById('goalStatus').innerText = "CEL OSIĄGNIĘTY! 🎯";
-                document.getElementById('goalStatus').style.color = "#4ade80";
-            } else {
-                document.getElementById('goalStatus').style.color = "#d4af37";
-            }
+            document.getElementById('goalBar').style.width = `${currentDailyProfit > 0 ? progressPct : 0}%`;
+            document.getElementById('goalStatus').innerText = `${currentDailyProfit.toFixed(2)} / ${goalAmount.toFixed(2)} USD`;
+            document.getElementById('goalStatus').style.color = (currentDailyProfit >= goalAmount && goalAmount > 0) ? "#4ade80" : "#d4af37";
         }
 
         function updateCharts(labels, equity, barLabels, barValues) {
@@ -311,29 +287,14 @@
             const { data: { user } } = await _supabase.auth.getUser();
             const pair = document.getElementById('pair').value;
             const profit = document.getElementById('profitInput').value;
-            if(!pair || !profit) { alert("Wypełnij parę i wynik!"); return; }
-
-            const { error } = await _supabase.from('trades').insert([{ 
-                user_id: user.id, 
-                pair: pair.toUpperCase(), 
-                profit: parseFloat(profit), 
-                type: document.getElementById('type').value, 
-                note: document.getElementById('note').value 
-            }]);
-
-            if (error) { alert("Błąd zapisu: " + error.message); }
-            else {
-                document.getElementById('pair').value = ''; 
-                document.getElementById('profitInput').value = '';
-                fetchTrades();
-            }
+            if(!pair || !profit) return;
+            await _supabase.from('trades').insert([{ user_id: user.id, pair: pair.toUpperCase(), profit: parseFloat(profit), type: document.getElementById('type').value, note: document.getElementById('note').value }]);
+            document.getElementById('pair').value = ''; document.getElementById('profitInput').value = '';
+            fetchTrades();
         }
 
         async function deleteTrade(id) {
-            if(confirm("Usunąć ten trade na stałe?")) { 
-                await _supabase.from('trades').delete().eq('id', id); 
-                fetchTrades(); 
-            }
+            if(confirm("Usunąć?")) { await _supabase.from('trades').delete().eq('id', id); fetchTrades(); }
         }
 
         function filterTrades() {
@@ -343,7 +304,6 @@
         }
 
         async function logout() { await _supabase.auth.signOut(); window.location.href = 'index.html'; }
-        
         checkUser();
     </script>
 </body>
