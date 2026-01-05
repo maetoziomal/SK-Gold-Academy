@@ -118,7 +118,6 @@
                             <option value="Long">Long 📈</option>
                             <option value="Short">Short 📉</option>
                         </select>
-
                         <div class="pt-2">
                             <label class="text-[10px] text-gray-500 uppercase mb-2 block tracking-widest">Twoje Emocje przy wejściu:</label>
                             <div class="flex justify-between bg-[#1e293b] p-2 rounded-lg border border-gray-700">
@@ -130,13 +129,10 @@
                             </div>
                             <input type="hidden" id="emotionValue" value="🧘‍♂️">
                         </div>
-
                         <input type="text" id="note" placeholder="Notatka (np. dlaczego to wziąłeś?)" class="w-full bg-[#1e293b] p-3 rounded-lg border border-gray-700 text-white focus:border-[#d4af37] outline-none text-sm">
-                        
                         <button onclick="addTrade()" class="gold-bg w-full text-black font-extrabold py-3 rounded-lg hover:opacity-90 transition text-sm uppercase mt-4">Dodaj Trade</button>
                     </div>
                 </div>
-
                 <div class="xl:col-span-2 space-y-4">
                     <div class="flex gap-2">
                         <input type="text" id="filterInput" onkeyup="filterTrades()" placeholder="Szukaj po parze lub emocji..." class="flex-1 bg-[#0f172a] border border-gray-800 p-2 rounded-lg text-xs outline-none focus:border-gold">
@@ -146,9 +142,9 @@
                             <table class="w-full text-left" id="journalTable">
                                 <thead class="bg-[#1e293b]/50 text-gray-500 text-[10px] uppercase">
                                     <tr>
-                                        <th class="p-4">Instrument</th>
+                                        <th class="p-4">Instrument / Notatka</th>
                                         <th class="p-4">Wynik</th>
-                                        <th class="p-4">Emocja</th>
+                                        <th class="p-4 text-center">Emocja</th>
                                         <th class="p-4">Data</th>
                                         <th class="p-4 text-right">Akcja</th>
                                     </tr>
@@ -221,12 +217,10 @@
         function switchTab(tab) {
             document.querySelectorAll('[id^="tab"]').forEach(el => el.classList.add('hidden'));
             document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.remove('hidden');
-            
             document.querySelectorAll('nav button').forEach(btn => {
                 btn.className = 'pb-2 font-bold text-sm uppercase tracking-widest text-gray-500';
             });
             document.getElementById('btn' + tab.charAt(0).toUpperCase() + tab.slice(1)).className = 'pb-2 font-bold text-sm uppercase tracking-widest nav-active';
-            
             if(tab === 'dashboard') calculateStats();
             if(tab === 'calc') calculateLot();
         }
@@ -243,6 +237,7 @@
             calculateStats();
         }
 
+        // NAPRAWIONA FUNKCJA WYŚWIETLANIA STATYSTYK I TABELI
         function calculateStats() {
             const table = document.getElementById('tradesTable');
             let total = 0, wins = 0, losses = 0, sumWins = 0, sumLosses = 0;
@@ -255,11 +250,25 @@
                 const profit = parseFloat(t.profit);
                 if(new Date(t.created_at).toLocaleDateString() === today) dailyProfit += profit;
 
+                // WYCIĄGANIE EMOCJI I NOTATKI
+                let emotion = "🧘‍♂️";
+                let pureNote = "";
+                if (t.note && t.note.includes('|')) {
+                    const parts = t.note.split('|');
+                    emotion = parts[0].trim();
+                    pureNote = parts[1].trim();
+                } else {
+                    pureNote = t.note || "";
+                }
+
                 table.innerHTML += `
                     <tr class="border-b border-gray-800 text-white hover:bg-white/5 transition">
-                        <td class="p-4 font-bold text-xs md:text-sm uppercase">${t.pair} <br><span class="text-[9px] text-gray-500">${t.type}</span></td>
+                        <td class="p-4">
+                            <div class="font-bold text-xs md:text-sm uppercase">${t.pair} <span class="text-[9px] text-gray-500 font-normal ml-2">${t.type}</span></div>
+                            <div class="text-[11px] text-gold-text mt-1 italic opacity-80">${pureNote}</div>
+                        </td>
                         <td class="p-4 font-bold ${profit >= 0 ? 'text-green-400' : 'text-red-400'}">${profit.toFixed(2)} $</td>
-                        <td class="p-4 text-center text-lg">${t.note && t.note.includes('🧘‍♂️') || t.note && t.note.includes('🤑') || t.note && t.note.includes('😡') || t.note && t.note.includes('🏃‍♂️') || t.note && t.note.includes('😨') ? t.note.split('|')[0] : '🧘‍♂️'}</td>
+                        <td class="p-4 text-center text-xl">${emotion}</td>
                         <td class="p-4 text-gray-500 text-[10px]">${new Date(t.created_at).toLocaleDateString()}</td>
                         <td class="p-4 text-right"><button onclick="deleteTrade(${t.id})" class="text-red-900 bg-red-500/10 px-2 py-1 rounded text-[10px]">X</button></td>
                     </tr>
@@ -280,7 +289,6 @@
 
             currentTotalBalance = startBalance + total;
             updateDailyGoal(dailyProfit);
-
             document.getElementById('totalProfit').innerText = total.toFixed(2) + " $";
             document.getElementById('totalProfit').className = `text-2xl md:text-3xl font-black mt-1 ${total >= 0 ? 'text-green-400' : 'text-red-400'}`;
             document.getElementById('winRate').innerText = (allTrades.length > 0 ? ((wins / allTrades.length) * 100).toFixed(0) : 0) + "%";
@@ -289,7 +297,6 @@
             document.getElementById('avgWin').innerText = "+" + (wins > 0 ? (sumWins / wins).toFixed(2) : "0.00");
             document.getElementById('avgLoss').innerText = "-" + (losses > 0 ? (sumLosses / losses).toFixed(2) : "0.00");
             document.getElementById('riskReward').innerText = (losses > 0 && wins > 0) ? ((sumWins/wins)/(sumLosses/losses)).toFixed(2) : "0.00";
-
             updateCharts(labels, equityData, barLabels, barData);
         }
 
@@ -299,12 +306,8 @@
             const profit = document.getElementById('profitInput').value;
             const emotion = document.getElementById('emotionValue').value;
             const noteContent = document.getElementById('note').value;
-            
             if(!pair || !profit) return;
-
-            // Zapisujemy emocję na początku notatki, żeby ją łatwo wyciągnąć
             const finalNote = emotion + " | " + noteContent;
-
             await _supabase.from('trades').insert([{ 
                 user_id: user.id, 
                 pair: pair.toUpperCase(), 
@@ -312,7 +315,6 @@
                 type: document.getElementById('type').value, 
                 note: finalNote 
             }]);
-            
             document.getElementById('pair').value = ''; 
             document.getElementById('profitInput').value = '';
             document.getElementById('note').value = '';
@@ -344,7 +346,6 @@
                 data: { labels: labels, datasets: [{ data: equity, borderColor: '#d4af37', borderWidth: 2, fill: true, backgroundColor: 'rgba(212, 175, 55, 0.1)', tension: 0.3, pointRadius: 2 }] },
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: '#64748b', font: { size: 9 } } }, y: { ticks: { color: '#64748b', font: { size: 9 } } } } }
             });
-
             const ctx2 = document.getElementById('tradesBarChart').getContext('2d');
             if (barChart) barChart.destroy();
             barChart = new Chart(ctx2, {
