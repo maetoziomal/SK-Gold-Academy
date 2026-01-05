@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>Panel Tradera - SK Gold Academy</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { background-color: #020617; color: #f8fafc; }
+        .gold-text { color: #d4af37; }
+        .card { background-color: #0f172a; border: 1px solid rgba(212, 175, 55, 0.1); }
+    </style>
+</head>
+<body class="p-8">
+    <div class="max-w-6xl mx-auto">
+        <header class="flex justify-between items-center mb-10">
+            <h1 class="text-3xl font-black italic gold-text">SK GOLD ACADEMY</h1>
+            <div class="flex items-center gap-4">
+                <span id="userEmail" class="text-sm text-gray-400"></span>
+                <button onclick="logout()" class="text-red-400 text-sm hover:underline">Wyloguj</button>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+            <div class="card p-6 rounded-2xl">
+                <h3 class="text-xl font-bold mb-4 gold-text text-center">Dodaj nową pozycję</h3>
+                <div class="grid grid-cols-2 gap-4">
+                    <input type="text" id="pair" placeholder="Para (np. XAUUSD)" class="bg-[#1e293b] p-2 rounded border border-gray-700 text-white">
+                    <input type="number" id="profit" placeholder="Wynik PLN" class="bg-[#1e293b] p-2 rounded border border-gray-700 text-white">
+                    <select id="type" class="bg-[#1e293b] p-2 rounded border border-gray-700 text-white">
+                        <option value="Long">Long</option>
+                        <option value="Short">Short</option>
+                    </select>
+                    <input type="text" id="note" placeholder="Notatka" class="bg-[#1e293b] p-2 rounded border border-gray-700 text-white">
+                </div>
+                <button onclick="addTrade()" class="w-full mt-4 bg-[#d4af37] text-black font-bold py-2 rounded-lg hover:bg-yellow-500 transition">Zapisz w dzienniku</button>
+            </div>
+
+            <div class="card p-6 rounded-2xl flex flex-col justify-center items-center">
+                <p class="text-gray-400 uppercase text-xs tracking-widest">Twój łączny wynik</p>
+                <h2 id="totalProfit" class="text-5xl font-black mt-2">0.00 PLN</h2>
+            </div>
+        </div>
+
+        <div class="card rounded-2xl overflow-hidden">
+            <table class="w-full text-left">
+                <thead class="bg-[#1e293b] text-gray-400 text-sm uppercase">
+                    <tr>
+                        <th class="p-4">Para</th>
+                        <th class="p-4">Typ</th>
+                        <th class="p-4">Wynik</th>
+                        <th class="p-4">Notatka</th>
+                    </tr>
+                </thead>
+                <tbody id="tradesTable">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'TUTAJ_WKLEJ_URL';
+        const SUPABASE_KEY = 'TUTAJ_WKLEJ_KLUCZ';
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // Ładowanie danych po otwarciu strony
+        async function init() {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) {
+                window.location.href = 'index.html';
+                return;
+            }
+            document.getElementById('userEmail').innerText = user.email;
+            fetchTrades();
+        }
+
+        async function fetchTrades() {
+            const { data: trades, error } = await supabase
+                .from('trades')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (error) console.log(error);
+            
+            const table = document.getElementById('tradesTable');
+            const totalDisplay = document.getElementById('totalProfit');
+            let total = 0;
+            table.innerHTML = '';
+
+            trades.forEach(t => {
+                total += parseFloat(t.profit);
+                table.innerHTML += `
+                    <tr class="border-b border-gray-800 hover:bg-white/5 transition">
+                        <td class="p-4 font-bold text-white">${t.pair}</td>
+                        <td class="p-4 text-sm text-gray-400">${t.type}</td>
+                        <td class="p-4 font-bold ${t.profit >= 0 ? 'text-green-400' : 'text-red-400'}">${t.profit} PLN</td>
+                        <td class="p-4 text-sm italic text-gray-500">${t.note}</td>
+                    </tr>
+                `;
+            });
+            totalDisplay.innerText = total.toFixed(2) + " PLN";
+            totalDisplay.className = `text-5xl font-black mt-2 ${total >= 0 ? 'text-green-400' : 'text-red-400'}`;
+        }
+
+        async function addTrade() {
+            const { data: { user } } = await supabase.auth.getUser();
+            const tradeData = {
+                user_id: user.id,
+                pair: document.getElementById('pair').value,
+                profit: document.getElementById('profit').value,
+                type: document.getElementById('type').value,
+                note: document.getElementById('note').value
+            };
+
+            const { error } = await supabase.from('trades').insert([tradeData]);
+            if (error) alert(error.message);
+            else {
+                fetchTrades(); // Odśwież tabelę
+                // Wyczyść pola
+                document.getElementById('pair').value = '';
+                document.getElementById('profit').value = '';
+                document.getElementById('note').value = '';
+            }
+        }
+
+        async function logout() {
+            await supabase.auth.signOut();
+            window.location.href = 'index.html';
+        }
+
+        init();
+    </script>
+</body>
+</html>
