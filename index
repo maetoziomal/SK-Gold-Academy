@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SK Gold Academy - Wejście</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { background-color: #020617; color: white; font-family: 'Inter', sans-serif; }
+        .gold-border { border: 1px solid #d4af37; }
+        .gold-bg { background: linear-gradient(135deg, #d4af37 0%, #f1c40f 100%); }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen">
+    <div class="bg-[#0f172a] p-10 rounded-2xl gold-border shadow-2xl w-full max-w-md">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold tracking-tighter text-[#d4af37]">SK GOLD ACADEMY</h1>
+            <p class="text-gray-400 text-sm mt-2">Zaloguj się do swojego terminala</p>
+        </div>
+
+        <div class="space-y-4">
+            <input type="email" id="email" placeholder="Email" class="w-full bg-[#1e293b] border border-gray-700 rounded-lg p-3 focus:outline-none focus:border-[#d4af37] text-white">
+            <input type="password" id="password" placeholder="Hasło" class="w-full bg-[#1e293b] border border-gray-700 rounded-lg p-3 focus:outline-none focus:border-[#d4af37] text-white">
+            
+            <button onclick="handleLogin()" class="gold-bg w-full py-3 rounded-lg font-bold text-black hover:scale-[1.02] transition-transform">
+                Zaloguj / Rejestracja
+            </button>
+            <p id="msg" class="text-center text-xs mt-2"></p>
+        </div>
+    </div>
+
+    <script>
+        // KONFIGURACJA SUPABASE
+        const SUPABASE_URL = 'https://bkutgpaoxkvwhvsfznjm.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJrdXRncGFveGt2d2h2c2Z6bmptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc1OTgwMTQsImV4cCI6MjA4MzE3NDAxNH0.ycpuwln6hNlmVEh4dtsMbiRQwWTqN7TQobDyrlLcRCw';
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        async function handleLogin() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const msg = document.getElementById('msg');
+
+            // Próba logowania
+            const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+            if (error) {
+                // Jeśli nie ma użytkownika, spróbuj zarejestrować
+                const { error: regError } = await supabase.auth.signUp({ email, password });
+                if (regError) msg.innerText = "Błąd: " + regError.message;
+                else msg.innerText = "Konto stworzone! Sprawdź email (jeśli wymagane) lub zaloguj się ponownie.";
+            } else {
+                window.location.href = 'panel.html';
+            }
+        }
+    </script>
+</body>
+</html>
