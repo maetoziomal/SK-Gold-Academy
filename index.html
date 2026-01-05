@@ -36,7 +36,6 @@
     </div>
 
     <script>
-        // Używamy nazwy klietnSupabase, aby uniknąć konfliktu z biblioteką
         const SUPABASE_URL = 'https://bkutgpaoxkvwhvsfznjm.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJrdXRncGFveGt2d2h2c2Z6bmptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc1OTgwMTQsImV4cCI6MjA4MzE3NDAxNH0.ycpuwln6hNlmVEh4dtsMbiRQwWTqN7TQobDyrlLcRCw';
         const klientSupabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -60,9 +59,9 @@
             const { data, error } = await klientSupabase.auth.signInWithPassword({ email, password });
 
             if (error) {
-                // 2. Rejestracja (jeśli logowanie nie wyszło)
+                // 2. Rejestracja (jeśli konto nie istnieje)
                 if (!nickname) {
-                    msg.innerText = "Błędne dane lub konto nie istnieje. Podaj Imię, aby stworzyć nowe.";
+                    msg.innerText = "Błędne dane. Podaj Imię, aby stworzyć nowe konto.";
                     msg.style.color = "#f87171";
                     return;
                 }
@@ -70,34 +69,19 @@
                 const { error: regError } = await klientSupabase.auth.signUp({ 
                     email, 
                     password,
-                    options: {
-                        data: { 
-                            display_name: nickname,
-                            is_approved: false 
-                        }
-                    }
+                    options: { data: { display_name: nickname } }
                 });
 
                 if (regError) {
                     msg.innerText = "Błąd: " + regError.message;
                     msg.style.color = "#f87171";
                 } else {
-                    msg.innerText = "Konto założone! Poczekaj na weryfikację przez administratora.";
+                    msg.innerText = "Konto założone! Możesz się teraz zalogować.";
                     msg.style.color = "#34d399";
                 }
             } else {
-                // 3. Sprawdzanie weryfikacji
-                const user = data.user;
-                // Sprawdzamy czy meta istnieje i czy is_approved to true
-                const isApproved = user.user_metadata && user.user_metadata.is_approved === true;
-
-                if (isApproved) {
-                    window.location.href = 'panel.html';
-                } else {
-                    await klientSupabase.auth.signOut();
-                    msg.innerText = "Twoje konto oczekuje na akceptację (ustaw is_approved: true w Supabase).";
-                    msg.style.color = "#fbbf24";
-                }
+                // 3. Sukces - wchodzimy bez sprawdzania zatwierdzenia
+                window.location.href = 'panel.html';
             }
         }
     </script>
