@@ -8,7 +8,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body { background-color: #020617; color: #f8fafc; font-family: 'Inter', sans-serif; }
+        body { background-color: #020617; color: #f8fafc; font-family: 'Inter', sans-serif; height: 100vh; display: flex; flex-direction: column; }
         .gold-text { color: #d4af37; }
         .card { background-color: #0f172a; border: 1px solid rgba(212, 175, 55, 0.1); }
         .gold-bg { background: linear-gradient(135deg, #d4af37 0%, #f1c40f 100%); }
@@ -21,10 +21,12 @@
         .emotion-btn { opacity: 0.4; transition: all 0.2s; cursor: pointer; filter: grayscale(1); }
         .emotion-btn.active { opacity: 1; filter: grayscale(0); transform: scale(1.2); }
         .danger-glow { box-shadow: 0 0 20px rgba(239, 68, 68, 0.5); border: 1px solid #ef4444; }
+        /* Styl dla kontenerów iframe */
+        .external-frame { width: 100%; height: calc(100vh - 350px); min-height: 500px; border-radius: 1rem; overflow: hidden; }
     </style>
 </head>
 <body class="p-2 md:p-8">
-    <div class="max-w-6xl mx-auto">
+    <div class="max-w-6xl mx-auto w-full">
         <header class="flex justify-between items-center mb-6 px-2">
             <div>
                 <h1 class="text-2xl md:text-3xl font-black italic gold-text tracking-tighter uppercase">SK GOLD</h1>
@@ -78,6 +80,8 @@
         <nav class="flex gap-6 mb-8 border-b border-gray-800 px-2 overflow-x-auto custom-scroll whitespace-nowrap">
             <button id="btnDashboard" onclick="switchTab('dashboard')" class="pb-2 font-bold text-sm uppercase tracking-widest nav-active">Dashboard</button>
             <button id="btnJournal" onclick="switchTab('journal')" class="pb-2 font-bold text-sm uppercase tracking-widest text-gray-500">Dziennik</button>
+            <button id="btnChart" onclick="switchTab('chart')" class="pb-2 font-bold text-sm uppercase tracking-widest text-gray-500">Wykres TV</button>
+            <button id="btnCalendar" onclick="switchTab('calendar')" class="pb-2 font-bold text-sm uppercase tracking-widest text-gray-500">Kalendarz</button>
             <button id="btnReports" onclick="switchTab('reports')" class="pb-2 font-bold text-sm uppercase tracking-widest text-gray-500">Raporty</button>
             <button id="btnCalc" onclick="switchTab('calc')" class="pb-2 font-bold text-sm uppercase tracking-widest text-gray-500">Kalkulator Lot</button>
         </nav>
@@ -160,6 +164,31 @@
             </div>
         </div>
 
+        <div id="tabChart" class="hidden">
+            <div class="external-frame card overflow-hidden">
+                <div id="tv_chart_container" style="height: 100%; width: 100%;"></div>
+            </div>
+        </div>
+
+        <div id="tabCalendar" class="hidden">
+            <div class="external-frame card">
+                <div class="tradingview-widget-container">
+                    <div class="tradingview-widget-container__widget"></div>
+                    <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-events.js" async>
+                    {
+                    "colorTheme": "dark",
+                    "isTransparent": true,
+                    "width": "100%",
+                    "height": "100%",
+                    "locale": "pl",
+                    "importanceFilter": "-1,0,1",
+                    "currencyFilter": "USD"
+                    }
+                    </script>
+                </div>
+                </div>
+        </div>
+
         <div id="tabReports" class="hidden">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="card p-6 rounded-2xl">
@@ -195,14 +224,33 @@
         </div>
     </div>
 
+    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
     <script>
         const SUPABASE_URL = 'https://bkutgpaoxkvwhvsfznjm.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJrdXRncGFveGt2d2h2c2Z6bmptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc1OTgwMTQsImV4cCI6MjA4MzE3NDAxNH0.ycpuwln6hNlmVEh4dtsMbiRQwWTqN7TQobDyrlLcRCw';
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        let equityChart, sessionChart;
+        let equityChart, sessionChart, tvWidget;
         let allTrades = [];
         let currentTotalBalance = 0;
+
+        // Inicjalizacja TradingView
+        function initTV() {
+            tvWidget = new TradingView.widget({
+                "autosize": true,
+                "symbol": "OANDA:XAUUSD",
+                "interval": "15",
+                "timezone": "Europe/Warsaw",
+                "theme": "dark",
+                "style": "1",
+                "locale": "pl",
+                "toolbar_bg": "#0f172a",
+                "enable_publishing": false,
+                "hide_side_toolbar": false, // PANEL BOCZNY WŁĄCZONY
+                "allow_symbol_change": true,
+                "container_id": "tv_chart_container"
+            });
+        }
 
         function getTradingSession(dateString) {
             const date = dateString ? new Date(dateString) : new Date();
@@ -218,6 +266,7 @@
             document.getElementById('welcomeText').innerHTML = `Witaj, <span class="text-white font-bold">${user.user_metadata.display_name || "Traderze"}</span>`;
             await loadSettings();
             fetchTrades();
+            initTV(); // Start wykresu
         }
 
         async function loadSettings() {
@@ -286,15 +335,11 @@
                     strategy = parts[1]?.trim() || "Scalping";
                     if(parts[3]) session = parts[3].trim();
                 }
-
                 sessionStats[session] = (sessionStats[session] || 0) + profit;
 
                 table.innerHTML += `
                     <tr class="border-b border-gray-800 text-white hover:bg-white/5 transition">
-                        <td class="p-4">
-                            <div class="font-bold text-xs uppercase">${t.pair} <span class="text-gold-text ml-2 text-[10px]">${session}</span></div>
-                            <div class="text-[10px] text-gray-400 uppercase tracking-tighter">${strategy}</div>
-                        </td>
+                        <td class="p-4"><div class="font-bold text-xs uppercase">${t.pair} <span class="text-gold-text ml-2 text-[10px]">${session}</span></div><div class="text-[10px] text-gray-400 uppercase tracking-tighter">${strategy}</div></td>
                         <td class="p-4 font-bold ${profit >= 0 ? 'text-green-400' : 'text-red-400'}">${profit.toFixed(2)} $</td>
                         <td class="p-4 text-center text-xl">${emotion}</td>
                         <td class="p-4 text-right"><button onclick="deleteTrade(${t.id})" class="text-red-500 bg-red-500/10 px-2 py-1 rounded text-[10px]">X</button></td>
@@ -313,9 +358,7 @@
             });
 
             currentTotalBalance = startBalance + total;
-            
             document.getElementById('totalProfit').innerText = total.toFixed(2) + " $";
-            document.getElementById('totalProfit').className = `text-2xl md:text-3xl font-black mt-1 ${total >= 0 ? 'text-green-400' : 'text-red-400'}`;
             document.getElementById('winRate').innerText = (allTrades.length > 0 ? ((wins / allTrades.length) * 100).toFixed(0) : 0) + "%";
             document.getElementById('tradeCount').innerText = allTrades.length;
             document.getElementById('profitFactor').innerText = sumLosses > 0 ? (sumWins / sumLosses).toFixed(2) : sumWins.toFixed(2);
@@ -330,13 +373,11 @@
             const sevenDaysAgo = new Date();
             sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
             const weeklyTrades = allTrades.filter(t => new Date(t.created_at) >= sevenDaysAgo);
-            
             let wProfit = 0, wWins = 0;
             weeklyTrades.forEach(t => {
                 wProfit += parseFloat(t.profit);
                 if(parseFloat(t.profit) > 0) wWins++;
             });
-
             const content = document.getElementById('weeklyReportContent');
             content.innerHTML = `
                 <div class="flex justify-between border-b border-gray-800 pb-2"><span>Zysk 7d:</span><span class="${wProfit >= 0 ? 'text-green-400' : 'text-red-400'} font-bold">${wProfit.toFixed(2)} $</span></div>
@@ -358,13 +399,7 @@
             if (sessionChart) sessionChart.destroy();
             sessionChart = new Chart(ctx2, {
                 type: 'bar',
-                data: {
-                    labels: Object.keys(sessionData),
-                    datasets: [{
-                        data: Object.values(sessionData),
-                        backgroundColor: Object.values(sessionData).map(v => v >= 0 ? '#4ade80' : '#f87171')
-                    }]
-                },
+                data: { labels: Object.keys(sessionData), datasets: [{ data: Object.values(sessionData), backgroundColor: Object.values(sessionData).map(v => v >= 0 ? '#4ade80' : '#f87171') }] },
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { color: '#64748b', font: { size: 8 } } }, x: { ticks: { color: '#64748b', font: { size: 8 } } } } }
             });
         }
@@ -373,24 +408,12 @@
             const { data: { user } } = await _supabase.auth.getUser();
             const pair = document.getElementById('pair').value;
             const profit = document.getElementById('profitInput').value;
+            if(!pair || !profit) return;
             const emotion = document.getElementById('emotionValue').value;
             const strategy = document.getElementById('strategy').value;
-            const session = getTradingSession();
-            
-            if(!pair || !profit) return;
-            const finalNote = `${emotion} | ${strategy} | ${document.getElementById('note').value} | ${session}`;
-
-            await _supabase.from('trades').insert([{ 
-                user_id: user.id, 
-                pair: pair.toUpperCase(), 
-                profit: parseFloat(profit), 
-                type: document.getElementById('type').value, 
-                note: finalNote 
-            }]);
-            
-            document.getElementById('pair').value = ''; 
-            document.getElementById('profitInput').value = '';
-            document.getElementById('note').value = '';
+            const finalNote = `${emotion} | ${strategy} | ${document.getElementById('note').value} | ${getTradingSession()}`;
+            await _supabase.from('trades').insert([{ user_id: user.id, pair: pair.toUpperCase(), profit: parseFloat(profit), type: document.getElementById('type').value, note: finalNote }]);
+            document.getElementById('pair').value = ''; document.getElementById('profitInput').value = ''; document.getElementById('note').value = '';
             fetchTrades();
         }
 
@@ -408,34 +431,23 @@
             const goalAmount = startBalance * (goalPct / 100);
             const lossLimitAmount = startBalance * (lossLimitPct / 100);
             
-            const statusCard = document.getElementById('statusCard');
-            const alertText = document.getElementById('limitAlert');
-            const addBtn = document.getElementById('addTradeBtn');
-
-            // Logika paska celu
-            const progressPct = goalAmount > 0 ? Math.max(0, Math.min((dailyProfit / goalAmount) * 100, 100)) : 0;
-            document.getElementById('goalBar').style.width = `${progressPct}%`;
+            document.getElementById('goalBar').style.width = `${goalAmount > 0 ? Math.max(0, Math.min((dailyProfit / goalAmount) * 100, 100)) : 0}%`;
             document.getElementById('goalStatus').innerText = `${dailyProfit.toFixed(2)} / ${goalAmount.toFixed(2)} USD`;
 
-            // Logika paska straty (pokazuje tylko jeśli jesteśmy na minusie)
             const dailyLoss = dailyProfit < 0 ? Math.abs(dailyProfit) : 0;
-            const lossProgressPct = lossLimitAmount > 0 ? Math.max(0, Math.min((dailyLoss / lossLimitAmount) * 100, 100)) : 0;
-            document.getElementById('lossBar').style.width = `${lossProgressPct}%`;
+            document.getElementById('lossBar').style.width = `${lossLimitAmount > 0 ? Math.max(0, Math.min((dailyLoss / lossLimitAmount) * 100, 100)) : 0}%`;
             document.getElementById('lossStatus').innerText = `${dailyLoss.toFixed(2)} / ${lossLimitAmount.toFixed(2)} USD`;
 
-            // Blokada po przekroczeniu limitu
+            const statusCard = document.getElementById('statusCard');
+            const addBtn = document.getElementById('addTradeBtn');
             if (dailyProfit <= -lossLimitAmount && lossLimitAmount !== 0) {
                 statusCard.classList.add('danger-glow');
-                alertText.innerHTML = "🛑 LIMIT STRAT! KONIEC NA DZIŚ!";
-                alertText.className = "text-[10px] uppercase text-red-500 font-bold animate-pulse";
-                addBtn.disabled = true;
-                addBtn.classList.add('grayscale');
+                document.getElementById('limitAlert').innerText = "🛑 LIMIT STRAT! KONIEC NA DZIŚ!";
+                addBtn.disabled = true; addBtn.classList.add('grayscale');
             } else {
                 statusCard.classList.remove('danger-glow');
-                alertText.innerText = "Monitor Ryzyka";
-                alertText.className = "text-[10px] uppercase text-gray-500 font-bold";
-                addBtn.disabled = false;
-                addBtn.classList.remove('grayscale');
+                document.getElementById('limitAlert').innerText = "Monitor Ryzyka";
+                addBtn.disabled = false; addBtn.classList.remove('grayscale');
             }
         }
 
