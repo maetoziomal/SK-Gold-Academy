@@ -17,6 +17,8 @@
         .custom-scroll::-webkit-scrollbar { height: 4px; width: 4px; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #d4af37; border-radius: 10px; }
         .progress-bar-fill { transition: width 0.5s ease-in-out; }
+        .emotion-btn { opacity: 0.4; transition: all 0.2s; cursor: pointer; filter: grayscale(1); }
+        .emotion-btn.active { opacity: 1; filter: grayscale(0); transform: scale(1.2); }
     </style>
 </head>
 <body class="p-2 md:p-8">
@@ -65,7 +67,6 @@
                         <canvas id="equityChart"></canvas>
                     </div>
                 </div>
-                
                 <div class="grid grid-cols-2 lg:flex lg:flex-col gap-4">
                     <div class="card p-6 rounded-2xl text-center flex flex-col justify-center">
                         <p class="text-gray-400 uppercase text-[10px] tracking-widest">Wynik Total</p>
@@ -80,7 +81,6 @@
                     </div>
                 </div>
             </div>
-
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                 <div class="card p-4 rounded-xl text-center">
                     <p class="text-[9px] text-gray-500 uppercase">Średni Zysk</p>
@@ -99,7 +99,6 @@
                     <p id="tradeCount" class="text-white font-bold">0</p>
                 </div>
             </div>
-
             <div class="card p-4 md:p-6 rounded-2xl mb-6">
                 <h3 class="font-bold mb-4 text-gray-400 uppercase text-[10px] tracking-widest text-center">Analiza Poszczególnych Trade</h3>
                 <div class="h-[200px]">
@@ -113,20 +112,34 @@
                 <div class="card p-6 rounded-2xl h-fit sticky top-4">
                     <h3 class="text-lg font-bold mb-4 gold-text">Nowa Pozycja</h3>
                     <div class="space-y-3">
-                        <input type="text" id="pair" placeholder="Para (np. XAUUSD)" class="w-full bg-[#1e293b] p-3 rounded-lg border border-gray-700 text-white focus:border-[#d4af37] outline-none text-sm">
-                        <input type="number" id="profitInput" placeholder="Wynik USD" class="w-full bg-[#1e293b] p-3 rounded-lg border border-gray-700 text-white focus:border-[#d4af37] outline-none text-sm">
-                        <select id="type" class="w-full bg-[#1e293b] p-3 rounded-lg border border-gray-700 text-white focus:border-[#d4af37] outline-none text-sm">
+                        <input type="text" id="pair" placeholder="Para (np. XAUUSD)" class="w-full bg-[#1e293b] p-3 rounded-lg border border-gray-700 text-white focus:border-[#d4af37] outline-none text-sm font-bold uppercase">
+                        <input type="number" id="profitInput" placeholder="Wynik USD" class="w-full bg-[#1e293b] p-3 rounded-lg border border-gray-700 text-white focus:border-[#d4af37] outline-none text-sm font-bold">
+                        <select id="type" class="w-full bg-[#1e293b] p-3 rounded-lg border border-gray-700 text-white focus:border-[#d4af37] outline-none text-sm uppercase">
                             <option value="Long">Long 📈</option>
                             <option value="Short">Short 📉</option>
                         </select>
-                        <input type="text" id="note" placeholder="Notatka" class="w-full bg-[#1e293b] p-3 rounded-lg border border-gray-700 text-white focus:border-[#d4af37] outline-none text-sm">
-                        <button onclick="addTrade()" class="gold-bg w-full text-black font-extrabold py-3 rounded-lg hover:opacity-90 transition text-sm uppercase">Dodaj Trade</button>
+
+                        <div class="pt-2">
+                            <label class="text-[10px] text-gray-500 uppercase mb-2 block tracking-widest">Twoje Emocje przy wejściu:</label>
+                            <div class="flex justify-between bg-[#1e293b] p-2 rounded-lg border border-gray-700">
+                                <span onclick="selectEmotion('🧘‍♂️', this)" class="emotion-btn text-xl" title="Spokój">🧘‍♂️</span>
+                                <span onclick="selectEmotion('🤑', this)" class="emotion-btn text-xl" title="Chciwość">🤑</span>
+                                <span onclick="selectEmotion('😡', this)" class="emotion-btn text-xl" title="Złość/Zemsta">😡</span>
+                                <span onclick="selectEmotion('🏃‍♂️', this)" class="emotion-btn text-xl" title="FOMO">🏃‍♂️</span>
+                                <span onclick="selectEmotion('😨', this)" class="emotion-btn text-xl" title="Strach">😨</span>
+                            </div>
+                            <input type="hidden" id="emotionValue" value="🧘‍♂️">
+                        </div>
+
+                        <input type="text" id="note" placeholder="Notatka (np. dlaczego to wziąłeś?)" class="w-full bg-[#1e293b] p-3 rounded-lg border border-gray-700 text-white focus:border-[#d4af37] outline-none text-sm">
+                        
+                        <button onclick="addTrade()" class="gold-bg w-full text-black font-extrabold py-3 rounded-lg hover:opacity-90 transition text-sm uppercase mt-4">Dodaj Trade</button>
                     </div>
                 </div>
 
                 <div class="xl:col-span-2 space-y-4">
                     <div class="flex gap-2">
-                        <input type="text" id="filterInput" onkeyup="filterTrades()" placeholder="Szukaj pary..." class="flex-1 bg-[#0f172a] border border-gray-800 p-2 rounded-lg text-xs outline-none focus:border-gold">
+                        <input type="text" id="filterInput" onkeyup="filterTrades()" placeholder="Szukaj po parze lub emocji..." class="flex-1 bg-[#0f172a] border border-gray-800 p-2 rounded-lg text-xs outline-none focus:border-gold">
                     </div>
                     <div class="card rounded-2xl overflow-hidden">
                         <div class="overflow-x-auto custom-scroll">
@@ -135,6 +148,7 @@
                                     <tr>
                                         <th class="p-4">Instrument</th>
                                         <th class="p-4">Wynik</th>
+                                        <th class="p-4">Emocja</th>
                                         <th class="p-4">Data</th>
                                         <th class="p-4 text-right">Akcja</th>
                                     </tr>
@@ -150,7 +164,6 @@
         <div id="tabCalc" class="hidden">
             <div class="max-w-md mx-auto card p-8 rounded-3xl border-t-4 border-t-[#d4af37]">
                 <h3 class="text-xl font-bold gold-text mb-6 text-center uppercase tracking-widest">Risk Calculator XAUUSD</h3>
-                
                 <div class="space-y-6">
                     <div>
                         <label class="block text-[10px] uppercase text-gray-500 mb-2">Ryzyko na transakcję (%)</label>
@@ -160,7 +173,6 @@
                         <label class="block text-[10px] uppercase text-gray-500 mb-2">Stop Loss (Pips)</label>
                         <input type="number" id="slPips" value="20" oninput="calculateLot()" class="w-full bg-[#1e293b] p-4 rounded-xl border border-gray-700 text-white focus:border-gold-text outline-none text-lg font-bold">
                     </div>
-
                     <div class="bg-black/40 p-6 rounded-2xl border border-dashed border-gray-700 text-center">
                         <p class="text-gray-500 text-[10px] uppercase mb-1">Rekomendowana Wielkość Pozycji</p>
                         <h2 id="resultLot" class="text-4xl font-black gold-text">0.05</h2>
@@ -193,34 +205,36 @@
             if (data) {
                 document.getElementById('startBalance').value = data.start_balance;
                 document.getElementById('dailyGoalPct').value = data.daily_goal_pct;
-            } else {
-                await _supabase.from('user_settings').insert([{ user_id: userId, start_balance: 1000, daily_goal_pct: 10 }]);
             }
         }
 
         async function saveSettings() {
             const { data: { user } } = await _supabase.auth.getUser();
-            const balance = document.getElementById('startBalance').value;
-            const goal = document.getElementById('dailyGoalPct').value;
             await _supabase.from('user_settings').upsert({ 
                 user_id: user.id, 
-                start_balance: parseFloat(balance) || 0, 
-                daily_goal_pct: parseFloat(goal) || 0 
+                start_balance: parseFloat(document.getElementById('startBalance').value) || 0, 
+                daily_goal_pct: parseFloat(document.getElementById('dailyGoalPct').value) || 0 
             });
             calculateStats();
         }
 
         function switchTab(tab) {
-            document.getElementById('tabDashboard').classList.toggle('hidden', tab !== 'dashboard');
-            document.getElementById('tabJournal').classList.toggle('hidden', tab !== 'journal');
-            document.getElementById('tabCalc').classList.toggle('hidden', tab !== 'calc');
+            document.querySelectorAll('[id^="tab"]').forEach(el => el.classList.add('hidden'));
+            document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.remove('hidden');
             
-            document.getElementById('btnDashboard').className = tab === 'dashboard' ? 'pb-2 font-bold text-sm uppercase tracking-widest nav-active' : 'pb-2 font-bold text-sm uppercase tracking-widest text-gray-500';
-            document.getElementById('btnJournal').className = tab === 'journal' ? 'pb-2 font-bold text-sm uppercase tracking-widest nav-active' : 'pb-2 font-bold text-sm uppercase tracking-widest text-gray-500';
-            document.getElementById('btnCalc').className = tab === 'calc' ? 'pb-2 font-bold text-sm uppercase tracking-widest nav-active' : 'pb-2 font-bold text-sm uppercase tracking-widest text-gray-500';
+            document.querySelectorAll('nav button').forEach(btn => {
+                btn.className = 'pb-2 font-bold text-sm uppercase tracking-widest text-gray-500';
+            });
+            document.getElementById('btn' + tab.charAt(0).toUpperCase() + tab.slice(1)).className = 'pb-2 font-bold text-sm uppercase tracking-widest nav-active';
             
             if(tab === 'dashboard') calculateStats();
             if(tab === 'calc') calculateLot();
+        }
+
+        function selectEmotion(emo, el) {
+            document.querySelectorAll('.emotion-btn').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+            document.getElementById('emotionValue').value = emo;
         }
 
         async function fetchTrades() {
@@ -243,15 +257,16 @@
 
                 table.innerHTML += `
                     <tr class="border-b border-gray-800 text-white hover:bg-white/5 transition">
-                        <td class="p-4 font-bold text-xs md:text-sm">${t.pair} <br><span class="text-[9px] text-gray-500 uppercase">${t.type}</span></td>
+                        <td class="p-4 font-bold text-xs md:text-sm uppercase">${t.pair} <br><span class="text-[9px] text-gray-500">${t.type}</span></td>
                         <td class="p-4 font-bold ${profit >= 0 ? 'text-green-400' : 'text-red-400'}">${profit.toFixed(2)} $</td>
+                        <td class="p-4 text-center text-lg">${t.note && t.note.includes('🧘‍♂️') || t.note && t.note.includes('🤑') || t.note && t.note.includes('😡') || t.note && t.note.includes('🏃‍♂️') || t.note && t.note.includes('😨') ? t.note.split('|')[0] : '🧘‍♂️'}</td>
                         <td class="p-4 text-gray-500 text-[10px]">${new Date(t.created_at).toLocaleDateString()}</td>
                         <td class="p-4 text-right"><button onclick="deleteTrade(${t.id})" class="text-red-900 bg-red-500/10 px-2 py-1 rounded text-[10px]">X</button></td>
                     </tr>
                 `;
             });
 
-            const startBalanceFromInput = parseFloat(document.getElementById('startBalance').value) || 0;
+            const startBalance = parseFloat(document.getElementById('startBalance').value) || 0;
             allTrades.forEach((t, i) => {
                 const profit = parseFloat(t.profit);
                 total += profit;
@@ -263,7 +278,7 @@
                 barData.push(profit);
             });
 
-            currentTotalBalance = startBalanceFromInput + total;
+            currentTotalBalance = startBalance + total;
             updateDailyGoal(dailyProfit);
 
             document.getElementById('totalProfit').innerText = total.toFixed(2) + " $";
@@ -278,24 +293,38 @@
             updateCharts(labels, equityData, barLabels, barData);
         }
 
-        function calculateLot() {
-            // Kalkulacja dla Złota (XAUUSD) - 1 pip na złocie przy 0.01 lota to zazwyczaj 0.01 USD (przy 2 cyfrach)
-            // Ale standardowo: Lot = (Kwota Ryzyka) / (SL w pipsach * Wartość pipsa)
-            // Dla ułatwienia przyjmujemy standard: SL 10 pips = 1 USD zmiany na cenie złota.
+        async function addTrade() {
+            const { data: { user } } = await _supabase.auth.getUser();
+            const pair = document.getElementById('pair').value;
+            const profit = document.getElementById('profitInput').value;
+            const emotion = document.getElementById('emotionValue').value;
+            const noteContent = document.getElementById('note').value;
             
+            if(!pair || !profit) return;
+
+            // Zapisujemy emocję na początku notatki, żeby ją łatwo wyciągnąć
+            const finalNote = emotion + " | " + noteContent;
+
+            await _supabase.from('trades').insert([{ 
+                user_id: user.id, 
+                pair: pair.toUpperCase(), 
+                profit: parseFloat(profit), 
+                type: document.getElementById('type').value, 
+                note: finalNote 
+            }]);
+            
+            document.getElementById('pair').value = ''; 
+            document.getElementById('profitInput').value = '';
+            document.getElementById('note').value = '';
+            fetchTrades();
+        }
+
+        function calculateLot() {
             const riskPct = parseFloat(document.getElementById('riskPct').value) || 0;
             const slPips = parseFloat(document.getElementById('slPips').value) || 0;
-            
             const riskAmount = currentTotalBalance * (riskPct / 100);
             document.getElementById('riskAmount').innerText = riskAmount.toFixed(2);
-
-            if(slPips > 0) {
-                // Wzór: Ryzyko $ / (SL pips * 10) -> dla Gold
-                const lot = riskAmount / slPips;
-                document.getElementById('resultLot').innerText = lot.toFixed(2);
-            } else {
-                document.getElementById('resultLot').innerText = "0.00";
-            }
+            document.getElementById('resultLot').innerText = slPips > 0 ? (riskAmount / slPips).toFixed(2) : "0.00";
         }
 
         function updateDailyGoal(currentDailyProfit) {
@@ -305,7 +334,6 @@
             const progressPct = goalAmount > 0 ? Math.min((currentDailyProfit / goalAmount) * 100, 100) : 0;
             document.getElementById('goalBar').style.width = `${currentDailyProfit > 0 ? progressPct : 0}%`;
             document.getElementById('goalStatus').innerText = `${currentDailyProfit.toFixed(2)} / ${goalAmount.toFixed(2)} USD`;
-            document.getElementById('goalStatus').style.color = (currentDailyProfit >= goalAmount && goalAmount > 0) ? "#4ade80" : "#d4af37";
         }
 
         function updateCharts(labels, equity, barLabels, barValues) {
@@ -335,26 +363,12 @@
             });
         }
 
-        async function addTrade() {
-            const { data: { user } } = await _supabase.auth.getUser();
-            const pair = document.getElementById('pair').value;
-            const profit = document.getElementById('profitInput').value;
-            if(!pair || !profit) return;
-            await _supabase.from('trades').insert([{ user_id: user.id, pair: pair.toUpperCase(), profit: parseFloat(profit), type: document.getElementById('type').value, note: document.getElementById('note').value }]);
-            document.getElementById('pair').value = ''; document.getElementById('profitInput').value = '';
-            fetchTrades();
-        }
-
-        async function deleteTrade(id) {
-            if(confirm("Usunąć?")) { await _supabase.from('trades').delete().eq('id', id); fetchTrades(); }
-        }
-
+        async function deleteTrade(id) { if(confirm("Usunąć?")) { await _supabase.from('trades').delete().eq('id', id); fetchTrades(); } }
         function filterTrades() {
             const input = document.getElementById('filterInput').value.toUpperCase();
             const rows = document.getElementById('tradesTable').getElementsByTagName('tr');
             for (let row of rows) { row.style.display = row.textContent.toUpperCase().includes(input) ? "" : "none"; }
         }
-
         async function logout() { await _supabase.auth.signOut(); window.location.href = 'index.html'; }
         checkUser();
     </script>
