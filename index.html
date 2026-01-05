@@ -33,10 +33,10 @@
     </div>
 
     <script>
-        // KONFIGURACJA SUPABASE
+        // KONFIGURACJA SUPABASE - ZMIANA NAZWY ZMIENNEJ NA _supabase
         const SUPABASE_URL = 'https://bkutgpaoxkvwhvsfznjm.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJrdXRncGFveGt2d2h2c2Z6bmptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc1OTgwMTQsImV4cCI6MjA4MzE3NDAxNH0.ycpuwln6hNlmVEh4dtsMbiRQwWTqN7TQobDyrlLcRCw';
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         async function handleLogin() {
             const email = document.getElementById('email').value;
@@ -50,18 +50,18 @@
                 return;
             }
 
-            // Próba logowania
-            const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+            // Próba logowania przy użyciu _supabase
+            const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
 
             if (error) {
-                // Jeśli logowanie się nie uda, rejestrujemy nowego użytkownika z imieniem w metadanych
+                // Rejestracja nowego użytkownika
                 if (!nickname) {
                     msg.innerText = "Dla nowych kont pole 'Imię' jest wymagane!";
                     msg.style.color = "#f87171";
                     return;
                 }
 
-                const { error: regError } = await supabase.auth.signUp({ 
+                const { error: regError } = await _supabase.auth.signUp({ 
                     email, 
                     password,
                     options: {
@@ -77,7 +77,6 @@
                     msg.style.color = "#34d399";
                 }
             } else {
-                // Logowanie udane
                 window.location.href = 'panel.html';
             }
         }
