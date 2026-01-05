@@ -14,7 +14,6 @@
         .gold-bg { background: linear-gradient(135deg, #d4af37 0%, #f1c40f 100%); }
         .nav-active { border-bottom: 2px solid #d4af37; color: #d4af37; }
         .hidden { display: none; }
-        /* Styl dla scrollbara tabeli na mobile */
         .custom-scroll::-webkit-scrollbar { height: 4px; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #d4af37; border-radius: 10px; }
     </style>
@@ -48,9 +47,12 @@
                         <p class="text-gray-400 uppercase text-[10px] tracking-widest">Wynik Total</p>
                         <h2 id="totalProfit" class="text-2xl md:text-3xl font-black mt-1">0.00</h2>
                     </div>
-                    <div class="card p-6 rounded-2xl text-center flex flex-col justify-center border-l-4 border-l-[#d4af37]">
+                    <div class="card p-4 rounded-2xl text-center flex flex-col justify-center border-l-4 border-l-[#d4af37]">
                         <p class="text-gray-400 uppercase text-[10px] tracking-widest">Win Rate</p>
-                        <h2 id="winRate" class="text-2xl md:text-3xl font-black mt-1 gold-text">0%</h2>
+                        <h2 id="winRate" class="text-xl md:text-2xl font-black mt-1 gold-text">0%</h2>
+                        <hr class="my-2 border-gray-800">
+                        <p class="text-gray-400 uppercase text-[9px] tracking-widest">Profit Factor</p>
+                        <h2 id="profitFactor" class="text-lg font-bold text-white">0.00</h2>
                     </div>
                 </div>
             </div>
@@ -73,6 +75,13 @@
                     <p id="tradeCount" class="text-white font-bold">0</p>
                 </div>
             </div>
+
+            <div class="card p-4 md:p-6 rounded-2xl mb-6">
+                <h3 class="font-bold mb-4 text-gray-400 uppercase text-[10px] tracking-widest text-center">Analiza Poszczególnych Trade (Słupki)</h3>
+                <div class="h-[200px]">
+                    <canvas id="tradesBarChart"></canvas>
+                </div>
+            </div>
         </div>
 
         <div id="tabJournal" class="hidden">
@@ -93,7 +102,7 @@
 
                 <div class="xl:col-span-2 space-y-4">
                     <div class="flex gap-2">
-                        <input type="text" id="filterInput" onkeyup="filterTrades()" placeholder="Szukaj pary (np. Gold)..." class="flex-1 bg-[#0f172a] border border-gray-800 p-2 rounded-lg text-xs outline-none focus:border-gold">
+                        <input type="text" id="filterInput" onkeyup="filterTrades()" placeholder="Szukaj pary..." class="flex-1 bg-[#0f172a] border border-gray-800 p-2 rounded-lg text-xs outline-none focus:border-gold">
                     </div>
                     <div class="card rounded-2xl overflow-hidden">
                         <div class="overflow-x-auto custom-scroll">
@@ -120,22 +129,15 @@
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJrdXRncGFveGt2d2h2c2Z6bmptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc1OTgwMTQsImV4cCI6MjA4MzE3NDAxNH0.ycpuwln6hNlmVEh4dtsMbiRQwWTqN7TQobDyrlLcRCw';
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        let chart;
-        let allTrades = [];
+        let equityChart, barChart;
 
-        // 1. ZABEZPIECZENIE DOSTĘPU
         async function checkUser() {
             const { data: { user } } = await _supabase.auth.getUser();
-            if (!user) {
-                window.location.href = 'index.html';
-                return;
-            }
-            const name = user.user_metadata.display_name || "Traderze";
-            document.getElementById('welcomeText').innerHTML = `Witaj, <span class="text-white font-bold">${name}</span>`;
+            if (!user) { window.location.href = 'index.html'; return; }
+            document.getElementById('welcomeText').innerHTML = `Witaj, <span class="text-white font-bold">${user.user_metadata.display_name || "Traderze"}</span>`;
             fetchTrades();
         }
 
-        // 2. PRZEŁĄCZANIE KART
         function switchTab(tab) {
             document.getElementById('tabDashboard').classList.toggle('hidden', tab !== 'dashboard');
             document.getElementById('tabJournal').classList.toggle('hidden', tab !== 'journal');
@@ -144,18 +146,16 @@
             if(tab === 'dashboard') fetchTrades();
         }
 
-        // 3. POBIERANIE I ANALIZA DANYCH
         async function fetchTrades() {
             const { data: trades, error } = await _supabase.from('trades').select('*').order('created_at', { ascending: true });
             if (error) return;
-            allTrades = trades;
             
             const table = document.getElementById('tradesTable');
             let total = 0, wins = 0, losses = 0, sumWins = 0, sumLosses = 0;
-            let equityData = [0], labels = ['Start'];
+            let equityData = [0], labels = ['Start'], barLabels = [], barData = [];
             
             table.innerHTML = '';
-            [...trades].reverse().forEach((t) => {
+            [...trades].reverse().forEach((t, index) => {
                 const profit = parseFloat(t.profit);
                 total += profit;
                 if(profit > 0) { wins++; sumWins += profit; }
@@ -166,26 +166,26 @@
                         <td class="p-4 font-bold text-xs md:text-sm">${t.pair} <br><span class="text-[9px] text-gray-500 uppercase">${t.type}</span></td>
                         <td class="p-4 font-bold ${profit >= 0 ? 'text-green-400' : 'text-red-400'}">${profit.toFixed(2)} PLN</td>
                         <td class="p-4 text-gray-500 text-[10px]">${new Date(t.created_at).toLocaleDateString()}</td>
-                        <td class="p-4 text-right">
-                            <button onclick="deleteTrade(${t.id})" class="text-red-900 bg-red-500/10 px-2 py-1 rounded hover:bg-red-500/20 transition text-[10px]">X</button>
-                        </td>
+                        <td class="p-4 text-right"><button onclick="deleteTrade(${t.id})" class="text-red-900 bg-red-500/10 px-2 py-1 rounded text-[10px]">X</button></td>
                     </tr>
                 `;
             });
 
-            // Krzywa kapitału
             let currentEquity = 0;
-            trades.forEach(t => {
+            trades.forEach((t, i) => {
                 currentEquity += parseFloat(t.profit);
                 equityData.push(currentEquity);
-                labels.push(new Date(t.created_at).toLocaleDateString());
+                labels.push(i + 1);
+                barLabels.push(`#${i+1} ${t.pair}`);
+                barData.push(parseFloat(t.profit));
             });
 
-            // Aktualizacja Statystyk
+            // STATYSTYKI
             document.getElementById('totalProfit').innerText = total.toFixed(2) + " PLN";
             document.getElementById('totalProfit').className = `text-2xl md:text-3xl font-black mt-1 ${total >= 0 ? 'text-green-400' : 'text-red-400'}`;
             document.getElementById('winRate').innerText = (trades.length > 0 ? ((wins / trades.length) * 100).toFixed(0) : 0) + "%";
             document.getElementById('tradeCount').innerText = trades.length;
+            document.getElementById('profitFactor').innerText = sumLosses > 0 ? (sumWins / sumLosses).toFixed(2) : sumWins.toFixed(2);
             
             const avgW = wins > 0 ? (sumWins / wins).toFixed(2) : "0.00";
             const avgL = losses > 0 ? (sumLosses / losses).toFixed(2) : "0.00";
@@ -193,82 +193,64 @@
             document.getElementById('avgLoss').innerText = "-" + avgL;
             document.getElementById('riskReward').innerText = avgL > 0 ? (avgW / avgL).toFixed(2) : "0.00";
 
-            updateChart(labels, equityData);
+            updateCharts(labels, equityData, barLabels, barData);
         }
 
-        // 4. WYKRES
-        function updateChart(labels, data) {
-            const ctx = document.getElementById('equityChart').getContext('2d');
-            if (chart) chart.destroy();
-            chart = new Chart(ctx, {
+        function updateCharts(labels, equity, barLabels, barValues) {
+            // Wykres Liniowy
+            const ctx1 = document.getElementById('equityChart').getContext('2d');
+            if (equityChart) equityChart.destroy();
+            equityChart = new Chart(ctx1, {
                 type: 'line',
+                data: { labels: labels, datasets: [{ data: equity, borderColor: '#d4af37', borderWidth: 2, fill: true, backgroundColor: 'rgba(212, 175, 55, 0.1)', tension: 0.3 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
+
+            // Wykres Słupkowy
+            const ctx2 = document.getElementById('tradesBarChart').getContext('2d');
+            if (barChart) barChart.destroy();
+            barChart = new Chart(ctx2, {
+                type: 'bar',
                 data: {
-                    labels: labels,
+                    labels: barLabels,
                     datasets: [{
-                        data: data,
-                        borderColor: '#d4af37',
-                        borderWidth: 2,
-                        backgroundColor: 'rgba(212, 175, 55, 0.1)',
-                        fill: true,
-                        tension: 0.3,
-                        pointRadius: 3,
-                        pointBackgroundColor: '#d4af37'
+                        data: barValues,
+                        backgroundColor: barValues.map(v => v >= 0 ? 'rgba(74, 222, 128, 0.6)' : 'rgba(248, 113, 113, 0.6)'),
+                        borderColor: barValues.map(v => v >= 0 ? '#4ade80' : '#f87171'),
+                        borderWidth: 1
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
-                    scales: {
-                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b', font: { size: 9 } } },
-                        x: { grid: { display: false }, ticks: { color: '#64748b', font: { size: 9 } } }
-                    }
+                    scales: { y: { grid: { color: 'rgba(255,255,255,0.05)' } }, x: { display: false } }
                 }
             });
         }
 
-        // 5. AKCJE
         async function addTrade() {
             const { data: { user } } = await _supabase.auth.getUser();
             const pair = document.getElementById('pair').value;
             const profit = document.getElementById('profit').value;
-            if(!pair || !profit) return alert("Wprowadź instrument i wynik!");
-
-            await _supabase.from('trades').insert([{
-                user_id: user.id,
-                pair: pair.toUpperCase(),
-                profit: parseFloat(profit),
-                type: document.getElementById('type').value,
-                note: document.getElementById('note').value
-            }]);
-
-            document.getElementById('pair').value = '';
-            document.getElementById('profit').value = '';
+            if(!pair || !profit) return;
+            await _supabase.from('trades').insert([{ user_id: user.id, pair: pair.toUpperCase(), profit: parseFloat(profit), type: document.getElementById('type').value, note: document.getElementById('note').value }]);
+            document.getElementById('pair').value = ''; document.getElementById('profit').value = '';
             fetchTrades();
         }
 
         async function deleteTrade(id) {
-            if(confirm("Usunąć transakcję?")) {
-                await _supabase.from('trades').delete().eq('id', id);
-                fetchTrades();
-            }
+            if(confirm("Usunąć?")) { await _supabase.from('trades').delete().eq('id', id); fetchTrades(); }
         }
 
         function filterTrades() {
             const input = document.getElementById('filterInput').value.toUpperCase();
             const rows = document.getElementById('tradesTable').getElementsByTagName('tr');
-            for (let row of rows) {
-                const pairText = row.getElementsByTagName('td')[0].textContent || row.getElementsByTagName('td')[0].innerText;
-                row.style.display = pairText.toUpperCase().includes(input) ? "" : "none";
-            }
+            for (let row of rows) { row.style.display = row.textContent.toUpperCase().includes(input) ? "" : "none"; }
         }
 
-        async function logout() {
-            await _supabase.auth.signOut();
-            window.location.href = 'index.html';
-        }
-
-        checkUser(); // Start
+        async function logout() { await _supabase.auth.signOut(); window.location.href = 'index.html'; }
+        checkUser();
     </script>
 </body>
 </html>
