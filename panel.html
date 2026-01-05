@@ -2,6 +2,7 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel Tradera - SK Gold Academy</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -11,68 +12,77 @@
         .gold-text { color: #d4af37; }
         .card { background-color: #0f172a; border: 1px solid rgba(212, 175, 55, 0.1); }
         .gold-bg { background: linear-gradient(135deg, #d4af37 0%, #f1c40f 100%); }
-        canvas { max-width: 100% !important; }
+        .nav-active { border-bottom: 2px solid #d4af37; color: #d4af37; }
+        .hidden { display: none; }
     </style>
 </head>
-<body class="p-4 md:p-8">
+<body class="p-2 md:p-8">
     <div class="max-w-6xl mx-auto">
-        <header class="flex justify-between items-center mb-10">
+        <header class="flex justify-between items-center mb-6 px-2">
             <div>
-                <h1 class="text-3xl font-black italic gold-text tracking-tighter">SK GOLD ACADEMY</h1>
-                <p id="welcomeText" class="text-gray-400 text-sm">Ładowanie profilu...</p>
+                <h1 class="text-2xl md:text-3xl font-black italic gold-text tracking-tighter uppercase">SK GOLD</h1>
+                <p id="welcomeText" class="text-gray-400 text-xs md:text-sm">Ładowanie...</p>
             </div>
-            <button onclick="logout()" class="bg-red-900/20 text-red-400 px-4 py-2 rounded-lg text-sm hover:bg-red-900/40 transition">Wyloguj</button>
+            <button onclick="logout()" class="bg-red-900/20 text-red-400 px-3 py-1.5 rounded-lg text-xs hover:bg-red-900/40 transition">Wyloguj</button>
         </header>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
-            <div class="lg:col-span-2 card p-6 rounded-2xl">
-                <h3 class="font-bold mb-4 text-gray-400 uppercase text-xs tracking-widest">Krzywa Kapitału (PLN)</h3>
-                <canvas id="equityChart" height="150"></canvas>
-            </div>
-            
-            <div class="flex flex-col gap-6">
-                <div class="card p-6 rounded-2xl flex-1 flex flex-col justify-center items-center text-center">
-                    <p class="text-gray-400 uppercase text-xs tracking-widest">Twój Wynik Total</p>
-                    <h2 id="totalProfit" class="text-4xl font-black mt-2">0.00 PLN</h2>
+        <nav class="flex gap-6 mb-8 border-b border-gray-800 px-2">
+            <button id="btnDashboard" onclick="switchTab('dashboard')" class="pb-2 font-bold text-sm uppercase tracking-widest nav-active">Dashboard</button>
+            <button id="btnJournal" onclick="switchTab('journal')" class="pb-2 font-bold text-sm uppercase tracking-widest text-gray-500">Dziennik Tradera</button>
+        </nav>
+
+        <div id="tabDashboard">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+                <div class="lg:col-span-2 card p-4 md:p-6 rounded-2xl">
+                    <h3 class="font-bold mb-4 text-gray-400 uppercase text-[10px] tracking-widest">Krzywa Kapitału (PLN)</h3>
+                    <div class="h-[250px] md:h-[300px]">
+                        <canvas id="equityChart"></canvas>
+                    </div>
                 </div>
-                <div class="card p-6 rounded-2xl flex-1 flex flex-col justify-center items-center text-center border-green-500/20">
-                    <p class="text-gray-400 uppercase text-xs tracking-widest">Skuteczność (Win Rate)</p>
-                    <h2 id="winRate" class="text-4xl font-black mt-2 gold-text">0%</h2>
+                
+                <div class="grid grid-cols-2 lg:flex lg:flex-col gap-4">
+                    <div class="card p-6 rounded-2xl text-center">
+                        <p class="text-gray-400 uppercase text-[10px] tracking-widest">Wynik Total</p>
+                        <h2 id="totalProfit" class="text-2xl md:text-3xl font-black mt-1">0.00</h2>
+                    </div>
+                    <div class="card p-6 rounded-2xl text-center">
+                        <p class="text-gray-400 uppercase text-[10px] tracking-widest">Win Rate</p>
+                        <h2 id="winRate" class="text-2xl md:text-3xl font-black mt-1 gold-text">0%</h2>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
-            <div class="card p-6 rounded-2xl h-fit">
-                <h3 class="text-xl font-bold mb-6 gold-text">Dodaj Trade</h3>
-                <div class="space-y-4">
-                    <input type="text" id="pair" placeholder="Para (np. XAUUSD)" class="w-full bg-[#1e293b] p-3 rounded-lg border border-gray-700 text-white focus:border-[#d4af37] outline-none">
-                    <input type="number" id="profit" placeholder="Wynik w PLN" class="w-full bg-[#1e293b] p-3 rounded-lg border border-gray-700 text-white focus:border-[#d4af37] outline-none">
-                    <select id="type" class="w-full bg-[#1e293b] p-3 rounded-lg border border-gray-700 text-white focus:border-[#d4af37] outline-none">
-                        <option value="Long">Long 📈</option>
-                        <option value="Short">Short 📉</option>
-                    </select>
-                    <input type="text" id="note" placeholder="Krótka notatka" class="w-full bg-[#1e293b] p-3 rounded-lg border border-gray-700 text-white focus:border-[#d4af37] outline-none">
-                    <button onclick="addTrade()" class="gold-bg w-full text-black font-extrabold py-3 rounded-lg hover:opacity-90 transition transform active:scale-95">DODAJ DO DZIENNIKA</button>
+        <div id="tabJournal" class="hidden">
+            <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                <div class="card p-6 rounded-2xl h-fit">
+                    <h3 class="text-lg font-bold mb-4 gold-text">Nowa Pozycja</h3>
+                    <div class="space-y-3">
+                        <input type="text" id="pair" placeholder="Para (np. XAUUSD)" class="w-full bg-[#1e293b] p-3 rounded-lg border border-gray-700 text-white focus:border-[#d4af37] outline-none text-sm">
+                        <input type="number" id="profit" placeholder="Wynik PLN" class="w-full bg-[#1e293b] p-3 rounded-lg border border-gray-700 text-white focus:border-[#d4af37] outline-none text-sm">
+                        <select id="type" class="w-full bg-[#1e293b] p-3 rounded-lg border border-gray-700 text-white focus:border-[#d4af37] outline-none text-sm">
+                            <option value="Long">Long 📈</option>
+                            <option value="Short">Short 📉</option>
+                        </select>
+                        <input type="text" id="note" placeholder="Notatka" class="w-full bg-[#1e293b] p-3 rounded-lg border border-gray-700 text-white focus:border-[#d4af37] outline-none text-sm">
+                        <button onclick="addTrade()" class="gold-bg w-full text-black font-extrabold py-3 rounded-lg hover:opacity-90 transition active:scale-95 text-sm uppercase tracking-tighter">Dodaj Trade</button>
+                    </div>
                 </div>
-            </div>
 
-            <div class="xl:col-span-2 card rounded-2xl overflow-hidden">
-                <div class="p-4 border-b border-gray-800 bg-[#1e293b]/30">
-                    <h3 class="font-bold">Ostatnie Transakcje</h3>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left">
-                        <thead class="bg-[#1e293b]/50 text-gray-500 text-xs uppercase">
-                            <tr>
-                                <th class="p-4">Instrument</th>
-                                <th class="p-4">Typ</th>
-                                <th class="p-4">Wynik</th>
-                                <th class="p-4">Data</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tradesTable" class="text-sm"></tbody>
-                    </table>
+                <div class="xl:col-span-2 card rounded-2xl overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead class="bg-[#1e293b]/50 text-gray-500 text-[10px] uppercase">
+                                <tr>
+                                    <th class="p-4">Instrument</th>
+                                    <th class="p-4">Wynik</th>
+                                    <th class="p-4">Data</th>
+                                    <th class="p-4">Akcja</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tradesTable" class="text-sm"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
@@ -85,51 +95,48 @@
 
         let chart;
 
+        // PRZEŁĄCZANIE KART
+        function switchTab(tab) {
+            document.getElementById('tabDashboard').classList.toggle('hidden', tab !== 'dashboard');
+            document.getElementById('tabJournal').classList.toggle('hidden', tab !== 'journal');
+            
+            document.getElementById('btnDashboard').className = tab === 'dashboard' ? 'pb-2 font-bold text-sm uppercase tracking-widest nav-active' : 'pb-2 font-bold text-sm uppercase tracking-widest text-gray-500';
+            document.getElementById('btnJournal').className = tab === 'journal' ? 'pb-2 font-bold text-sm uppercase tracking-widest nav-active' : 'pb-2 font-bold text-sm uppercase tracking-widest text-gray-500';
+            
+            if(tab === 'dashboard') fetchTrades(); // Odśwież wykres przy powrocie
+        }
+
         async function init() {
             const { data: { user } } = await _supabase.auth.getUser();
             if (!user) { window.location.href = 'index.html'; return; }
-
             const name = user.user_metadata.display_name || "Traderze";
-            document.getElementById('welcomeText').innerHTML = `Witaj ponownie, <span class="text-white font-bold">${name}</span>! Gotowy na sesję?`;
-            
+            document.getElementById('welcomeText').innerHTML = `Witaj, <span class="text-white font-bold">${name}</span>`;
             fetchTrades();
         }
 
         async function fetchTrades() {
-            const { data: trades, error } = await _supabase
-                .from('trades')
-                .select('*')
-                .order('created_at', { ascending: true }); // Pobieramy od najstarszych dla wykresu
-
+            const { data: trades, error } = await _supabase.from('trades').select('*').order('created_at', { ascending: true });
             if (error) return;
             
             const table = document.getElementById('tradesTable');
-            const totalDisplay = document.getElementById('totalProfit');
-            const winRateDisplay = document.getElementById('winRate');
-            
-            let total = 0;
-            let wins = 0;
-            let equityData = [0];
-            let labels = ['Start'];
+            let total = 0, wins = 0, equityData = [0], labels = ['Start'];
             
             table.innerHTML = '';
-
-            // Renderowanie tabeli (najnowsze na górze)
             [...trades].reverse().forEach((t) => {
                 total += parseFloat(t.profit);
                 if(t.profit > 0) wins++;
-                
                 table.innerHTML += `
-                    <tr class="border-b border-gray-800 hover:bg-white/5 transition text-white">
-                        <td class="p-4 font-bold">${t.pair}</td>
-                        <td class="p-4 text-xs">${t.type}</td>
-                        <td class="p-4 font-bold ${t.profit >= 0 ? 'text-green-400' : 'text-red-400'}">${t.profit > 0 ? '+' : ''}${t.profit} PLN</td>
-                        <td class="p-4 text-gray-500 text-xs">${new Date(t.created_at).toLocaleDateString()}</td>
+                    <tr class="border-b border-gray-800 text-white">
+                        <td class="p-4 font-bold">${t.pair} <br><span class="text-[10px] text-gray-500 uppercase">${t.type}</span></td>
+                        <td class="p-4 font-bold ${t.profit >= 0 ? 'text-green-400' : 'text-red-400'}">${t.profit} PLN</td>
+                        <td class="p-4 text-gray-500 text-[10px]">${new Date(t.created_at).toLocaleDateString()}</td>
+                        <td class="p-4">
+                            <button onclick="deleteTrade(${t.id})" class="text-red-500 hover:text-red-300 text-xs">Usuń</button>
+                        </td>
                     </tr>
                 `;
             });
 
-            // Obliczanie krzywej kapitału dla wykresu
             let currentEquity = 0;
             trades.forEach(t => {
                 currentEquity += parseFloat(t.profit);
@@ -137,19 +144,14 @@
                 labels.push(new Date(t.created_at).toLocaleDateString());
             });
 
-            totalDisplay.innerText = total.toFixed(2) + " PLN";
-            totalDisplay.className = `text-4xl font-black mt-2 ${total >= 0 ? 'text-green-400' : 'text-red-400'}`;
-            
-            const rate = trades.length > 0 ? ((wins / trades.length) * 100).toFixed(0) : 0;
-            winRateDisplay.innerText = rate + "%";
-
+            document.getElementById('totalProfit').innerText = total.toFixed(2) + " PLN";
+            document.getElementById('winRate').innerText = (trades.length > 0 ? ((wins / trades.length) * 100).toFixed(0) : 0) + "%";
             updateChart(labels, equityData);
         }
 
         function updateChart(labels, data) {
             const ctx = document.getElementById('equityChart').getContext('2d');
             if (chart) chart.destroy();
-            
             chart = new Chart(ctx, {
                 type: 'line',
                 data: {
@@ -166,10 +168,11 @@
                 },
                 options: {
                     responsive: true,
+                    maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
                     scales: {
-                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b' } },
-                        x: { grid: { display: false }, ticks: { color: '#64748b' } }
+                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b', font: { size: 10 } } },
+                        x: { grid: { display: false }, ticks: { color: '#64748b', font: { size: 10 } } }
                     }
                 }
             });
@@ -179,10 +182,9 @@
             const { data: { user } } = await _supabase.auth.getUser();
             const pair = document.getElementById('pair').value;
             const profit = document.getElementById('profit').value;
+            if(!pair || !profit) return alert("Uzupełnij dane!");
 
-            if(!pair || !profit) return alert("Uzupełnij parę i wynik!");
-
-            const { error } = await _supabase.from('trades').insert([{
+            await _supabase.from('trades').insert([{
                 user_id: user.id,
                 pair: pair.toUpperCase(),
                 profit: parseFloat(profit),
@@ -190,12 +192,16 @@
                 note: document.getElementById('note').value
             }]);
 
-            if (error) alert("Błąd zapisu: " + error.message);
-            else {
-                document.getElementById('pair').value = '';
-                document.getElementById('profit').value = '';
-                document.getElementById('note').value = '';
-                fetchTrades();
+            document.getElementById('pair').value = '';
+            document.getElementById('profit').value = '';
+            fetchTrades();
+        }
+
+        async function deleteTrade(id) {
+            if(confirm("Czy na pewno chcesz usunąć ten wpis?")) {
+                const { error } = await _supabase.from('trades').delete().eq('id', id);
+                if (error) alert(error.message);
+                else fetchTrades();
             }
         }
 
