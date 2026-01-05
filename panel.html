@@ -14,7 +14,7 @@
         .gold-bg { background: linear-gradient(135deg, #d4af37 0%, #f1c40f 100%); }
         .nav-active { border-bottom: 2px solid #d4af37; color: #d4af37; }
         .hidden { display: none; }
-        .custom-scroll::-webkit-scrollbar { height: 4px; }
+        .custom-scroll::-webkit-scrollbar { height: 4px; width: 4px; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #d4af37; border-radius: 10px; }
         .progress-bar-fill { transition: width 0.5s ease-in-out; }
     </style>
@@ -51,9 +51,10 @@
             </div>
         </div>
 
-        <nav class="flex gap-6 mb-8 border-b border-gray-800 px-2">
+        <nav class="flex gap-6 mb-8 border-b border-gray-800 px-2 overflow-x-auto custom-scroll whitespace-nowrap">
             <button id="btnDashboard" onclick="switchTab('dashboard')" class="pb-2 font-bold text-sm uppercase tracking-widest nav-active">Dashboard</button>
             <button id="btnJournal" onclick="switchTab('journal')" class="pb-2 font-bold text-sm uppercase tracking-widest text-gray-500">Dziennik Tradera</button>
+            <button id="btnPlanning" onclick="switchTab('planning')" class="pb-2 font-bold text-sm uppercase tracking-widest text-gray-500">Planowanie 🚀</button>
         </nav>
 
         <div id="tabDashboard">
@@ -145,6 +146,28 @@
                 </div>
             </div>
         </div>
+
+        <div id="tabPlanning" class="hidden">
+            <div class="card p-6 rounded-2xl mb-6">
+                <h3 class="text-xl font-bold gold-text mb-2">Projekcja Twojego Wyniku</h3>
+                <p class="text-gray-400 text-xs mb-6 uppercase tracking-wider">Symulacja 30 dni przy utrzymaniu celu dziennego</p>
+                
+                <div class="overflow-x-auto custom-scroll">
+                    <table class="w-full text-left">
+                        <thead class="bg-[#1e293b] text-gray-500 text-[10px] uppercase">
+                            <tr>
+                                <th class="p-3">Dzień</th>
+                                <th class="p-3">Saldo Startowe</th>
+                                <th class="p-3">Zysk (${document.getElementById('dailyGoalPct')?.value || 10}%)</th>
+                                <th class="p-3">Saldo Końcowe</th>
+                            </tr>
+                        </thead>
+                        <tbody id="planningTable" class="text-sm">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -171,6 +194,7 @@
             } else {
                 await _supabase.from('user_settings').insert([{ user_id: userId, start_balance: 1000, daily_goal_pct: 10 }]);
             }
+            updatePlanning();
         }
 
         async function saveSettings() {
@@ -183,14 +207,20 @@
                 daily_goal_pct: parseFloat(goal) || 0 
             });
             calculateStats();
+            updatePlanning();
         }
 
         function switchTab(tab) {
             document.getElementById('tabDashboard').classList.toggle('hidden', tab !== 'dashboard');
             document.getElementById('tabJournal').classList.toggle('hidden', tab !== 'journal');
+            document.getElementById('tabPlanning').classList.toggle('hidden', tab !== 'planning');
+            
             document.getElementById('btnDashboard').className = tab === 'dashboard' ? 'pb-2 font-bold text-sm uppercase tracking-widest nav-active' : 'pb-2 font-bold text-sm uppercase tracking-widest text-gray-500';
             document.getElementById('btnJournal').className = tab === 'journal' ? 'pb-2 font-bold text-sm uppercase tracking-widest nav-active' : 'pb-2 font-bold text-sm uppercase tracking-widest text-gray-500';
+            document.getElementById('btnPlanning').className = tab === 'planning' ? 'pb-2 font-bold text-sm uppercase tracking-widest nav-active' : 'pb-2 font-bold text-sm uppercase tracking-widest text-gray-500';
+            
             if(tab === 'dashboard') calculateStats();
+            if(tab === 'planning') updatePlanning();
         }
 
         async function fetchTrades() {
@@ -244,6 +274,30 @@
             document.getElementById('riskReward').innerText = (losses > 0 && wins > 0) ? ((sumWins/wins)/(sumLosses/losses)).toFixed(2) : "0.00";
 
             updateCharts(labels, equityData, barLabels, barData);
+        }
+
+        function updatePlanning() {
+            const table = document.getElementById('planningTable');
+            const startBal = parseFloat(document.getElementById('startBalance').value) || 0;
+            const dailyPct = parseFloat(document.getElementById('dailyGoalPct').value) || 0;
+            
+            table.innerHTML = '';
+            let currentBal = startBal;
+
+            for(let i = 1; i <= 30; i++) {
+                let profit = currentBal * (dailyPct / 100);
+                let nextBal = currentBal + profit;
+                
+                table.innerHTML += `
+                    <tr class="border-b border-gray-800/50 hover:bg-white/5 transition">
+                        <td class="p-3 text-gray-500 font-bold">Dzień ${i}</td>
+                        <td class="p-3 font-mono text-xs">${currentBal.toFixed(2)} $</td>
+                        <td class="p-3 text-green-400 font-bold text-xs">+${profit.toFixed(2)} $</td>
+                        <td class="p-3 font-bold text-gold-text text-xs">${nextBal.toFixed(2)} $</td>
+                    </tr>
+                `;
+                currentBal = nextBal;
+            }
         }
 
         function updateDailyGoal(currentDailyProfit) {
