@@ -16,6 +16,7 @@
         .hidden { display: none; }
         .custom-scroll::-webkit-scrollbar { height: 4px; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #d4af37; border-radius: 10px; }
+        .progress-bar-fill { transition: width 0.5s ease-in-out; }
     </style>
 </head>
 <body class="p-2 md:p-8">
@@ -27,6 +28,28 @@
             </div>
             <button onclick="logout()" class="bg-red-900/20 text-red-400 px-3 py-1.5 rounded-lg text-xs hover:bg-red-900/40 transition">Wyloguj</button>
         </header>
+
+        <div class="card p-4 rounded-2xl mb-6 border-b-2 border-b-[#d4af37]">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-4">
+                <div class="flex gap-4">
+                    <div>
+                        <label class="block text-[10px] uppercase text-gray-500 mb-1">Saldo Start (PLN)</label>
+                        <input type="number" id="startBalance" value="1000" oninput="fetchTrades()" class="bg-[#1e293b] border border-gray-700 rounded px-2 py-1 text-sm w-24 outline-none focus:border-gold-text">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] uppercase text-gray-500 mb-1">Cel Dzienny (%)</label>
+                        <input type="number" id="dailyGoalPct" value="10" oninput="fetchTrades()" class="bg-[#1e293b] border border-gray-700 rounded px-2 py-1 text-sm w-20 outline-none focus:border-gold-text">
+                    </div>
+                </div>
+                <div class="text-right">
+                    <p class="text-[10px] uppercase text-gray-500">Postęp Celu</p>
+                    <p id="goalStatus" class="text-sm font-bold gold-text">0.00 / 0.00 PLN</p>
+                </div>
+            </div>
+            <div class="w-full bg-gray-800 rounded-full h-4 overflow-hidden border border-gray-700">
+                <div id="goalBar" class="progress-bar-fill gold-bg h-full w-[0%] shadow-[0_0_10px_#d4af37]"></div>
+            </div>
+        </div>
 
         <nav class="flex gap-6 mb-8 border-b border-gray-800 px-2">
             <button id="btnDashboard" onclick="switchTab('dashboard')" class="pb-2 font-bold text-sm uppercase tracking-widest nav-active">Dashboard</button>
@@ -152,15 +175,23 @@
             
             const table = document.getElementById('tradesTable');
             let total = 0, wins = 0, losses = 0, sumWins = 0, sumLosses = 0;
+            let dailyProfit = 0;
             let equityData = [0], labels = ['Start'], barLabels = [], barData = [];
             
+            const today = new Date().toLocaleDateString();
+
             table.innerHTML = '';
-            [...trades].reverse().forEach((t, index) => {
+            [...trades].reverse().forEach((t) => {
                 const profit = parseFloat(t.profit);
                 total += profit;
                 if(profit > 0) { wins++; sumWins += profit; }
                 else if(profit < 0) { losses++; sumLosses += Math.abs(profit); }
                 
+                // Liczenie dzisiejszego zysku do paska celu
+                if(new Date(t.created_at).toLocaleDateString() === today) {
+                    dailyProfit += profit;
+                }
+
                 table.innerHTML += `
                     <tr class="border-b border-gray-800 text-white hover:bg-white/5 transition">
                         <td class="p-4 font-bold text-xs md:text-sm">${t.pair} <br><span class="text-[9px] text-gray-500 uppercase">${t.type}</span></td>
@@ -178,6 +209,10 @@
                 barData.push(parseFloat(t.profit));
             });
 
+            // AKTUALIZACJA PASKA CELU
+            updateDailyGoal(dailyProfit);
+
+            // STATYSTYKI
             document.getElementById('totalProfit').innerText = total.toFixed(2) + " PLN";
             document.getElementById('totalProfit').className = `text-2xl md:text-3xl font-black mt-1 ${total >= 0 ? 'text-green-400' : 'text-red-400'}`;
             document.getElementById('winRate').innerText = (trades.length > 0 ? ((wins / trades.length) * 100).toFixed(0) : 0) + "%";
@@ -189,6 +224,25 @@
             document.getElementById('riskReward').innerText = (losses > 0 && wins > 0) ? ((sumWins/wins)/(sumLosses/losses)).toFixed(2) : "0.00";
 
             updateCharts(labels, equityData, barLabels, barData);
+        }
+
+        function updateDailyGoal(currentDailyProfit) {
+            const startBalance = parseFloat(document.getElementById('startBalance').value) || 0;
+            const goalPct = parseFloat(document.getElementById('dailyGoalPct').value) || 0;
+            const goalAmount = startBalance * (goalPct / 100);
+            
+            const progressPct = goalAmount > 0 ? Math.min((currentDailyProfit / goalAmount) * 100, 100) : 0;
+            const finalPct = currentDailyProfit > 0 ? progressPct : 0;
+
+            document.getElementById('goalBar').style.width = `${finalPct}%`;
+            document.getElementById('goalStatus').innerText = `${currentDailyProfit.toFixed(2)} / ${goalAmount.toFixed(2)} PLN`;
+            
+            if(currentDailyProfit >= goalAmount && goalAmount > 0) {
+                document.getElementById('goalStatus').innerText = "CEL OSIĄGNIĘTY! 🎯";
+                document.getElementById('goalStatus').style.color = "#4ade80";
+            } else {
+                document.getElementById('goalStatus').style.color = "#d4af37";
+            }
         }
 
         function updateCharts(labels, equity, barLabels, barValues) {
@@ -211,7 +265,6 @@
                         backgroundColor: barValues.map(v => v >= 0 ? 'rgba(74, 222, 128, 0.4)' : 'rgba(248, 113, 113, 0.4)'),
                         borderColor: barValues.map(v => v >= 0 ? '#4ade80' : '#f87171'),
                         borderWidth: 1,
-                        // KLUCZOWE PARAMETRY DLA WĄSKICH SŁUPKÓW:
                         barPercentage: 0.3, 
                         categoryPercentage: 0.8
                     }]
