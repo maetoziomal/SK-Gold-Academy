@@ -280,7 +280,9 @@
 
         <div id="tabCalc" class="tab-content hidden">
             <div class="max-w-md mx-auto card p-12 rounded-[3.5rem] border-b-8 border-b-gold shadow-2xl">
-                <h3 class="text-2xl font-black gold-text mb-10 text-center uppercase tracking-tighter italic">Kalkulator Lotów</h3>
+                <h3 class="text-2xl font-black gold-text mb-4 text-center uppercase tracking-tighter italic">Kalkulator Lotów</h3>
+                <p class="text-center text-[10px] text-slate-500 uppercase font-black tracking-widest mb-8">Kapitał operacyjny: <span id="calcBalanceDisplay" class="text-white mono">0.00 $</span></p>
+                
                 <div class="space-y-8">
                     <div>
                         <label class="block text-[11px] uppercase text-slate-500 mb-3 font-black tracking-widest text-center">Ryzyko na trade (%)</label>
@@ -359,6 +361,11 @@
             document.querySelectorAll('nav button').forEach(btn => btn.classList.remove('nav-active'));
             document.getElementById('btn' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('nav-active');
             if(tab === 'dashboard') calculateStats();
+            // AKTUALIZACJA LICZNIKA W KALKULATORZE PRZY PRZEŁĄCZANIU
+            if(tab === 'calc') {
+                document.getElementById('calcBalanceDisplay').innerText = currentTotalBalance.toFixed(2) + " $";
+                calculateLot();
+            }
         }
 
         async function fetchTrades() {
@@ -418,6 +425,9 @@
             
             // AKTUALIZACJA SALDA NA ŻYWO
             document.getElementById('liveBalance').innerText = currentTotalBalance.toFixed(2);
+            if(document.getElementById('calcBalanceDisplay')) {
+                document.getElementById('calcBalanceDisplay').innerText = currentTotalBalance.toFixed(2) + " $";
+            }
             
             document.getElementById('totalProfit').innerText = (total >= 0 ? '+' : '') + total.toFixed(2);
             document.getElementById('totalProfit').className = `mono text-5xl font-black italic tracking-tighter ${total >= 0 ? 'text-green-400' : 'text-red-400'}`;
@@ -429,6 +439,7 @@
             updateDailyGoalAndSafety(dailyProfit, startBalance);
             updateCharts(labels, equityData, sessionStats);
             generateWeeklyReport();
+            calculateLot(); // DODANE: PRZELICZAJ LOT GDY ZMIENIA SIĘ SALDO
         }
 
         function updateCharts(labels, equity, sessionData) {
@@ -464,6 +475,7 @@
         }
 
         function calculateLot() {
+            // TERAZ POBIERA currentTotalBalance ZAMIAST startBalance
             const riskAmount = currentTotalBalance * (parseFloat(document.getElementById('riskPct').value) / 100);
             document.getElementById('riskAmount').innerText = riskAmount.toFixed(2) + " $";
             const sl = parseFloat(document.getElementById('slPips').value);
