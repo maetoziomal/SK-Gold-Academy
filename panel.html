@@ -66,10 +66,9 @@
         .emotion-btn { filter: grayscale(1); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
         .emotion-btn.active { filter: grayscale(0); transform: scale(1.3); text-shadow: 0 0 15px rgba(255,255,255,0.5); }
 
-        /* Poprawka dla kontenerów wykresów zewnętrznych */
         .external-frame { 
             width: 100%; 
-            height: 70vh; /* Stała wysokość zależna od ekranu */
+            height: 70vh; 
             min-height: 500px;
             max-height: 800px;
         }
@@ -158,13 +157,14 @@
                     <div class="h-[320px]"><canvas id="equityChart"></canvas></div>
                 </div>
                 <div class="space-y-6">
+                    <div class="card p-8 rounded-[2rem] text-center border-t-4 border-t-gold bg-slate-900/40">
+                        <p class="text-gold uppercase text-[10px] font-black tracking-[0.3em] mb-3">Aktualne Saldo</p>
+                        <h2 id="liveBalance" class="mono text-5xl font-black italic tracking-tighter text-white">0.00</h2>
+                    </div>
+                    
                     <div class="card p-8 rounded-[2rem] text-center border-r-4 border-r-gold">
                         <p class="text-slate-500 uppercase text-[10px] font-black tracking-[0.3em] mb-3">Wynik całkowity</p>
                         <h2 id="totalProfit" class="mono text-5xl font-black italic tracking-tighter">0.00</h2>
-                    </div>
-                    <div class="card p-6 rounded-[2rem]">
-                        <h3 class="text-center text-[10px] text-slate-500 uppercase mb-6 tracking-[0.3em] font-black">Zysk wg sesji</h3>
-                        <div class="h-[180px]"><canvas id="sessionChart"></canvas></div>
                     </div>
                 </div>
             </div>
@@ -415,6 +415,10 @@
             });
 
             currentTotalBalance = startBalance + total;
+            
+            // AKTUALIZACJA SALDA NA ŻYWO
+            document.getElementById('liveBalance').innerText = currentTotalBalance.toFixed(2);
+            
             document.getElementById('totalProfit').innerText = (total >= 0 ? '+' : '') + total.toFixed(2);
             document.getElementById('totalProfit').className = `mono text-5xl font-black italic tracking-tighter ${total >= 0 ? 'text-green-400' : 'text-red-400'}`;
             document.getElementById('winRate').innerText = (allTrades.length > 0 ? ((wins / allTrades.length) * 100).toFixed(0) : 0) + "%";
