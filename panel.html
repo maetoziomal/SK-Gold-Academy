@@ -72,6 +72,33 @@
             min-height: 500px;
             max-height: 800px;
         }
+
+        /* STYLE DLA KALENDARZA */
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+        }
+        .calendar-day {
+            aspect-ratio: 1/1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 1rem;
+            background: rgba(15, 23, 42, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .calendar-day:hover {
+            border-color: var(--gold);
+            transform: translateY(-2px);
+        }
+        .calendar-day.current-day {
+            border: 2px solid var(--gold);
+        }
+        .day-profit { font-size: 0.65rem; font-family: 'JetBrains Mono', monospace; margin-top: 4px; font-weight: 800; }
     </style>
 </head>
 <body class="p-2 md:p-8">
@@ -255,12 +282,25 @@
         </div>
 
         <div id="tabCalendar" class="tab-content hidden">
-            <div class="external-frame card rounded-[2rem] overflow-hidden">
-                <div class="tradingview-widget-container" style="height: 100%; width: 100%;">
-                    <div class="tradingview-widget-container__widget" style="height: 100%; width: 100%;"></div>
-                    <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-events.js" async>
-                    { "colorTheme": "dark", "isTransparent": true, "width": "100%", "height": "100%", "locale": "pl", "importanceFilter": "-1,0,1", "currencyFilter": "USD" }
-                    </script>
+            <div class="card p-8 rounded-[2rem]">
+                <div class="flex justify-between items-center mb-8">
+                    <h3 id="currentMonthYear" class="gold-text font-black uppercase text-xl italic tracking-tighter">Styczeń 2026</h3>
+                    <div class="flex gap-2">
+                        <button onclick="changeMonth(-1)" class="bg-slate-800 hover:bg-gold hover:text-black p-2 rounded-lg transition">←</button>
+                        <button onclick="changeMonth(1)" class="bg-slate-800 hover:bg-gold hover:text-black p-2 rounded-lg transition">→</button>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-7 gap-4 mb-4 text-center text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                    <div>Pon</div><div>Wt</div><div>Śr</div><div>Czw</div><div>Pt</div><div>Sob</div><div>Nie</div>
+                </div>
+                
+                <div id="calendarGrid" class="calendar-grid">
+                    </div>
+
+                <div id="daySummary" class="mt-8 p-6 bg-black/40 border border-slate-800 rounded-2xl hidden">
+                    <h4 id="summaryDate" class="text-xs font-black uppercase text-slate-500 mb-2">12 Stycznia 2026</h4>
+                    <p class="text-2xl font-black italic">WYNIK DNIA: <span id="summaryProfit" class="mono text-white">0.00 $</span></p>
                 </div>
             </div>
         </div>
@@ -308,12 +348,12 @@
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJrdXRncGFveGt2d2h2c2Z6bmptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc1OTgwMTQsImV4cCI6MjA4MzE3NDAxNH0.ycpuwln6hNlmVEh4dtsMbiRQwWTqN7TQobDyrlLcRCw';
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        let equityChart, sessionChart, tvWidget;
+        let equityChart, currentMonth = new Date().getMonth(), currentYear = new Date().getFullYear();
         let allTrades = [];
         let currentTotalBalance = 0;
 
         function initTV() {
-            tvWidget = new TradingView.widget({
+            new TradingView.widget({
                 "autosize": true, "symbol": "OANDA:XAUUSD", "interval": "15", "timezone": "Europe/Warsaw",
                 "theme": "dark", "style": "1", "locale": "pl", "toolbar_bg": "#0f172a", "enable_publishing": false,
                 "hide_side_toolbar": false, "allow_symbol_change": true, "container_id": "tv_chart_container"
@@ -361,7 +401,7 @@
             document.querySelectorAll('nav button').forEach(btn => btn.classList.remove('nav-active'));
             document.getElementById('btn' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('nav-active');
             if(tab === 'dashboard') calculateStats();
-            // AKTUALIZACJA LICZNIKA W KALKULATORZE PRZY PRZEŁĄCZANIU
+            if(tab === 'calendar') renderCalendar();
             if(tab === 'calc') {
                 document.getElementById('calcBalanceDisplay').innerText = currentTotalBalance.toFixed(2) + " $";
                 calculateLot();
@@ -372,13 +412,13 @@
             const { data } = await _supabase.from('trades').select('*').order('created_at', { ascending: true });
             allTrades = data || [];
             calculateStats();
+            if(!document.getElementById('tabCalendar').classList.contains('hidden')) renderCalendar();
         }
 
         function calculateStats() {
             const table = document.getElementById('tradesTable');
             let total = 0, wins = 0, losses = 0, sumWins = 0, sumLosses = 0, dailyProfit = 0;
             let equityData = [0], labels = ['0'];
-            let sessionStats = { 'London 🇬🇧': 0, 'New York 🇺🇸': 0, 'Asia 🇯🇵': 0 };
             const today = new Date().toLocaleDateString();
             table.innerHTML = '';
             
@@ -386,14 +426,13 @@
                 const profit = parseFloat(t.profit);
                 if (new Date(t.created_at).toLocaleDateString() === today) dailyProfit += profit;
 
-                let emotion = "🧘‍♂️", strategy = "Scalp", session = "London 🇬🇧";
+                let emotion = "🧘‍♂️", strategy = "Scalp", session = "LDN";
                 if (t.note && t.note.includes('|')) {
                     const parts = t.note.split('|');
                     emotion = parts[0]?.trim() || "🧘‍♂️";
                     strategy = parts[1]?.trim() || "Scalp";
                     if(parts[3]) session = parts[3].trim();
                 }
-                sessionStats[session] = (sessionStats[session] || 0) + profit;
 
                 table.innerHTML += `
                     <tr class="border-b border-slate-800/50 text-white hover:bg-white/[0.03] transition">
@@ -422,13 +461,7 @@
             });
 
             currentTotalBalance = startBalance + total;
-            
-            // AKTUALIZACJA SALDA NA ŻYWO
             document.getElementById('liveBalance').innerText = currentTotalBalance.toFixed(2);
-            if(document.getElementById('calcBalanceDisplay')) {
-                document.getElementById('calcBalanceDisplay').innerText = currentTotalBalance.toFixed(2) + " $";
-            }
-            
             document.getElementById('totalProfit').innerText = (total >= 0 ? '+' : '') + total.toFixed(2);
             document.getElementById('totalProfit').className = `mono text-5xl font-black italic tracking-tighter ${total >= 0 ? 'text-green-400' : 'text-red-400'}`;
             document.getElementById('winRate').innerText = (allTrades.length > 0 ? ((wins / allTrades.length) * 100).toFixed(0) : 0) + "%";
@@ -437,26 +470,72 @@
             document.getElementById('riskReward').innerText = (losses > 0 && wins > 0) ? ((sumWins/wins)/(sumLosses/losses)).toFixed(2) : "0.00";
             
             updateDailyGoalAndSafety(dailyProfit, startBalance);
-            updateCharts(labels, equityData, sessionStats);
+            updateCharts(labels, equityData);
             generateWeeklyReport();
-            calculateLot(); // DODANE: PRZELICZAJ LOT GDY ZMIENIA SIĘ SALDO
+            calculateLot();
         }
 
-        function updateCharts(labels, equity, sessionData) {
+        function updateCharts(labels, equity) {
             const ctx1 = document.getElementById('equityChart').getContext('2d');
             if (equityChart) equityChart.destroy();
             equityChart = new Chart(ctx1, { 
                 type: 'line', 
                 data: { labels: labels, datasets: [{ data: equity, borderColor: '#d4af37', borderWidth: 4, fill: true, backgroundColor: 'rgba(212, 175, 55, 0.05)', tension: 0.4, pointRadius: 0 }] }, 
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: '#475569', font: { size: 9, family: 'JetBrains Mono' } }, grid: { display: false } }, y: { ticks: { color: '#475569', font: { size: 9, family: 'JetBrains Mono' } }, grid: { color: 'rgba(71, 85, 105, 0.1)' } } } } 
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { display: false }, grid: { display: false } }, y: { ticks: { color: '#475569', font: { size: 9, family: 'JetBrains Mono' } }, grid: { color: 'rgba(71, 85, 105, 0.1)' } } } } 
             });
-            const ctx2 = document.getElementById('sessionChart').getContext('2d');
-            if (sessionChart) sessionChart.destroy();
-            sessionChart = new Chart(ctx2, { 
-                type: 'bar', 
-                data: { labels: Object.keys(sessionData), datasets: [{ data: Object.values(sessionData), backgroundColor: Object.values(sessionData).map(v => v >= 0 ? 'rgba(16, 185, 129, 0.6)' : 'rgba(239, 68, 68, 0.6)'), borderRadius: 12 }] }, 
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { display: false }, grid: { display: false } }, x: { ticks: { color: '#475569', font: { size: 8, family: 'Montserrat', weight: '900' } }, grid: { display: false } } } } 
-            });
+        }
+
+        // LOGIKA KALENDARZA
+        function renderCalendar() {
+            const grid = document.getElementById('calendarGrid');
+            const monthYearLabel = document.getElementById('currentMonthYear');
+            grid.innerHTML = '';
+            
+            const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+            const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+            const monthNames = ["Styczeń", "Luty", "Marzec", "Kwiecień", "Maj", "Czerwiec", "Lipiec", "Sierpień", "Wrzesień", "Październik", "Listopad", "Grudzień"];
+            
+            monthYearLabel.innerText = `${monthNames[currentMonth]} ${currentYear}`;
+            
+            // Puste pola przed 1 dniem miesiąca
+            const startOffset = firstDay === 0 ? 6 : firstDay - 1;
+            for(let i = 0; i < startOffset; i++) {
+                grid.innerHTML += `<div class="p-4 opacity-0"></div>`;
+            }
+            
+            // Generowanie dni
+            for(let day = 1; day <= daysInMonth; day++) {
+                const dateStr = new Date(currentYear, currentMonth, day).toLocaleDateString();
+                let dailySum = 0;
+                allTrades.forEach(t => {
+                    if(new Date(t.created_at).toLocaleDateString() === dateStr) dailySum += parseFloat(t.profit);
+                });
+                
+                const isToday = new Date().toLocaleDateString() === dateStr;
+                const profitClass = dailySum > 0 ? 'text-green-400' : (dailySum < 0 ? 'text-red-400' : 'text-slate-600');
+                
+                grid.innerHTML += `
+                    <div onclick="showDaySummary('${dateStr}', ${dailySum})" class="calendar-day ${isToday ? 'current-day' : ''}">
+                        <span class="text-[10px] font-black">${day}</span>
+                        <span class="day-profit ${profitClass}">${dailySum !== 0 ? dailySum.toFixed(2) : ''}</span>
+                    </div>
+                `;
+            }
+        }
+
+        function changeMonth(dir) {
+            currentMonth += dir;
+            if(currentMonth < 0) { currentMonth = 11; currentYear--; }
+            if(currentMonth > 11) { currentMonth = 0; currentYear++; }
+            renderCalendar();
+        }
+
+        function showDaySummary(date, profit) {
+            const summary = document.getElementById('daySummary');
+            summary.classList.remove('hidden');
+            document.getElementById('summaryDate').innerText = date;
+            document.getElementById('summaryProfit').innerText = profit.toFixed(2) + " $";
+            document.getElementById('summaryProfit').className = `mono text-2xl font-black italic ${profit >= 0 ? 'text-green-400' : 'text-red-400'}`;
         }
 
         async function addTrade() {
@@ -467,7 +546,7 @@
             const emotion = document.getElementById('emotionValue').value;
             const strategy = document.getElementById('strategy').value;
             const hour = new Date().getHours();
-            let session = (hour >= 8 && hour < 14) ? 'London 🇬🇧' : (hour >= 14 && hour < 21) ? 'New York 🇺🇸' : 'Asia 🇯🇵';
+            let session = (hour >= 8 && hour < 14) ? 'LDN' : (hour >= 14 && hour < 21) ? 'NY' : 'ASIA';
             const finalNote = `${emotion} | ${strategy} | ${document.getElementById('note').value} | ${session}`;
             await _supabase.from('trades').insert([{ user_id: user.id, pair: pair.toUpperCase(), profit: parseFloat(profit), type: document.getElementById('type').value, note: finalNote }]);
             document.getElementById('pair').value = ''; document.getElementById('profitInput').value = ''; document.getElementById('note').value = '';
@@ -475,7 +554,6 @@
         }
 
         function calculateLot() {
-            // TERAZ POBIERA currentTotalBalance ZAMIAST startBalance
             const riskAmount = currentTotalBalance * (parseFloat(document.getElementById('riskPct').value) / 100);
             document.getElementById('riskAmount').innerText = riskAmount.toFixed(2) + " $";
             const sl = parseFloat(document.getElementById('slPips').value);
