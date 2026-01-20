@@ -3,264 +3,179 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SK GOLD | EXCLUSIVE TERMINAL</title>
-    <link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=JetBrains+Mono:wght@300;800&family=Outfit:wght@100;400;900&display=swap" rel="stylesheet">
+    <title>SK GOLD | TERMINAL TRADINGOWY</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;600;900&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        :root { 
-            --gold: #FFD700; 
-            --gold-dark: #b8860b;
-            --bg: #050505;
-        }
-
+        :root { --gold: #D4AF37; --bg: #050505; }
         body { 
-            background-color: var(--bg); 
-            color: white; 
-            font-family: 'Outfit', sans-serif;
-            overflow-x: hidden;
-            background-image: 
-                radial-gradient(circle at 10% 20%, rgba(184, 134, 11, 0.05) 0%, transparent 40%),
-                radial-gradient(circle at 90% 80%, rgba(184, 134, 11, 0.05) 0%, transparent 40%);
+            background: var(--bg); color: #fff; font-family: 'Outfit', sans-serif;
+            background-image: radial-gradient(circle at top right, rgba(212, 175, 55, 0.05), transparent);
         }
-
-        .gold-text-gradient {
-            background: linear-gradient(135deg, #FFF5C3 0%, #FFD700 50%, #B8860B 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+        .gold-gradient { background: linear-gradient(135deg, #FFF5C3, #D4AF37, #8A6D3B); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .glass-card { 
+            background: rgba(20, 20, 20, 0.6); 
+            backdrop-filter: blur(20px); 
+            border: 1px solid rgba(255, 255, 255, 0.05); 
+            border-top: 1px solid rgba(212, 175, 55, 0.2);
+            border-radius: 24px;
         }
-
-        .glass {
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(25px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-top: 1px solid rgba(255, 215, 0, 0.2);
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-        }
-
-        .neon-border {
-            box-shadow: 0 0 15px rgba(255, 215, 0, 0.1), inset 0 0 5px rgba(255, 215, 0, 0.1);
-        }
-
-        .balance-glow {
-            text-shadow: 0 0 40px rgba(255, 215, 0, 0.3);
-        }
-
-        .syncopate { font-family: 'Syncopate', sans-serif; }
         .mono { font-family: 'JetBrains Mono', monospace; }
-
-        input, select {
-            background: rgba(0,0,0,0.4) !important;
-            border: 1px solid rgba(255,215,0,0.1) !important;
-            transition: all 0.3s ease;
+        input, select { 
+            background: rgba(0,0,0,0.3) !important; 
+            border: 1px solid rgba(255,255,255,0.1) !important; 
+            border-radius: 12px !important;
+            color: white !important;
         }
-
-        input:focus {
-            border-color: var(--gold) !important;
-            box-shadow: 0 0 15px rgba(255,215,0,0.2);
+        input:focus { border-color: var(--gold) !important; outline: none; box-shadow: 0 0 15px rgba(212, 175, 55, 0.1); }
+        .gold-button {
+            background: linear-gradient(135deg, #D4AF37, #8A6D3B);
+            color: black; font-weight: 900; transition: 0.3s;
+            text-transform: uppercase; letter-spacing: 1px;
         }
-
-        .tab-btn {
-            position: relative;
-            transition: all 0.4s;
-            opacity: 0.4;
-        }
-
-        .tab-btn.active {
-            opacity: 1;
-            color: var(--gold);
-        }
-
-        .tab-btn.active::after {
-            content: '';
-            position: absolute;
-            bottom: -10px;
-            left: 0;
-            width: 100%;
-            height: 2px;
-            background: var(--gold);
-            box-shadow: 0 0 10px var(--gold);
-        }
-
-        /* Animacja wejścia */
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(40px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-in { animation: slideUp 0.8s cubic-bezier(0.2, 1, 0.3, 1) forwards; }
-
-        #admin-lock {
-            position: fixed; inset: 0; background: #000; z-index: 100;
-            display: flex; align-items: center; justify-content: center;
-        }
+        .gold-button:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(212, 175, 55, 0.2); }
+        #admin-lock { position: fixed; inset: 0; background: #000; z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; }
     </style>
 </head>
-<body class="p-4 md:p-8">
+<body class="p-4 md:p-10">
 
     <div id="admin-lock">
-        <div class="text-center animate-pulse">
-            <h1 class="syncopate text-2xl gold-text-gradient tracking-[1em]">SK GOLD</h1>
-            <p class="text-[9px] mt-4 tracking-[0.4em] text-white/30 uppercase">System Authorization Required</p>
-        </div>
+        <h1 class="text-4xl font-black gold-gradient tracking-tighter mb-2">SK GOLD</h1>
+        <p class="text-[10px] tracking-[0.4em] text-white/20 uppercase">Wymagana autoryzacja terminala</p>
     </div>
 
-    <main id="main-content" class="max-w-[1600px] mx-auto hidden opacity-0 transition-opacity duration-1000">
+    <div id="main-content" class="max-w-[1400px] mx-auto hidden">
         
-        <nav class="flex flex-col md:flex-row justify-between items-center mb-16 gap-8">
-            <div class="flex items-center gap-4">
-                <div class="h-12 w-12 glass rounded-full flex items-center justify-center neon-border">
-                    <span class="text-gold text-xl font-black">G</span>
-                </div>
-                <div>
-                    <h1 class="syncopate text-xl font-bold tracking-tighter gold-text-gradient">SK GOLD TERMINAL</h1>
-                    <p class="text-[9px] tracking-[0.3em] text-white/40 uppercase" id="welcomeText">Authenticating...</p>
-                </div>
+        <header class="flex justify-between items-center mb-10">
+            <div>
+                <h1 class="text-3xl font-black gold-gradient tracking-tighter">SK GOLD TERMINAL</h1>
+                <p id="welcomeText" class="text-[10px] text-white/40 uppercase tracking-widest mt-1 italic">Sesja zabezpieczona...</p>
             </div>
+            <button onclick="logout()" class="text-[10px] font-bold text-red-500/50 hover:text-red-500 uppercase tracking-widest">Zakończ sesję</button>
+        </header>
 
-            <div class="flex gap-12">
-                <button onclick="switchTab('dashboard')" id="btnDashboard" class="tab-btn active text-[10px] font-black uppercase tracking-widest">Analytics</button>
-                <button onclick="switchTab('journal')" id="btnJournal" class="tab-btn text-[10px] font-black uppercase tracking-widest">Execution</button>
-                <button onclick="switchTab('calc')" id="btnCalc" class="tab-btn text-[10px] font-black uppercase tracking-widest">Risk</button>
-                <button onclick="logout()" class="text-[10px] text-red-500/50 hover:text-red-500 font-black uppercase tracking-widest ml-4">Exit</button>
-            </div>
-        </nav>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <div class="space-y-8">
+                <div class="glass-card p-8">
+                    <h3 class="text-[11px] font-black text-white/40 uppercase tracking-[0.2em] mb-6">Parametry Portfela</h3>
+                    <div class="space-y-5">
+                        <div>
+                            <label class="block text-[10px] text-white/30 uppercase mb-2 ml-1">Kapitał Początkowy</label>
+                            <input type="number" id="startBalance" oninput="saveSettings()" class="w-full p-4 mono text-lg">
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-[10px] text-white/30 uppercase mb-2 ml-1">Cel Dzienny %</label>
+                                <input type="number" id="dailyGoalPct" oninput="saveSettings()" class="w-full p-4 mono text-gold">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] text-white/30 uppercase mb-2 ml-1">Limit Straty %</label>
+                                <input type="number" id="dailyLossLimit" oninput="saveSettings()" class="w-full p-4 mono text-red-500">
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-        <div id="tabDashboard" class="animate-in">
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                
-                <div class="lg:col-span-12 glass p-12 rounded-[3rem] text-center relative overflow-hidden">
-                    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-gold to-transparent opacity-30"></div>
-                    <p class="text-[11px] uppercase tracking-[0.5em] text-white/40 mb-4">Account Net Liquidity</p>
-                    <h2 id="liveBalance" class="balance-glow text-6xl md:text-9xl font-black italic gold-text-gradient tracking-tighter mono">0.00</h2>
+                <div class="glass-card p-8 border-l-4 border-l-[#D4AF37]">
+                    <p class="text-[10px] text-white/40 uppercase tracking-widest mb-1">Aktualne Saldo (Equity)</p>
+                    <h2 id="liveBalance" class="text-5xl font-black mono tracking-tighter mb-6">0.00</h2>
                     
-                    <div class="flex justify-center gap-12 mt-12">
-                        <div class="text-center">
-                            <p class="text-[10px] text-white/30 uppercase mb-1">Daily Gain</p>
-                            <p id="dailyPL" class="mono text-2xl font-bold text-white">0.00</p>
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-end">
+                            <span class="text-[10px] text-white/40 uppercase">Wynik Dzisiejszy</span>
+                            <span id="dailyPL" class="mono font-bold text-xl text-white">0.00 $</span>
                         </div>
-                        <div class="text-center border-x border-white/10 px-12">
-                            <p class="text-[10px] text-white/30 uppercase mb-1">Win Rate</p>
-                            <p id="winRate" class="mono text-2xl font-bold gold-text-gradient">0%</p>
-                        </div>
-                        <div class="text-center">
-                            <p class="text-[10px] text-white/30 uppercase mb-1">Profit Factor</p>
-                            <p id="profitFactor" class="mono text-2xl font-bold text-white">0.00</p>
+                        <div class="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                            <div id="goalBar" class="h-full bg-gradient-to-r from-gold to-yellow-200 shadow-[0_0_15px_rgba(212,175,55,0.4)] transition-all duration-1000" style="width: 0%"></div>
                         </div>
                     </div>
                 </div>
 
-                <div class="lg:col-span-8 glass p-8 rounded-[3rem]">
-                    <div class="flex justify-between mb-8 px-4">
-                        <span class="text-[10px] font-black uppercase tracking-widest text-gold">Equity Growth</span>
-                        <div class="flex gap-2">
-                            <span class="h-2 w-2 rounded-full bg-gold animate-pulse"></span>
-                            <span class="text-[9px] mono text-white/40">REAL-TIME DATA</span>
+                <div class="glass-card p-8">
+                    <h3 class="text-[11px] font-black text-white/40 uppercase tracking-[0.2em] mb-6">Efektywność Handlu</h3>
+                    <div class="grid grid-cols-2 gap-6">
+                        <div>
+                            <p class="text-[9px] text-white/30 uppercase">Skuteczność</p>
+                            <p id="winRate" class="text-2xl font-black mono gold-gradient">0%</p>
+                        </div>
+                        <div>
+                            <p class="text-[9px] text-white/30 uppercase">Profit Factor</p>
+                            <p id="profitFactor" class="text-2xl font-black mono text-white">0.00</p>
                         </div>
                     </div>
-                    <div class="h-[400px]">
+                </div>
+            </div>
+
+            <div class="lg:col-span-2 space-y-8">
+                
+                <div class="glass-card p-8 h-[400px]">
+                    <div class="flex justify-between items-center mb-6 px-2">
+                        <h3 class="text-[11px] font-black text-white/40 uppercase tracking-[0.2em]">Krzywa Kapitału</h3>
+                        <span class="text-[9px] mono text-gold/50 tracking-widest">LIVE TRACKING</span>
+                    </div>
+                    <div class="h-[300px]">
                         <canvas id="equityChart"></canvas>
                     </div>
                 </div>
 
-                <div class="lg:col-span-4 space-y-8">
-                    <div class="glass p-8 rounded-[3rem]">
-                        <h3 class="text-[11px] uppercase tracking-widest text-white/60 mb-8 font-black">Risk Engine</h3>
-                        <div class="space-y-6">
-                            <div>
-                                <label class="text-[9px] uppercase text-white/30 mb-2 block">Initial Capital</label>
-                                <input type="number" id="startBalance" oninput="saveSettings()" class="w-full p-4 rounded-2xl mono text-xl font-bold">
-                            </div>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label class="text-[9px] uppercase text-white/30 mb-2 block">Target %</label>
-                                    <input type="number" id="dailyGoalPct" oninput="saveSettings()" class="w-full p-4 rounded-2xl mono text-xl font-bold text-gold">
-                                </div>
-                                <div>
-                                    <label class="text-[9px] uppercase text-white/30 mb-2 block">Drawdown %</label>
-                                    <input type="number" id="dailyLossLimit" oninput="saveSettings()" class="w-full p-4 rounded-2xl mono text-xl font-bold text-red-500">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="glass p-8 rounded-[3rem] space-y-8">
-                        <div>
-                            <div class="flex justify-between text-[10px] mb-3 uppercase tracking-tighter">
-                                <span class="text-white/40">Daily Goal</span>
-                                <span class="text-gold" id="goalStatus">0%</span>
-                            </div>
-                            <div class="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
-                                <div id="goalBar" class="h-full bg-gold shadow-[0_0_15px_#FFD700] transition-all duration-1000" style="width: 0%"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div id="tabJournal" class="hidden animate-in">
-            <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
-                <div class="glass p-8 rounded-[3rem] h-fit">
-                    <h3 class="syncopate text-sm gold-text-gradient mb-8">New Execution</h3>
-                    <div class="space-y-4">
-                        <input type="text" id="pair" placeholder="INSTRUMENT" class="w-full p-5 rounded-2xl mono uppercase tracking-widest">
-                        <input type="number" id="profitInput" placeholder="PROFIT/LOSS ($)" class="w-full p-5 rounded-2xl mono">
-                        <select id="emotionSelect" class="w-full p-5 rounded-2xl text-xs uppercase font-black text-white/60">
-                            <option value="🧘‍♂️ DISCIPLINED">🧘‍♂️ Disciplined</option>
-                            <option value="🤑 GREEDY">🤑 Greedy</option>
-                            <option value="😡 REVENGE">😡 Revenge</option>
-                            <option value="😨 FEAR">😨 Fear</option>
+                <div class="glass-card p-8">
+                    <h3 class="text-[11px] font-black text-white/40 uppercase tracking-[0.2em] mb-6">Nowa Egzekucja</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <input type="text" id="pair" placeholder="INSTRUMENT" class="p-4 uppercase font-bold text-sm tracking-widest">
+                        <input type="number" id="profitInput" placeholder="ZYSK / STRATA ($)" class="p-4 font-bold text-sm">
+                        <select id="emotionSelect" class="p-4 text-xs font-bold text-white/60">
+                            <option value="🧘‍♂️ DYSCYPLINA">🧘‍♂️ Dyscyplina</option>
+                            <option value="🤑 CHCIWOŚĆ">🤑 Chciwość</option>
+                            <option value="😡 ZEMSTA">😡 Zemsta</option>
+                            <option value="😨 STRACH">😨 Strach</option>
                         </select>
-                        <button onclick="addTrade()" class="w-full bg-gradient-to-r from-gold-dark to-gold text-black font-black p-5 rounded-2xl uppercase text-[10px] tracking-[0.2em] shadow-lg shadow-gold/20 hover:scale-[1.02] active:scale-95 transition-all">Submit Position</button>
+                        <button onclick="addTrade()" class="gold-button rounded-xl p-4 text-xs">Zaksięguj</button>
                     </div>
                 </div>
-                
-                <div class="lg:col-span-3 glass rounded-[3rem] overflow-hidden">
-                    <div class="p-8 border-b border-white/5">
-                        <h3 class="text-[10px] font-black uppercase tracking-[0.4em] text-white/40">Recent History</h3>
+
+                <div class="glass-card overflow-hidden">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-white/[0.02] text-[10px] text-white/20 uppercase tracking-[0.2em]">
+                                <th class="p-6">Instrument</th>
+                                <th class="p-6">Wynik Netto</th>
+                                <th class="p-6">Psychologia</th>
+                                <th class="p-6 text-right">Opcje</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tradesTable" class="mono text-sm"></tbody>
+                    </table>
+                </div>
+
+                <div class="glass-card p-8 border-b-4 border-b-gold">
+                    <div class="flex justify-between items-center mb-8">
+                        <h3 class="text-[11px] font-black text-white/40 uppercase tracking-[0.2em]">Kalkulator Wielkości Pozycji</h3>
+                        <div class="text-right">
+                            <span class="text-[9px] text-white/20 uppercase block">Zalecany Wolumen</span>
+                            <span id="resultLot" class="text-3xl font-black gold-gradient mono">0.00</span>
+                        </div>
                     </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full">
-                            <thead class="text-[9px] text-white/20 uppercase tracking-widest bg-white/[0.02]">
-                                <tr>
-                                    <th class="p-6 text-left">Asset</th>
-                                    <th class="p-6 text-left">Result</th>
-                                    <th class="p-6 text-left">Psychology</th>
-                                    <th class="p-6 text-right">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tradesTable" class="mono text-sm"></tbody>
-                        </table>
+                    <div class="grid grid-cols-2 gap-6">
+                        <div>
+                            <label class="text-[10px] text-white/30 uppercase block mb-2">Ryzyko na transakcję (%)</label>
+                            <input type="number" id="riskPct" value="1" oninput="calculateLot()" class="w-full p-4 text-center font-bold">
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-white/30 uppercase block mb-2">Stop Loss (Pips)</label>
+                            <input type="number" id="slPips" value="20" oninput="calculateLot()" class="w-full p-4 text-center font-bold">
+                        </div>
                     </div>
                 </div>
+
             </div>
         </div>
-
-        <div id="tabCalc" class="hidden animate-in">
-            <div class="max-w-2xl mx-auto glass p-16 rounded-[4rem] text-center border-b-8 border-gold">
-                <h3 class="syncopate text-2xl gold-text-gradient mb-12">Position Architect</h3>
-                <div class="grid grid-cols-2 gap-12 mb-12">
-                    <div>
-                        <p class="text-[10px] text-white/40 uppercase mb-4 tracking-widest">Risk Amount (%)</p>
-                        <input type="number" id="riskPct" value="1" oninput="calculateLot()" class="w-full p-6 rounded-[2rem] text-center text-3xl font-black">
-                    </div>
-                    <div>
-                        <p class="text-[10px] text-white/40 uppercase mb-4 tracking-widest">Stop Loss (Pips)</p>
-                        <input type="number" id="slPips" value="20" oninput="calculateLot()" class="w-full p-6 rounded-[2rem] text-center text-3xl font-black">
-                    </div>
-                </div>
-                <div class="p-12 bg-white/[0.02] rounded-[3rem] border border-white/5">
-                    <p class="text-[11px] text-gold uppercase tracking-[0.5em] mb-6">Suggested Position Size</p>
-                    <h2 id="resultLot" class="text-8xl font-black gold-text-gradient mono balance-glow">0.00</h2>
-                    <p class="mt-4 text-white/20 uppercase text-[10px] tracking-widest">Lots</p>
-                </div>
-            </div>
-        </div>
-
-    </main>
+    </div>
 
     <script>
+        // ... (Logika JavaScript pozostaje ta sama, co w poprzednich wersjach, tylko z poprawkami nazw elementów) ...
         const SUPABASE_URL = 'https://bkutgpaoxkvwhvsfznjm.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJrdXRncGFveGt2d2h2c2Z6bmptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc1OTgwMTQsImV4cCI6MjA4MzE3NDAxNH0.ycpuwln6hNlmVEh4dtsMbiRQwWTqN7TQobDyrlLcRCw';
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -271,9 +186,7 @@
             const params = new URLSearchParams(window.location.search);
             if (params.get('admin') === 'gold-access') {
                 document.getElementById('admin-lock').style.display = 'none';
-                const main = document.getElementById('main-content');
-                main.classList.remove('hidden');
-                setTimeout(() => main.style.opacity = '1', 100);
+                document.getElementById('main-content').classList.remove('hidden');
                 init();
             }
         }
@@ -281,7 +194,7 @@
         async function init() {
             const { data: { user } } = await _supabase.auth.getUser();
             if(!user) { window.location.href = 'index.html'; return; }
-            document.getElementById('welcomeText').innerText = `SECURE SESSION: ${user.email.toUpperCase()}`;
+            document.getElementById('welcomeText').innerText = `AKTYWNA SESJA: ${user.email.toUpperCase()}`;
             await loadSettings();
             fetchTrades();
         }
@@ -319,14 +232,13 @@
             const pair = document.getElementById('pair').value.toUpperCase();
             const emotion = document.getElementById('emotionSelect').value;
             if(!pair || isNaN(profit)) return;
-
             await _supabase.from('trades').insert([{ user_id: user.id, pair, profit, note: emotion }]);
             document.getElementById('profitInput').value = '';
             fetchTrades();
         }
 
         async function deleteTrade(id) {
-            if(confirm('REMOVE DATA POINT?')) { await _supabase.from('trades').delete().eq('id', id); fetchTrades(); }
+            if(confirm('USUNĄĆ WPIS?')) { await _supabase.from('trades').delete().eq('id', id); fetchTrades(); }
         }
 
         function calculateStats() {
@@ -341,33 +253,27 @@
                 total += p;
                 if(p > 0) { wins++; sumWins += p; } else { sumLosses += Math.abs(p); }
                 if(new Date(t.created_at).toLocaleDateString() === today) dailyProfit += p;
-                
                 equityData.push(total);
                 labels.push(i + 1);
 
                 table.innerHTML = `
                 <tr class="border-b border-white/[0.03] hover:bg-white/[0.02] transition">
-                    <td class="p-6 font-black tracking-widest text-gold">${t.pair}</td>
-                    <td class="p-6 mono ${p >= 0 ? 'text-green-400' : 'text-red-500'} font-black">${p >= 0 ? '+' : ''}${p.toFixed(2)} USD</td>
-                    <td class="p-6 text-[10px] text-white/40 font-black">${t.note || 'UNKNOWN'}</td>
-                    <td class="p-6 text-right"><button onclick="deleteTrade(${t.id})" class="text-red-500/30 hover:text-red-500 font-bold">DELETE</button></td>
+                    <td class="p-6 font-bold tracking-widest text-gold">${t.pair}</td>
+                    <td class="p-6 mono ${p >= 0 ? 'text-green-400' : 'text-red-500'} font-bold">${p.toFixed(2)} $</td>
+                    <td class="p-6 text-[10px] text-white/40 font-bold">${t.note || '-'}</td>
+                    <td class="p-6 text-right"><button onclick="deleteTrade(${t.id})" class="text-red-900 hover:text-red-500">USUŃ</button></td>
                 </tr>` + table.innerHTML;
             });
 
             const start = parseFloat(document.getElementById('startBalance').value) || 0;
             currentBalance = start + total;
-            
-            // Animacyjne odliczanie liczników można dodać później, tu wersja direct
             document.getElementById('liveBalance').innerText = currentBalance.toFixed(2);
-            document.getElementById('dailyPL').innerText = (dailyProfit >= 0 ? '+' : '') + dailyProfit.toFixed(2) + " $";
+            document.getElementById('dailyPL').innerText = dailyProfit.toFixed(2) + " $";
             document.getElementById('winRate').innerText = allTrades.length ? ((wins/allTrades.length)*100).toFixed(0) + '%' : '0%';
             document.getElementById('profitFactor').innerText = sumLosses > 0 ? (sumWins/sumLosses).toFixed(2) : sumWins.toFixed(2);
             
             const goalUSD = start * (parseFloat(document.getElementById('dailyGoalPct').value)/100);
-            const goalProgress = Math.min(Math.max((dailyProfit/goalUSD)*100, 0), 100);
-            document.getElementById('goalBar').style.width = goalProgress + '%';
-            document.getElementById('goalStatus').innerText = goalProgress.toFixed(0) + '%';
-
+            document.getElementById('goalBar').style.width = Math.min(Math.max((dailyProfit/goalUSD)*100, 0), 100) + '%';
             updateChart(labels, equityData);
             calculateLot();
         }
@@ -375,49 +281,11 @@
         function updateChart(labels, data) {
             const ctx = document.getElementById('equityChart').getContext('2d');
             if(equityChart) equityChart.destroy();
-            
-            const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-            gradient.addColorStop(0, 'rgba(255, 215, 0, 0.2)');
-            gradient.addColorStop(1, 'rgba(255, 215, 0, 0)');
-
             equityChart = new Chart(ctx, {
                 type: 'line',
-                data: { 
-                    labels, 
-                    datasets: [{ 
-                        data, 
-                        borderColor: '#FFD700', 
-                        borderWidth: 4,
-                        pointBackgroundColor: '#FFD700',
-                        pointRadius: 0,
-                        pointHoverRadius: 6,
-                        tension: 0.4, 
-                        fill: true, 
-                        backgroundColor: gradient 
-                    }] 
-                },
-                options: { 
-                    responsive: true, 
-                    maintainAspectRatio: false, 
-                    plugins: { legend: { display: false } },
-                    scales: { 
-                        x: { display: false }, 
-                        y: { 
-                            grid: { color: 'rgba(255,255,255,0.03)', drawBorder: false }, 
-                            ticks: { color: 'rgba(255,255,255,0.2)', font: { size: 10, family: 'JetBrains Mono' } } 
-                        } 
-                    } 
-                }
+                data: { labels, datasets: [{ data, borderColor: '#D4AF37', borderWidth: 3, tension: 0.3, fill: true, backgroundColor: 'rgba(212, 175, 55, 0.05)', pointRadius: 0 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: 'rgba(255,255,255,0.2)', font: { size: 10 } } } } }
             });
-        }
-
-        function switchTab(tab) {
-            document.querySelectorAll('.tab-content, [id^="tab"]').forEach(el => {
-                if(el.id.startsWith('tab')) el.classList.add('hidden');
-            });
-            document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.remove('hidden');
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById('btn' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
         }
 
         function calculateLot() {
@@ -428,7 +296,6 @@
         }
 
         async function logout() { await _supabase.auth.signOut(); window.location.href = 'index.html'; }
-
         checkAccess();
     </script>
 </body>
