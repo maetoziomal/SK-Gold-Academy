@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SK GOLD</title>
+    <title>SK GOLD | EXCLUSIVE TERMINAL</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&family=JetBrains+Mono:wght@500;800&family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -24,9 +24,7 @@
         }
         h1, h2, h3, .nav-btn { font-family: 'Montserrat', sans-serif; }
         .mono { font-family: 'JetBrains Mono', monospace; }
-        
         .gold-text { color: var(--gold); text-shadow: 0 0 10px rgba(212, 175, 55, 0.2); }
-        .gold-dot { color: var(--gold); text-shadow: 0 0 15px var(--gold); }
         
         .card { 
             background: var(--card-bg); 
@@ -34,72 +32,40 @@
             border: 1px solid rgba(212, 175, 55, 0.15); 
             box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
         }
-        
         .gold-bg { background: linear-gradient(135deg, #d4af37 0%, #f1c40f 100%); }
-        .loss-bg { background: linear-gradient(135deg, #7f1d1d 0%, #ef4444 100%); }
-        
-        .nav-active { 
-            border-bottom: 3px solid var(--gold); 
-            color: var(--gold); 
-            text-shadow: 0 0 10px rgba(212, 175, 55, 0.4);
-        }
-        
+        .nav-active { border-bottom: 3px solid var(--gold); color: var(--gold); }
         .hidden { display: none; }
-        
-        .tab-content { animation: fadeIn 0.4s ease-out; }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
 
-        .custom-scroll::-webkit-scrollbar { height: 4px; width: 4px; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 10px; }
-
-        input, select, textarea { transition: all 0.2s ease; }
-        input:focus { box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.2); }
-
-        .danger-glow { 
-            box-shadow: 0 0 30px rgba(239, 68, 68, 0.2); 
-            border: 1px solid rgba(239, 68, 68, 0.5); 
-        }
-
-        .emotion-btn { filter: grayscale(1); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .emotion-btn.active { filter: grayscale(0); transform: scale(1.3); text-shadow: 0 0 15px rgba(255,255,255,0.5); }
-
-        /* STYLE DLA KALENDARZA */
-        .calendar-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 10px;
-        }
-        .calendar-day {
-            aspect-ratio: 1/1;
+        /* Nakładka przerwy technicznej */
+        #maintenance-overlay {
+            position: fixed;
+            inset: 0;
+            background: #05070a;
+            z-index: 99999;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            border-radius: 1rem;
-            background: rgba(15, 23, 42, 0.4);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            transition: all 0.2s;
-            cursor: pointer;
+            text-align: center;
         }
-        .calendar-day:hover {
-            border-color: var(--gold);
-            transform: translateY(-2px);
-        }
-        .calendar-day.current-day {
-            border: 2px solid var(--gold);
-        }
-        .day-profit { font-size: 0.65rem; font-family: 'JetBrains Mono', monospace; margin-top: 4px; font-weight: 800; }
+
+        .progress-bar-fill { transition: width 1s cubic-bezier(0.4, 0, 0.2, 1); }
     </style>
 </head>
 <body class="p-2 md:p-8">
+
+    <div id="maintenance-overlay">
+        <div style="width: 50px; height: 1px; background: var(--gold); margin-bottom: 20px; box-shadow: 0 0 15px var(--gold);"></div>
+        <h1 class="gold-text text-2xl font-black uppercase tracking-[0.3em]">Przerwa Techniczna</h1>
+        <p class="text-slate-500 text-[10px] uppercase tracking-widest mt-4">Wdrażanie aktualizacji SK GOLD 2.0</p>
+        <div class="mt-10 mono text-[10px] text-white/10 uppercase">Status: System Rebuilding...</div>
+    </div>
+
     <div class="max-w-6xl mx-auto w-full">
         <header class="flex justify-between items-center mb-8 px-2">
             <div>
                 <h1 class="text-3xl md:text-4xl font-black italic gold-text tracking-tighter uppercase leading-none">
-                    SK GOLD<span class="gold-dot">.</span>
+                    SK GOLD<span class="text-gold">.</span>
                 </h1>
                 <p id="welcomeText" class="text-gray-500 text-[10px] uppercase tracking-[0.3em] mt-2 font-semibold italic">
                     Logowanie...
@@ -110,253 +76,123 @@
             </button>
         </header>
 
-        <div id="statusCard" class="card p-6 rounded-[2rem] mb-8 relative overflow-hidden transition-all duration-700">
-            <div class="absolute -right-10 -top-10 opacity-[0.03] select-none pointer-events-none">
-                <span class="text-[12rem] font-black italic tracking-tighter uppercase">GOLD</span>
-            </div>
-            
-            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8 relative z-10">
+        <div id="statusCard" class="card p-6 rounded-[2rem] mb-8 relative overflow-hidden">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
                 <div class="grid grid-cols-3 gap-4 w-full md:w-auto">
                     <div>
                         <label class="block text-[10px] uppercase text-gray-500 mb-1 font-bold tracking-widest">Saldo Start</label>
-                        <input type="number" id="startBalance" value="1000" oninput="saveSettings()" class="mono bg-slate-900/50 border border-slate-800 rounded-xl px-4 py-2.5 text-sm w-full outline-none focus:border-gold-text text-white font-bold">
+                        <input type="number" id="startBalance" value="1000" oninput="saveSettings()" class="mono bg-slate-900/50 border border-slate-800 rounded-xl px-4 py-2.5 text-sm w-full outline-none text-white font-bold">
                     </div>
                     <div>
                         <label class="block text-[10px] uppercase text-gray-500 mb-1 font-bold tracking-widest">Cel (%)</label>
-                        <input type="number" id="dailyGoalPct" value="10" oninput="saveSettings()" class="mono bg-slate-900/50 border border-slate-800 rounded-xl px-4 py-2.5 text-sm w-full outline-none focus:border-gold-text text-white font-bold">
+                        <input type="number" id="dailyGoalPct" value="10" oninput="saveSettings()" class="mono bg-slate-900/50 border border-slate-800 rounded-xl px-4 py-2.5 text-sm w-full outline-none text-white font-bold">
                     </div>
                     <div>
                         <label class="block text-[10px] uppercase text-red-500/70 mb-1 font-bold tracking-widest">Limit (%)</label>
-                        <input type="number" id="dailyLossLimit" value="3" oninput="saveSettings()" class="mono bg-red-950/20 border border-red-900/30 rounded-xl px-4 py-2.5 text-sm w-full outline-none focus:border-red-500 text-red-400 font-bold">
+                        <input type="number" id="dailyLossLimit" value="3" oninput="saveSettings()" class="mono bg-red-950/20 border border-red-900/30 rounded-xl px-4 py-2.5 text-sm w-full outline-none text-red-400 font-bold">
                     </div>
                 </div>
-                <div class="text-right w-full md:w-auto">
-                    <h2 class="text-2xl md:text-3xl font-black italic gold-text tracking-tighter uppercase mb-1">PANEL TRADERA</h2>
-                    <p id="limitAlert" class="text-[10px] uppercase text-slate-500 tracking-[0.4em] font-black flex items-center justify-end gap-2">
-                        <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> Ryzyko pod kontrolą
-                    </p>
-                </div>
-            </div>
-
-            <div class="space-y-5 relative z-10">
-                <div>
-                    <div class="flex justify-between text-[10px] uppercase mb-2 font-black tracking-widest">
-                        <span class="text-slate-400">Postęp celu dnia</span>
-                        <span id="goalStatus" class="gold-text mono text-xs">0.00 / 0.00 USD</span>
-                    </div>
-                    <div class="w-full bg-slate-950/80 rounded-full h-3.5 border border-slate-800 p-0.5">
-                        <div id="goalBar" class="progress-bar-fill gold-bg h-full rounded-full w-[0%]"></div>
-                    </div>
-                </div>
-
-                <div>
-                    <div class="flex justify-between text-[10px] uppercase mb-2 font-black tracking-widest">
-                        <span class="text-slate-400">Wykorzystany limit straty</span>
-                        <span id="lossStatus" class="text-red-500 mono text-xs">0.00 / 0.00 USD</span>
-                    </div>
-                    <div class="w-full bg-slate-950/80 rounded-full h-3.5 border border-slate-800 p-0.5">
-                        <div id="lossBar" class="progress-bar-fill loss-bg h-full rounded-full w-[0%]"></div>
-                    </div>
+                <div class="text-right">
+                    <h2 class="text-2xl font-black italic gold-text tracking-tighter uppercase">TERMINAL V2</h2>
+                    <p class="text-[9px] text-slate-500 uppercase font-bold tracking-widest">Wersja Deweloperska</p>
                 </div>
             </div>
         </div>
 
-        <nav class="flex gap-8 mb-8 border-b border-slate-800/50 px-4 overflow-x-auto custom-scroll whitespace-nowrap">
+        <nav class="flex gap-8 mb-8 border-b border-slate-800/50 px-4">
             <button id="btnDashboard" onclick="switchTab('dashboard')" class="nav-btn pb-4 font-black text-[11px] uppercase tracking-[0.25em] nav-active">Dashboard</button>
             <button id="btnJournal" onclick="switchTab('journal')" class="nav-btn pb-4 font-black text-[11px] uppercase tracking-[0.25em] text-slate-500">Dziennik</button>
-            <button id="btnCalendar" onclick="switchTab('calendar')" class="nav-btn pb-4 font-black text-[11px] uppercase tracking-[0.25em] text-slate-500">Kalendarz</button>
-            <button id="btnReports" onclick="switchTab('reports')" class="nav-btn pb-4 font-black text-[11px] uppercase tracking-[0.25em] text-slate-500">Raporty</button>
-            <button id="btnCalc" onclick="switchTab('calc')" class="nav-btn pb-4 font-black text-[11px] uppercase tracking-[0.25em] text-slate-500">Kalkulator</button>
         </nav>
 
         <div id="tabDashboard" class="tab-content">
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-                <div class="lg:col-span-2 card p-6 rounded-[2rem]">
-                    <h3 class="font-black mb-6 text-slate-500 uppercase text-[10px] tracking-[0.3em]">Krzywa kapitału</h3>
-                    <div class="h-[320px]"><canvas id="equityChart"></canvas></div>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="lg:col-span-2 card p-6 rounded-[2rem] min-h-[350px]">
+                    <h3 class="text-[10px] uppercase text-slate-500 font-black mb-4 tracking-widest">Krzywa Kapitału</h3>
+                    <div class="h-[280px]">
+                        <canvas id="equityChart"></canvas>
+                    </div>
                 </div>
                 <div class="space-y-6">
-                    <div class="card p-8 rounded-[2rem] text-center border-t-4 border-t-gold bg-slate-900/40">
-                        <p class="text-gold uppercase text-[10px] font-black tracking-[0.3em] mb-3">Aktualne Saldo</p>
+                    <div class="card p-8 rounded-[2rem] text-center border-t-4 border-t-gold">
+                        <p class="text-gold uppercase text-[10px] font-black tracking-[0.3em] mb-3">Saldo Live</p>
                         <h2 id="liveBalance" class="mono text-5xl font-black italic tracking-tighter text-white">0.00</h2>
                     </div>
-                    
-                    <div class="card p-8 rounded-[2rem] text-center border-r-4 border-r-gold">
-                        <p class="text-slate-500 uppercase text-[10px] font-black tracking-[0.3em] mb-3">Wynik całkowity</p>
-                        <h2 id="totalProfit" class="mono text-5xl font-black italic tracking-tighter">0.00</h2>
+                    <div class="card p-6 rounded-[2rem]">
+                        <p class="text-[10px] text-slate-500 uppercase font-black mb-4">Postęp Celu Dnia</p>
+                        <div class="w-full bg-black/50 rounded-full h-2">
+                            <div id="goalBar" class="progress-bar-fill gold-bg h-full rounded-full w-[0%]"></div>
+                        </div>
                     </div>
-                </div>
-            </div>
-            
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-10">
-                <div class="card p-6 rounded-2xl text-center">
-                    <p class="text-[10px] text-slate-500 uppercase font-black tracking-widest mb-1">Win Rate</p>
-                    <p id="winRate" class="mono gold-text font-black text-2xl">0%</p>
-                </div>
-                <div class="card p-6 rounded-2xl text-center">
-                    <p class="text-[10px] text-slate-500 uppercase font-black tracking-widest mb-1">Profit Factor</p>
-                    <p id="profitFactor" class="mono text-white font-black text-2xl">0.00</p>
-                </div>
-                <div class="card p-6 rounded-2xl text-center">
-                    <p class="text-[10px] text-slate-500 uppercase font-black tracking-widest mb-1">Liczba Trade</p>
-                    <p id="tradeCount" class="mono text-white font-black text-2xl">0</p>
-                </div>
-                <div class="card p-6 rounded-2xl text-center">
-                    <p class="text-[10px] text-slate-500 uppercase font-black tracking-widest mb-1">Średni R:R</p>
-                    <p id="riskReward" class="mono text-white font-black text-2xl">0.00</p>
                 </div>
             </div>
         </div>
 
         <div id="tabJournal" class="tab-content hidden">
-            <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
-                <div class="card p-8 rounded-[2.5rem] h-fit sticky top-4 border-t-4 border-t-gold">
-                    <h3 class="text-xl font-black mb-8 gold-text uppercase italic tracking-tighter">Nowa Pozycja</h3>
-                    <div class="space-y-5">
-                        <input type="text" id="pair" placeholder="INSTRUMENT (NP. XAUUSD)" class="w-full bg-slate-900 border border-slate-800 p-4 rounded-2xl text-white focus:border-gold-text outline-none text-sm font-black uppercase tracking-widest">
-                        <input type="number" id="profitInput" placeholder="WYNIK ($)" class="mono w-full bg-slate-900 border border-slate-800 p-4 rounded-2xl text-white focus:border-gold-text outline-none text-sm font-black">
-                        
-                        <div class="grid grid-cols-2 gap-4">
-                            <select id="type" class="bg-slate-900 p-4 rounded-2xl border border-slate-800 text-white focus:border-gold-text outline-none text-[11px] font-black uppercase">
-                                <option value="Long">Long 📈</option>
-                                <option value="Short">Short 📉</option>
-                            </select>
-                            <select id="strategy" class="bg-slate-900 p-4 rounded-2xl border border-slate-800 text-white focus:border-gold-text outline-none text-[11px] font-black uppercase">
-                                <option value="Scalping">Scalping</option>
-                                <option value="Trend">Trend Follow</option>
-                                <option value="Reversal">Reversal</option>
-                                <option value="News">News</option>
-                            </select>
-                        </div>
-
-                        <div class="py-4">
-                            <p class="text-[10px] text-slate-500 uppercase mb-4 block tracking-[0.2em] font-black text-center">Twoje emocje</p>
-                            <div class="flex justify-between bg-black/40 p-4 rounded-2xl border border-slate-800">
-                                <span onclick="selectEmotion('🧘‍♂️', this)" class="emotion-btn text-3xl active cursor-pointer">🧘‍♂️</span>
-                                <span onclick="selectEmotion('🤑', this)" class="emotion-btn text-3xl cursor-pointer">🤑</span>
-                                <span onclick="selectEmotion('😡', this)" class="emotion-btn text-3xl cursor-pointer">😡</span>
-                                <span onclick="selectEmotion('🏃‍♂️', this)" class="emotion-btn text-3xl cursor-pointer">🏃‍♂️</span>
-                                <span onclick="selectEmotion('😨', this)" class="emotion-btn text-3xl cursor-pointer">😨</span>
-                            </div>
-                            <input type="hidden" id="emotionValue" value="🧘‍♂️">
-                        </div>
-
-                        <input type="text" id="note" placeholder="Dlaczego to wziąłeś?" class="w-full bg-slate-900 border border-slate-800 p-4 rounded-2xl text-white focus:border-gold-text outline-none text-sm">
-                        
-                        <button id="addTradeBtn" onclick="addTrade()" class="gold-bg w-full text-black font-black py-5 rounded-2xl hover:scale-[1.02] active:scale-95 transition-all text-[11px] uppercase mt-4 shadow-xl shadow-gold/10 tracking-[0.2em]">
-                            Dodaj do Dziennika
-                        </button>
-                    </div>
-                </div>
-
-                <div class="xl:col-span-2 space-y-6">
-                    <div class="card rounded-[2rem] overflow-hidden">
-                        <table class="w-full text-left border-collapse">
-                            <thead class="bg-slate-900/80 text-slate-500 text-[10px] uppercase font-black tracking-[0.2em]">
-                                <tr>
-                                    <th class="p-6">Pozycja</th>
-                                    <th class="p-6">Wynik</th>
-                                    <th class="p-6 text-center">Emocja</th>
-                                    <th class="p-6 text-right">Akcja</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tradesTable" class="text-sm"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div id="tabCalendar" class="tab-content hidden">
             <div class="card p-8 rounded-[2rem]">
-                <div class="flex justify-between items-center mb-8">
-                    <h3 id="currentMonthYear" class="gold-text font-black uppercase text-xl italic tracking-tighter">Styczeń 2026</h3>
-                    <div class="flex gap-2">
-                        <button onclick="changeMonth(-1)" class="bg-slate-800 hover:bg-gold hover:text-black p-2 rounded-lg transition">←</button>
-                        <button onclick="changeMonth(1)" class="bg-slate-800 hover:bg-gold hover:text-black p-2 rounded-lg transition">→</button>
-                    </div>
-                </div>
-                
-                <div class="grid grid-cols-7 gap-4 mb-4 text-center text-[10px] font-black text-slate-500 uppercase tracking-widest">
-                    <div>Pon</div><div>Wt</div><div>Śr</div><div>Czw</div><div>Pt</div><div>Sob</div><div>Nie</div>
-                </div>
-                
-                <div id="calendarGrid" class="calendar-grid">
-                    </div>
-
-                <div id="daySummary" class="mt-8 p-6 bg-black/40 border border-slate-800 rounded-2xl hidden">
-                    <h4 id="summaryDate" class="text-xs font-black uppercase text-slate-500 mb-2">12 Stycznia 2026</h4>
-                    <p class="text-2xl font-black italic">WYNIK DNIA: <span id="summaryProfit" class="mono text-white">0.00 $</span></p>
-                </div>
-            </div>
-        </div>
-
-        <div id="tabReports" class="tab-content hidden">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div class="card p-10 rounded-[2.5rem] border-l-4 border-l-gold">
-                    <h3 class="gold-text font-black mb-8 uppercase text-xs italic tracking-[0.3em]">Podsumowanie tygodnia</h3>
-                    <div id="weeklyReportContent" class="space-y-6 text-sm"></div>
-                </div>
-                <div class="card p-10 rounded-[2.5rem]">
-                    <h3 class="text-slate-400 font-black mb-8 uppercase text-xs italic tracking-[0.3em]">Lekcja tygodnia</h3>
-                    <textarea id="weeklyLesson" oninput="saveWeeklyLesson()" class="w-full h-48 bg-slate-900/50 border border-slate-800 rounded-3xl p-6 text-white text-sm outline-none focus:border-gold-text transition-all leading-relaxed" placeholder="Czego nauczyłeś się w tym tygodniu?"></textarea>
-                </div>
-            </div>
-        </div>
-
-        <div id="tabCalc" class="tab-content hidden">
-            <div class="max-w-md mx-auto card p-12 rounded-[3.5rem] border-b-8 border-b-gold shadow-2xl">
-                <h3 class="text-2xl font-black gold-text mb-4 text-center uppercase tracking-tighter italic">Kalkulator Lotów</h3>
-                <p class="text-center text-[10px] text-slate-500 uppercase font-black tracking-widest mb-8">Kapitał operacyjny: <span id="calcBalanceDisplay" class="text-white mono">0.00 $</span></p>
-                
-                <div class="space-y-8">
-                    <div>
-                        <label class="block text-[11px] uppercase text-slate-500 mb-3 font-black tracking-widest text-center">Ryzyko na trade (%)</label>
-                        <input type="number" id="riskPct" value="1" oninput="calculateLot()" class="mono w-full bg-slate-900 p-5 rounded-2xl border border-slate-800 text-white focus:border-gold-text outline-none text-2xl font-black text-center">
-                    </div>
-                    <div>
-                        <label class="block text-[11px] uppercase text-slate-500 mb-3 font-black tracking-widest text-center">Stop Loss (Pips)</label>
-                        <input type="number" id="slPips" value="20" oninput="calculateLot()" class="mono w-full bg-slate-900 p-5 rounded-2xl border border-slate-800 text-white focus:border-gold-text outline-none text-2xl font-black text-center">
-                    </div>
-                    <div class="bg-black/40 p-10 rounded-[2.5rem] border border-dashed border-gold/20 text-center mt-10">
-                        <p class="text-slate-500 text-[11px] uppercase mb-4 font-black tracking-widest">Sugerowany Lot</p>
-                        <h2 id="resultLot" class="mono text-6xl font-black gold-text tracking-tighter">0.00</h2>
-                        <p class="text-[12px] text-slate-400 mt-6 italic font-semibold">Ryzykujesz gotówką: <span id="riskAmount" class="text-white mono">0.00 $</span></p>
-                    </div>
+                <h3 class="gold-text font-black uppercase text-xl mb-6 italic">Lista Transakcji</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead class="text-[10px] uppercase text-slate-500 font-black border-b border-slate-800">
+                            <tr>
+                                <th class="p-4">Instrument</th>
+                                <th class="p-4">Wynik</th>
+                                <th class="p-4 text-right">Akcja</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tradesTable" class="mono text-sm">
+                            </tbody>
+                    </table>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
+        // 1. BLOKADA TECHNICZNA
+        function checkMaintenance() {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('admin') === 'gold-access') {
+                document.getElementById('maintenance-overlay').style.display = 'none';
+            }
+        }
+        checkMaintenance();
+
+        // 2. KONFIGURACJA SUPABASE
         const SUPABASE_URL = 'https://bkutgpaoxkvwhvsfznjm.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJrdXRncGFveGt2d2h2c2Z6bmptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc1OTgwMTQsImV4cCI6MjA4MzE3NDAxNH0.ycpuwln6hNlmVEh4dtsMbiRQwWTqN7TQobDyrlLcRCw';
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        let equityChart, currentMonth = new Date().getMonth(), currentYear = new Date().getFullYear();
-        let allTrades = [];
+        let equityChart, allTrades = [];
         let currentTotalBalance = 0;
 
+        // 3. OBSŁUGA UŻYTKOWNIKA
         async function checkUser() {
             const { data: { user } } = await _supabase.auth.getUser();
-            if (!user) { window.location.href = 'index.html'; return; }
-            document.getElementById('welcomeText').innerHTML = `Sesja aktywna: <span class="text-white font-black italic tracking-normal">${user.user_metadata.display_name || "PRO TRADER"}</span>`;
-            await loadSettings();
-            fetchTrades();
+            if (!user) {
+                const params = new URLSearchParams(window.location.search);
+                if(params.get('admin') !== 'gold-access') window.location.href = 'index.html';
+                return;
+            }
+            document.getElementById('welcomeText').innerHTML = `Trader: <span class="text-white">${user.user_metadata.display_name || "PRO USER"}</span>`;
+            loadSettings();
         }
 
+        // 4. ŁADOWANIE USTAWIEŃ I DANYCH
         async function loadSettings() {
-            const { data } = await _supabase.from('user_settings').select('*').single();
+            const { data: { user } } = await _supabase.auth.getUser();
+            if (!user) return;
+            const { data } = await _supabase.from('user_settings').select('*').eq('user_id', user.id).single();
             if (data) {
                 document.getElementById('startBalance').value = data.start_balance;
                 document.getElementById('dailyGoalPct').value = data.daily_goal_pct;
-                document.getElementById('dailyLossLimit').value = data.daily_loss_limit || 3;
-                document.getElementById('weeklyLesson').value = data.weekly_lesson || "";
+                document.getElementById('dailyLossLimit').value = data.daily_loss_limit;
             }
+            fetchTrades();
         }
 
         async function saveSettings() {
             const { data: { user } } = await _supabase.auth.getUser();
+            if (!user) return;
             await _supabase.from('user_settings').upsert({ 
                 user_id: user.id, 
                 start_balance: parseFloat(document.getElementById('startBalance').value) || 0, 
@@ -366,101 +202,96 @@
             calculateStats();
         }
 
-        async function saveWeeklyLesson() {
-            const { data: { user } } = await _supabase.auth.getUser();
-            await _supabase.from('user_settings').upsert({ user_id: user.id, weekly_lesson: document.getElementById('weeklyLesson').value });
-        }
-
-        function switchTab(tab) {
-            document.querySelectorAll('[id^="tab"]').forEach(el => el.classList.add('hidden'));
-            document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.remove('hidden');
-            document.querySelectorAll('nav button').forEach(btn => btn.classList.remove('nav-active'));
-            document.getElementById('btn' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('nav-active');
-            if(tab === 'dashboard') calculateStats();
-            if(tab === 'calendar') renderCalendar();
-            if(tab === 'calc') {
-                document.getElementById('calcBalanceDisplay').innerText = currentTotalBalance.toFixed(2) + " $";
-                calculateLot();
-            }
-        }
-
         async function fetchTrades() {
             const { data } = await _supabase.from('trades').select('*').order('created_at', { ascending: true });
             allTrades = data || [];
             calculateStats();
-            if(!document.getElementById('tabCalendar').classList.contains('hidden')) renderCalendar();
         }
 
+        // 5. OBLICZENIA I WYKRESY
         function calculateStats() {
+            let totalProfit = 0;
+            let equityData = [0];
+            let labels = ['Start'];
+            const startBalance = parseFloat(document.getElementById('startBalance').value) || 0;
             const table = document.getElementById('tradesTable');
-            let total = 0, wins = 0, losses = 0, sumWins = 0, sumLosses = 0, dailyProfit = 0;
-            let equityData = [0], labels = ['0'];
-            const today = new Date().toLocaleDateString();
             table.innerHTML = '';
-            
-            [...allTrades].reverse().forEach((t) => {
-                const profit = parseFloat(t.profit);
-                if (new Date(t.created_at).toLocaleDateString() === today) dailyProfit += profit;
 
-                let emotion = "🧘‍♂️", strategy = "Scalp", session = "LDN";
-                if (t.note && t.note.includes('|')) {
-                    const parts = t.note.split('|');
-                    emotion = parts[0]?.trim() || "🧘‍♂️";
-                    strategy = parts[1]?.trim() || "Scalp";
-                    if(parts[3]) session = parts[3].trim();
-                }
+            allTrades.forEach((t, i) => {
+                const p = parseFloat(t.profit);
+                totalProfit += p;
+                equityData.push(totalProfit);
+                labels.push(i + 1);
 
                 table.innerHTML += `
-                    <tr class="border-b border-slate-800/50 text-white hover:bg-white/[0.03] transition">
-                        <td class="p-6">
-                            <div class="font-black text-xs uppercase italic">${t.pair} <span class="gold-text ml-3 mono text-[10px] not-italic">${session}</span></div>
-                            <div class="text-[10px] text-slate-500 uppercase font-black tracking-widest mt-1">${strategy}</div>
-                        </td>
-                        <td class="p-6 font-black mono italic text-lg ${profit >= 0 ? 'text-green-400' : 'text-red-400'}">
-                            ${profit >= 0 ? '+' : ''}${profit.toFixed(2)}
-                        </td>
-                        <td class="p-6 text-center text-3xl">${emotion}</td>
-                        <td class="p-6 text-right">
-                            <button onclick="deleteTrade(${t.id})" class="text-red-900/50 hover:text-red-500 transition-all font-black text-[10px] uppercase">Usuń</button>
-                        </td>
-                    </tr>`;
+                    <tr class="border-b border-white/5 hover:bg-white/5 transition">
+                        <td class="p-4 font-bold uppercase">${t.pair}</td>
+                        <td class="p-4 ${p >= 0 ? 'text-green-400' : 'text-red-400'} font-black">${p >= 0 ? '+' : ''}${p.toFixed(2)} $</td>
+                        <td class="p-4 text-right"><button onclick="deleteTrade(${t.id})" class="text-xs text-red-900 hover:text-red-500">USUŃ</button></td>
+                    </tr>
+                `;
             });
 
-            const startBalance = parseFloat(document.getElementById('startBalance').value) || 0;
-            allTrades.forEach((t, i) => {
-                const profit = parseFloat(t.profit);
-                total += profit;
-                if(profit > 0) { wins++; sumWins += profit; }
-                else if(profit < 0) { losses++; sumLosses += Math.abs(profit); }
-                equityData.push(equityData[equityData.length - 1] + profit);
-                labels.push(i + 1);
-            });
-
-            currentTotalBalance = startBalance + total;
-            document.getElementById('liveBalance').innerText = currentTotalBalance.toFixed(2);
-            document.getElementById('totalProfit').innerText = (total >= 0 ? '+' : '') + total.toFixed(2);
-            document.getElementById('totalProfit').className = `mono text-5xl font-black italic tracking-tighter ${total >= 0 ? 'text-green-400' : 'text-red-400'}`;
-            document.getElementById('winRate').innerText = (allTrades.length > 0 ? ((wins / allTrades.length) * 100).toFixed(0) : 0) + "%";
-            document.getElementById('tradeCount').innerText = allTrades.length;
-            document.getElementById('profitFactor').innerText = sumLosses > 0 ? (sumWins / sumLosses).toFixed(2) : sumWins.toFixed(2);
-            document.getElementById('riskReward').innerText = (losses > 0 && wins > 0) ? ((sumWins/wins)/(sumLosses/losses)).toFixed(2) : "0.00";
+            currentTotalBalance = startBalance + totalProfit;
+            document.getElementById('liveBalance').innerText = currentTotalBalance.toFixed(2) + " $";
+            document.getElementById('liveBalance').className = `mono text-5xl font-black italic tracking-tighter ${totalProfit >= 0 ? 'text-green-400' : 'text-white'}`;
             
-            updateDailyGoalAndSafety(dailyProfit, startBalance);
+            // Pasek postępu celu
+            const dailyGoal = startBalance * (parseFloat(document.getElementById('dailyGoalPct').value) / 100);
+            const progress = Math.min((totalProfit / dailyGoal) * 100, 100);
+            document.getElementById('goalBar').style.width = Math.max(progress, 0) + '%';
+
             updateCharts(labels, equityData);
         }
 
         function updateCharts(labels, equity) {
-            const ctx1 = document.getElementById('equityChart').getContext('2d');
+            const ctx = document.getElementById('equityChart').getContext('2d');
             if (equityChart) equityChart.destroy();
-            equityChart = new Chart(ctx1, { 
+            equityChart = new Chart(ctx, { 
                 type: 'line', 
-                data: { labels: labels, datasets: [{ data: equity, borderColor: '#d4af37', borderWidth: 4, fill: true, backgroundColor: 'rgba(212, 175, 55, 0.05)', tension: 0.4, pointRadius: 0 }] }, 
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { display: false }, grid: { display: false } }, y: { ticks: { color: '#475569', font: { size: 9, family: 'JetBrains Mono' } }, grid: { color: 'rgba(71, 85, 105, 0.1)' } } } } 
+                data: { 
+                    labels: labels, 
+                    datasets: [{ 
+                        data: equity, 
+                        borderColor: '#d4af37', 
+                        borderWidth: 3, 
+                        fill: true, 
+                        backgroundColor: 'rgba(212, 175, 55, 0.05)', 
+                        tension: 0.4, 
+                        pointRadius: 2 
+                    }] 
+                }, 
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { color: '#475569' } },
+                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#475569' } }
+                    }
+                } 
             });
         }
 
-        // Pozostałe funkcje (renderCalendar, updateDailyGoalAndSafety itp.) pozostają bez zmian...
-        
+        async function deleteTrade(id) {
+            if(confirm('Usunąć tę transakcję?')) {
+                await _supabase.from('trades').delete().eq('id', id);
+                fetchTrades();
+            }
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.remove('hidden');
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('nav-active'));
+            document.getElementById('btn' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('nav-active');
+        }
+
+        async function logout() {
+            await _supabase.auth.signOut();
+            window.location.href = 'index.html';
+        }
+
         checkUser();
     </script>
 </body>
