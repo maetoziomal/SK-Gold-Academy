@@ -66,12 +66,6 @@
         .emotion-btn { filter: grayscale(1); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
         .emotion-btn.active { filter: grayscale(0); transform: scale(1.3); text-shadow: 0 0 15px rgba(255,255,255,0.5); }
 
-        .external-frame { 
-            width: 100%; 
-            height: 70vh; 
-            min-height: 500px;
-            max-height: 800px;
-        }
 
         /* STYLE DLA KALENDARZA */
         .calendar-grid {
@@ -171,7 +165,6 @@
         <nav class="flex gap-8 mb-8 border-b border-slate-800/50 px-4 overflow-x-auto custom-scroll whitespace-nowrap">
             <button id="btnDashboard" onclick="switchTab('dashboard')" class="nav-btn pb-4 font-black text-[11px] uppercase tracking-[0.25em] nav-active">Dashboard</button>
             <button id="btnJournal" onclick="switchTab('journal')" class="nav-btn pb-4 font-black text-[11px] uppercase tracking-[0.25em] text-slate-500">Dziennik</button>
-            <button id="btnChart" onclick="switchTab('chart')" class="nav-btn pb-4 font-black text-[11px] uppercase tracking-[0.25em] text-slate-500">Wykres</button>
             <button id="btnCalendar" onclick="switchTab('calendar')" class="nav-btn pb-4 font-black text-[11px] uppercase tracking-[0.25em] text-slate-500">Kalendarz</button>
             <button id="btnReports" onclick="switchTab('reports')" class="nav-btn pb-4 font-black text-[11px] uppercase tracking-[0.25em] text-slate-500">Raporty</button>
             <button id="btnCalc" onclick="switchTab('calc')" class="nav-btn pb-4 font-black text-[11px] uppercase tracking-[0.25em] text-slate-500">Kalkulator</button>
@@ -275,11 +268,6 @@
             </div>
         </div>
 
-        <div id="tabChart" class="tab-content hidden">
-            <div class="external-frame card overflow-hidden border-2 border-gold/10 p-1 rounded-[2rem]">
-                <div id="tv_chart_container" style="height: 100%; width: 100%;"></div>
-            </div>
-        </div>
 
         <div id="tabCalendar" class="tab-content hidden">
             <div class="card p-8 rounded-[2rem]">
@@ -342,7 +330,6 @@
         </div>
     </div>
 
-    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
     <script>
         const SUPABASE_URL = 'https://bkutgpaoxkvwhvsfznjm.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJrdXRncGFveGt2d2h2c2Z6bmptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc1OTgwMTQsImV4cCI6MjA4MzE3NDAxNH0.ycpuwln6hNlmVEh4dtsMbiRQwWTqN7TQobDyrlLcRCw';
@@ -352,21 +339,12 @@
         let allTrades = [];
         let currentTotalBalance = 0;
 
-        function initTV() {
-            new TradingView.widget({
-                "autosize": true, "symbol": "OANDA:XAUUSD", "interval": "15", "timezone": "Europe/Warsaw",
-                "theme": "dark", "style": "1", "locale": "pl", "toolbar_bg": "#0f172a", "enable_publishing": false,
-                "hide_side_toolbar": false, "allow_symbol_change": true, "container_id": "tv_chart_container"
-            });
-        }
-
         async function checkUser() {
             const { data: { user } } = await _supabase.auth.getUser();
             if (!user) { window.location.href = 'index.html'; return; }
             document.getElementById('welcomeText').innerHTML = `Sesja aktywna: <span class="text-white font-black italic tracking-normal">${user.user_metadata.display_name || "PRO TRADER"}</span>`;
             await loadSettings();
             fetchTrades();
-            initTV();
         }
 
         async function loadSettings() {
