@@ -331,6 +331,28 @@
     </div>
 
     <script>
+        // --- BLOKADA DOSTĘPU (TYMCZASOWA) ---
+const DOZWOLONE_EMAILE = ['twoj-email@gmail.com']; // Wpisz tutaj swój email
+
+async function verifyAccess() {
+    const { data: { user } } = await _supabase.auth.getUser();
+    
+    if (user && !DOZWOLONE_EMAILE.includes(user.email)) {
+        // Jeśli użytkownik jest zalogowany, ale nie ma go na liście:
+        document.body.innerHTML = `
+            <div style="background:#05070a; color:white; height:100vh; display:flex; flex-direction:column; align-items:center; justify-center:center; font-family:sans-serif; text-align:center; padding:20px;">
+                <h1 style="color:#d4af37; font-size:24px; text-transform:uppercase; letter-spacing:2px;">Terminal w trakcie aktualizacji</h1>
+                <p style="color:#64748b; margin-top:10px;">Dostęp dla Twojego konta (${user.email}) jest tymczasowo wstrzymany.</p>
+                <button onclick="window.location.href='index.html'" style="margin-top:20px; background:#d4af37; color:black; border:none; padding:10px 20px; border-radius:8px; font-weight:bold; cursor:pointer;">Powrót</button>
+            </div>
+        `;
+        // Opcjonalnie wyloguj go automatycznie:
+        await _supabase.auth.signOut();
+    }
+}
+// Wywołaj weryfikację natychmiast
+verifyAccess();
+// --- KONIEC BLOKADY ---
         const SUPABASE_URL = 'https://bkutgpaoxkvwhvsfznjm.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJrdXRncGFveGt2d2h2c2Z6bmptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc1OTgwMTQsImV4cCI6MjA4MzE3NDAxNH0.ycpuwln6hNlmVEh4dtsMbiRQwWTqN7TQobDyrlLcRCw';
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
