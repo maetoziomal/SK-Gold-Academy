@@ -3,35 +3,118 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SK Gold Academy - Wejście</title>
+    <title>SK GOLD ACADEMY - Terminal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@800;900&family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { background-color: #020617; color: white; font-family: 'Inter', sans-serif; }
-        .gold-border { border: 1px solid #d4af37; }
-        .gold-bg { background: linear-gradient(135deg, #d4af37 0%, #f1c40f 100%); }
+        :root {
+            --gold: #d4af37;
+            --dark-bg: #05070a;
+            --glass-bg: rgba(15, 23, 42, 0.6);
+        }
+
+        body { 
+            background-color: var(--dark-bg); 
+            color: #f8fafc; 
+            font-family: 'Inter', sans-serif;
+            background-image: 
+                radial-gradient(circle at top right, rgba(212, 175, 55, 0.1), transparent),
+                radial-gradient(circle at bottom left, rgba(212, 175, 55, 0.05), transparent);
+        }
+
+        .gold-text { 
+            color: var(--gold); 
+            text-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(212, 175, 55, 0.15);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+        }
+
+        .gold-btn {
+            background: linear-gradient(135deg, #d4af37 0%, #f1c40f 100%);
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .gold-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(212, 175, 55, 0.4);
+            filter: brightness(1.1);
+        }
+
+        .input-field {
+            background: rgba(0, 0, 0, 0.4) !important;
+            border: 1px solid rgba(255, 255, 255, 0.05) !important;
+            transition: all 0.3s;
+        }
+
+        .input-field:focus {
+            border-color: var(--gold) !important;
+            box-shadow: 0 0 10px rgba(212, 175, 55, 0.1);
+            background: rgba(0, 0, 0, 0.6) !important;
+        }
+
+        .shimmer {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .shimmer::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.05), transparent);
+            transform: rotate(45deg);
+            animation: shimmer 4s infinite linear;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) rotate(45deg); }
+        }
     </style>
 </head>
 <body class="flex items-center justify-center min-h-screen p-4">
-    <div class="bg-[#0f172a] p-8 md:p-10 rounded-2xl gold-border shadow-2xl w-full max-w-md">
-        <div class="text-center mb-8">
-            <h1 class="text-3xl font-bold tracking-tighter text-[#d4af37]">SK GOLD ACADEMY</h1>
-            <p class="text-gray-400 text-sm mt-2">Zaloguj się do swojego terminala</p>
+    <div class="glass-card p-10 md:p-12 rounded-[2.5rem] w-full max-w-md shimmer">
+        <div class="text-center mb-10">
+            <h1 class="text-4xl font-black italic gold-text tracking-tighter uppercase mb-2">
+                SK GOLD<span class="text-white">.</span>
+            </h1>
+            <p class="text-slate-500 text-[10px] font-black uppercase tracking-[0.4em]">Professional Terminal</p>
         </div>
 
-        <div class="space-y-4">
+        <div class="space-y-6">
             <div>
-                <label class="text-[10px] uppercase tracking-widest text-gray-500 ml-1">Imię / Nick (tylko przy rejestracji)</label>
-                <input type="text" id="nickname" placeholder="np. Mateusz" class="w-full bg-[#1e293b] border border-gray-700 rounded-lg p-3 focus:outline-none focus:border-[#d4af37] text-white mt-1">
+                <label class="text-[9px] uppercase tracking-[0.2em] text-slate-500 ml-1 font-bold">Inicjały / Nickname</label>
+                <input type="text" id="nickname" placeholder="Dla nowych użytkowników" 
+                    class="input-field w-full rounded-xl p-4 text-sm font-semibold text-white mt-1 outline-none">
             </div>
             
-            <input type="email" id="email" placeholder="Email" class="w-full bg-[#1e293b] border border-gray-700 rounded-lg p-3 focus:outline-none focus:border-[#d4af37] text-white">
-            <input type="password" id="password" placeholder="Hasło" class="w-full bg-[#1e293b] border border-gray-700 rounded-lg p-3 focus:outline-none focus:border-[#d4af37] text-white">
+            <div class="space-y-4">
+                <input type="email" id="email" placeholder="Email" 
+                    class="input-field w-full rounded-xl p-4 text-sm font-semibold text-white outline-none">
+                <input type="password" id="password" placeholder="Hasło" 
+                    class="input-field w-full rounded-xl p-4 text-sm font-semibold text-white outline-none">
+            </div>
             
-            <button onclick="handleLogin()" class="gold-bg w-full py-3 rounded-lg font-bold text-black hover:scale-[1.02] transition-transform active:scale-95">
-                Zaloguj / Rejestracja
+            <button onclick="handleLogin()" class="gold-btn w-full py-4 rounded-xl font-black text-[11px] uppercase tracking-[0.2em] text-black mt-4">
+                Autoryzacja
             </button>
-            <p id="msg" class="text-center text-xs mt-2 font-medium px-2"></p>
+            
+            <p id="msg" class="text-center text-[10px] mt-4 font-bold uppercase tracking-wider min-h-[15px]"></p>
+        </div>
+        
+        <div class="mt-8 pt-6 border-t border-white/5 text-center">
+            <p class="text-[9px] text-slate-600 font-bold uppercase tracking-widest">© 2026 SK GOLD ACADEMY SYSTEM</p>
         </div>
     </div>
 
@@ -46,23 +129,21 @@
             const nickname = document.getElementById('nickname').value;
             const msg = document.getElementById('msg');
 
-            msg.innerText = "Przetwarzanie...";
-            msg.style.color = "#94a3b8";
+            msg.innerText = "ŁĄCZENIE Z SERWEREM...";
+            msg.style.color = "#64748b";
 
             if (!email || !password) {
-                msg.innerText = "Podaj email i hasło!";
-                msg.style.color = "#f87171";
+                msg.innerText = "BŁĄD: BRAK DANYCH";
+                msg.style.color = "#ef4444";
                 return;
             }
 
-            // 1. Logowanie
             const { data, error } = await klientSupabase.auth.signInWithPassword({ email, password });
 
             if (error) {
-                // 2. Rejestracja (jeśli konto nie istnieje)
                 if (!nickname) {
-                    msg.innerText = "Błędne dane. Podaj Imię, aby stworzyć nowe konto.";
-                    msg.style.color = "#f87171";
+                    msg.innerText = "NIEZNANY PROFIL. PODAJ NICK";
+                    msg.style.color = "#ef4444";
                     return;
                 }
 
@@ -73,15 +154,18 @@
                 });
 
                 if (regError) {
-                    msg.innerText = "Błąd: " + regError.message;
-                    msg.style.color = "#f87171";
+                    msg.innerText = "BŁĄD SYSTEMU: " + regError.message.toUpperCase();
+                    msg.style.color = "#ef4444";
                 } else {
-                    msg.innerText = "Konto założone! Możesz się teraz zalogować.";
-                    msg.style.color = "#34d399";
+                    msg.innerText = "KONTO UTWORZONE. ZALOGUJ SIĘ.";
+                    msg.style.color = "#4ade80";
                 }
             } else {
-                // 3. Sukces - wchodzimy bez sprawdzania zatwierdzenia
-                window.location.href = 'panel.html';
+                msg.innerText = "DOSTĘP PRZYZNANY...";
+                msg.style.color = "#4ade80";
+                setTimeout(() => {
+                    window.location.href = 'panel.html';
+                }, 500);
             }
         }
     </script>
