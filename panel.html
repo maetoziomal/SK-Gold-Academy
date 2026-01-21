@@ -29,12 +29,38 @@
         .gold-dot { color: var(--gold); text-shadow: 0 0 15px var(--gold); }
         
         .card { 
-            background: var(--card-bg); 
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(212, 175, 55, 0.15); 
-            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
-        }
-        
+    background: linear-gradient(
+        180deg,
+        rgba(20,28,50,0.9),
+        rgba(10,15,30,0.85)
+    );
+    backdrop-filter: blur(14px);
+    border: 1px solid rgba(212, 175, 55, 0.18);
+    box-shadow:
+        0 20px 60px -20px rgba(0,0,0,0.9),
+        inset 0 0 0 1px rgba(255,255,255,0.03);
+    position: relative;
+    overflow: hidden;
+}
+
+.card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        120deg,
+        transparent,
+        rgba(255,255,255,0.04),
+        transparent
+    );
+    opacity: 0;
+    transition: opacity .4s ease;
+}
+
+.card:hover::after {
+    opacity: 1;
+}
+
         .gold-bg { background: linear-gradient(135deg, #d4af37 0%, #f1c40f 100%); }
         .loss-bg { background: linear-gradient(135deg, #7f1d1d 0%, #ef4444 100%); }
         
@@ -93,9 +119,31 @@
             border: 2px solid var(--gold);
         }
         .day-profit { font-size: 0.65rem; font-family: 'JetBrains Mono', monospace; margin-top: 4px; font-weight: 800; }
+    /* === PREMIUM APP BACKGROUND === */
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background:
+        radial-gradient(circle at 20% 10%, rgba(212,175,55,0.08), transparent 40%),
+        radial-gradient(circle at 80% 90%, rgba(212,175,55,0.06), transparent 40%),
+        linear-gradient(180deg, #020617 0%, #020617 100%);
+    z-index: -2;
+}
+
+body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Crect width='120' height='120' fill='none'/%3E%3Ccircle cx='1' cy='1' r='1' fill='rgba(255,255,255,0.03)'/%3E%3C/svg%3E");
+    opacity: 0.15;
+    pointer-events: none;
+    z-index: -1;
+}
+ 
     </style>
 </head>
-<body class="p-2 md:p-8">
+<body class="p-2 md:p-8 overflow-x-hidden">
     <!-- MAINTENANCE MODE -->
 <div id="maintenanceOverlay" style="
     position:fixed;
