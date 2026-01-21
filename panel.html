@@ -6,7 +6,8 @@
     <title>SK GOLD</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&family=JetBrains+Mono:wght@500;800&family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://c
+    dn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
@@ -174,6 +175,27 @@ body::after {
         rgba(239,68,68,0.35)
     );
     opacity: 1;
+}
+/* === STAT CARDS === */
+.stat-value {
+    font-size: clamp(1.6rem, 4vw, 2.4rem);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+}
+
+.stat-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.55);
+}
+
+.stat-positive {
+    color: #22c55e;
+}
+
+.stat-negative {
+    color: #ef4444;
 }
 
     </style>
@@ -735,26 +757,6 @@ body::after {
         checkUser();
     </script>
     <script>
-    const ADMIN_SECRET = "acces sk gold"; // ← ZMIEŃ HASŁO
-
-    function unlockAdmin() {
-        const input = document.getElementById("adminPass").value;
-        if (input === ADMIN_SECRET) {
-            localStorage.setItem("admin_access", "true");
-            document.getElementById("maintenanceOverlay").style.display = "none";
-            document.body.style.overflow = "auto";
-        } else {
-            alert("Brak dostępu");
-        }
-    }
-
-    window.addEventListener("DOMContentLoaded", () => {
-        const isAdmin = localStorage.getItem("admin_access") === "true";
-        if (!isAdmin) {
-            document.getElementById("maintenanceOverlay").style.display = "flex";
-            document.body.style.overflow = "hidden";
-        }
-    });
 </script>
 
 </body>
