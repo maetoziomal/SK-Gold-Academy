@@ -140,7 +140,42 @@ body::after {
     pointer-events: none;
     z-index: -1;
 }
- 
+/* === STATUS CARD GLOW === */
+#statusCard {
+    position: relative;
+}
+
+#statusCard::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    background: linear-gradient(
+        120deg,
+        rgba(34,197,94,0.35),
+        rgba(212,175,55,0.25),
+        rgba(34,197,94,0.35)
+    );
+    opacity: 0;
+    filter: blur(24px);
+    transition: opacity .6s ease;
+    z-index: -1;
+}
+
+#statusCard.status-green::before {
+    opacity: 1;
+}
+
+#statusCard.status-red::before {
+    background: linear-gradient(
+        120deg,
+        rgba(239,68,68,0.35),
+        rgba(212,175,55,0.25),
+        rgba(239,68,68,0.35)
+    );
+    opacity: 1;
+}
+
     </style>
 </head>
 <body class="p-2 md:p-8 overflow-x-hidden">
@@ -656,6 +691,14 @@ body::after {
             document.getElementById('lossStatus').innerText = `${dailyLoss.toFixed(2)} / ${lossLimitAmount.toFixed(2)} USD`;
             const statusCard = document.getElementById('statusCard');
             const addBtn = document.getElementById('addTradeBtn');
+            // === STATUS DAY (GREEN / RED) ===
+            statusCard.classList.remove("status-green", "status-red");
+            if (dailyProfit >= 0) {
+            statusCard.classList.add("status-green");
+            } else {
+            statusCard.classList.add("status-red");
+        }
+
             if (dailyProfit <= -lossLimitAmount && lossLimitAmount !== 0) {
                 statusCard.classList.add('danger-glow');
                 document.getElementById('limitAlert').innerHTML = `<span class="w-2 h-2 rounded-full bg-red-500"></span> LIMIT PRZEKROCZONY`;
