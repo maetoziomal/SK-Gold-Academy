@@ -96,6 +96,66 @@
     </style>
 </head>
 <body class="p-2 md:p-8">
+    <!-- MAINTENANCE MODE -->
+<div id="maintenanceOverlay" style="
+    position:fixed;
+    inset:0;
+    background:radial-gradient(circle at top, #111 0%, #000 70%);
+    color:#f5f5f5;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:99999;
+    font-family:system-ui, sans-serif;
+">
+    <div style="
+        max-width:420px;
+        padding:32px;
+        border-radius:16px;
+        background:rgba(20,20,20,.85);
+        box-shadow:0 0 40px rgba(255,200,80,.15);
+        text-align:center;
+    ">
+        <h1 style="font-size:1.6rem;margin-bottom:12px;">🚧 Przerwa techniczna</h1>
+        <p style="opacity:.75;margin-bottom:24px;">
+            Trwają prace nad ulepszeniem platformy.<br>
+            Wrócimy wkrótce.
+        </p>
+
+        <input
+            id="adminPass"
+            type="password"
+            placeholder="Admin access"
+            style="
+                width:100%;
+                padding:12px;
+                border-radius:10px;
+                border:none;
+                outline:none;
+                margin-bottom:12px;
+                background:#111;
+                color:#fff;
+            "
+        >
+
+        <button
+            onclick="unlockAdmin()"
+            style="
+                width:100%;
+                padding:12px;
+                border-radius:10px;
+                border:none;
+                background:linear-gradient(135deg,#f5c46b,#d89a2b);
+                color:#000;
+                font-weight:700;
+                cursor:pointer;
+            "
+        >
+            Wejdź jako admin
+        </button>
+    </div>
+</div>
+
     <div class="max-w-6xl mx-auto w-full">
         <header class="flex justify-between items-center mb-8 px-2">
             <div>
@@ -583,5 +643,28 @@
 
         checkUser();
     </script>
+    <script>
+    const ADMIN_SECRET = "acces sk gold"; // ← ZMIEŃ HASŁO
+
+    function unlockAdmin() {
+        const input = document.getElementById("adminPass").value;
+        if (input === ADMIN_SECRET) {
+            localStorage.setItem("admin_access", "true");
+            document.getElementById("maintenanceOverlay").style.display = "none";
+            document.body.style.overflow = "auto";
+        } else {
+            alert("Brak dostępu");
+        }
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+        const isAdmin = localStorage.getItem("admin_access") === "true";
+        if (!isAdmin) {
+            document.getElementById("maintenanceOverlay").style.display = "flex";
+            document.body.style.overflow = "hidden";
+        }
+    });
+</script>
+
 </body>
 </html>
