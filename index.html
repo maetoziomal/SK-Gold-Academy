@@ -11,7 +11,6 @@
         :root {
             --gold: #d4af37;
             --dark-bg: #05070a;
-            --glass-bg: rgba(7, 10, 15, 0.85);
         }
 
         body { 
@@ -23,95 +22,96 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            min-height: 100-vh;
+            min-height: 100vh;
         }
 
-        /* --- STYLIZACJA TŁA TRADINGOWEGO --- */
-        #bgCanvas {
+        /* --- TYLKO DOLNY HORYZONT RYNKOWY --- */
+        #marketCanvas {
             position: fixed;
-            top: 0;
+            bottom: 0;
             left: 0;
             width: 100%;
-            height: 100%;
+            height: 35%; /* Tylko dolna część ekranu */
             z-index: 1;
-            filter: blur(2px); /* Delikatne rozmycie dla głębi */
+            opacity: 0.5;
+            mask-image: linear-gradient(to top, black 20%, transparent 100%);
         }
 
-        /* Winieta przyciemniająca brzegi */
-        .vignette {
+        /* Złota poświata nad horyzontem */
+        .market-glow {
             position: fixed;
-            inset: 0;
-            background: radial-gradient(circle at center, transparent 20%, var(--dark-bg) 100%);
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 40%;
+            background: radial-gradient(50% 50% at 50% 100%, rgba(212, 175, 55, 0.15) 0%, transparent 100%);
             z-index: 2;
             pointer-events: none;
         }
 
-        /* --- KARTA LOGOWANIA --- */
+        /* Karta logowania - bardziej solidna */
         .glass-card {
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(212, 175, 55, 0.2);
-            box-shadow: 0 0 60px rgba(0, 0, 0, 0.9);
+            background: rgba(10, 12, 17, 0.95);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            box-shadow: 0 0 80px rgba(0, 0, 0, 0.9), 0 0 20px rgba(212, 175, 55, 0.05);
             position: relative;
             z-index: 10;
+            backdrop-filter: blur(10px);
         }
 
         .gold-text { 
             color: var(--gold); 
-            text-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
+            text-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
             font-family: 'Montserrat', sans-serif;
         }
 
         .gold-btn {
             background: linear-gradient(135deg, #d4af37 0%, #f1c40f 100%);
-            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+            box-shadow: 0 10px 20px -5px rgba(212, 175, 55, 0.4);
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .gold-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(212, 175, 55, 0.5);
-            filter: brightness(1.2);
+            filter: brightness(1.1);
+            box-shadow: 0 15px 30px -5px rgba(212, 175, 55, 0.6);
         }
 
         .input-field {
-            background: rgba(0, 0, 0, 0.6) !important;
-            border: 1px solid rgba(255, 255, 255, 0.05) !important;
-            transition: all 0.3s;
+            background: rgba(255, 255, 255, 0.03) !important;
+            border: 1px solid rgba(255, 255, 255, 0.08) !important;
+            color: white !important;
         }
 
         .input-field:focus {
             border-color: var(--gold) !important;
-            box-shadow: 0 0 15px rgba(212, 175, 55, 0.1);
+            background: rgba(255, 255, 255, 0.05) !important;
         }
 
-        .shimmer {
-            position: relative;
-            overflow: hidden;
-        }
-
-        .shimmer::after {
-            content: '';
+        .shimmer-line {
             position: absolute;
-            top: -50%; left: -50%;
-            width: 200%; height: 200%;
-            background: linear-gradient(45deg, transparent, rgba(212, 175, 55, 0.03), transparent);
-            transform: rotate(45deg);
-            animation: shimmer 8s infinite linear;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--gold), transparent);
+            animation: move-shimmer 4s infinite;
         }
 
-        @keyframes shimmer {
-            0% { transform: translateX(-100%) rotate(45deg); }
-            100% { transform: translateX(100%) rotate(45deg); }
+        @keyframes move-shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
         }
     </style>
 </head>
 <body>
 
-    <canvas id="bgCanvas"></canvas>
-    <div class="vignette"></div>
+    <canvas id="marketCanvas"></canvas>
+    <div class="market-glow"></div>
 
-    <div class="glass-card p-10 md:p-12 rounded-[2.5rem] w-full max-w-md shimmer">
+    <div class="glass-card p-10 md:p-12 rounded-[2rem] w-full max-w-md overflow-hidden">
+        <div class="shimmer-line"></div>
+        
         <div class="text-center mb-10">
             <h1 class="text-4xl font-black italic gold-text tracking-tighter uppercase mb-2">
                 SK GOLD<span class="text-white">.</span>
@@ -123,14 +123,14 @@
             <div>
                 <label class="text-[9px] uppercase tracking-[0.2em] text-slate-500 ml-1 font-bold">Inicjały / Nickname</label>
                 <input type="text" id="nickname" placeholder="Dla nowych użytkowników" 
-                    class="input-field w-full rounded-xl p-4 text-sm font-semibold text-white mt-1 outline-none">
+                    class="input-field w-full rounded-xl p-4 text-sm font-semibold mt-1 outline-none">
             </div>
             
             <div class="space-y-4">
                 <input type="email" id="email" placeholder="Email" 
-                    class="input-field w-full rounded-xl p-4 text-sm font-semibold text-white outline-none">
+                    class="input-field w-full rounded-xl p-4 text-sm font-semibold outline-none">
                 <input type="password" id="password" placeholder="Hasło" 
-                    class="input-field w-full rounded-xl p-4 text-sm font-semibold text-white outline-none">
+                    class="input-field w-full rounded-xl p-4 text-sm font-semibold outline-none">
             </div>
             
             <button onclick="handleLogin()" class="gold-btn w-full py-4 rounded-xl font-black text-[11px] uppercase tracking-[0.2em] text-black mt-4">
@@ -146,14 +146,14 @@
     </div>
 
     <script>
-        // --- LIVE TRADING BACKGROUND ENGINE ---
-        const canvas = document.getElementById('bgCanvas');
+        // --- SK GOLD MARKET HORIZON ENGINE ---
+        const canvas = document.getElementById('marketCanvas');
         const ctx = canvas.getContext('2d');
         let candles = [];
 
         function resize() {
             canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
+            canvas.height = window.innerHeight * 0.35;
         }
         window.addEventListener('resize', resize);
         resize();
@@ -162,41 +162,46 @@
             constructor(x) {
                 this.reset(x);
             }
-            reset(x = canvas.width + 50) {
+            reset(x = canvas.width + 10) {
                 this.x = x;
-                this.y = Math.random() * canvas.height;
-                this.w = 3;
-                this.h = Math.random() * 60 + 10;
-                this.speed = Math.random() * 0.3 + 0.1;
-                this.isBullish = Math.random() > 0.5;
-                this.opacity = Math.random() * 0.4 + 0.1;
+                this.y = Math.random() * (canvas.height - 40) + 20;
+                this.w = 4;
+                this.h = Math.random() * 30 + 5;
+                this.speed = 0.5; // Stała prędkość dla efektu przesuwu taśmy
+                this.isBullish = Math.random() > 0.45;
             }
             draw() {
-                const color = this.isBullish ? `rgba(74, 222, 128, ${this.opacity})` : `rgba(239, 68, 68, ${this.opacity})`;
+                const color = this.isBullish ? 'rgba(74, 222, 128, 0.4)' : 'rgba(239, 68, 68, 0.4)';
                 ctx.fillStyle = color;
-                
                 // Knot
-                ctx.fillRect(this.x + this.w/2, this.y - 10, 1, this.h + 20);
-                // Korpus
+                ctx.fillRect(this.x + 2, this.y - 5, 1, this.h + 10);
+                // Body
                 ctx.fillRect(this.x, this.y, this.w, this.h);
                 
                 this.x -= this.speed;
-                if (this.x < -50) this.reset();
+                if (this.x < -10) this.reset();
             }
         }
 
-        for(let i = 0; i < 40; i++) {
+        // Gęsty horyzont świec
+        for(let i = 0; i < 60; i++) {
             candles.push(new Candle(Math.random() * canvas.width));
         }
 
         function animate() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+            // Dodajemy linie siatki w tle horyzontu
+            ctx.strokeStyle = 'rgba(255,255,255,0.02)';
+            for(let i=0; i<canvas.height; i+=20) {
+                ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(canvas.width, i); ctx.stroke();
+            }
+
             candles.forEach(c => c.draw());
             requestAnimationFrame(animate);
         }
         animate();
 
-        // --- AUTH LOGIC ---
+        // --- AUTH LOGIC (SUPABASE) ---
         const SUPABASE_URL = 'https://bkutgpaoxkvwhvsfznjm.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJrdXRncGFveGt2d2h2c2Z6bmptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc1OTgwMTQsImV4cCI6MjA4MzE3NDAxNH0.ycpuwln6hNlmVEh4dtsMbiRQwWTqN7TQobDyrlLcRCw';
         const klientSupabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -207,38 +212,24 @@
             const nickname = document.getElementById('nickname').value;
             const msg = document.getElementById('msg');
 
-            msg.innerText = "ŁĄCZENIE Z SERWEREM...";
-            msg.style.color = "#64748b";
-
-            if (!email || !password) {
-                msg.innerText = "BŁĄD: BRAK DANYCH";
-                msg.style.color = "#ef4444";
-                return;
-            }
+            msg.innerText = "AUTORYZACJA...";
+            msg.style.color = "#d4af37";
 
             const { data, error } = await klientSupabase.auth.signInWithPassword({ email, password });
 
             if (error) {
                 if (!nickname) {
-                    msg.innerText = "NIEZNANY PROFIL. PODAJ NICK";
+                    msg.innerText = "BŁĄD: PODAJ NICKNAME";
                     msg.style.color = "#ef4444";
                     return;
                 }
-
                 const { error: regError } = await klientSupabase.auth.signUp({ 
-                    email, password,
-                    options: { data: { display_name: nickname } }
+                    email, password, options: { data: { display_name: nickname } }
                 });
-
-                if (regError) {
-                    msg.innerText = "BŁĄD: " + regError.message.toUpperCase();
-                    msg.style.color = "#ef4444";
-                } else {
-                    msg.innerText = "KONTO UTWORZONE. ZALOGUJ SIĘ.";
-                    msg.style.color = "#4ade80";
-                }
+                msg.innerText = regError ? "BŁĄD REJESTRACJI" : "KONTO UTWORZONE. ZALOGUJ SIĘ.";
+                msg.style.color = regError ? "#ef4444" : "#4ade80";
             } else {
-                msg.innerText = "DOSTĘP PRZYZNANY...";
+                msg.innerText = "ZALOGOWANO...";
                 msg.style.color = "#4ade80";
                 setTimeout(() => { window.location.href = 'panel.html'; }, 600);
             }
