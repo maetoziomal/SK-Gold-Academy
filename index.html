@@ -1,239 +1,173 @@
-<!DOCTYPE html>
+ale my to robimy w index.html nie to mi dajesz tu jest kod <!DOCTYPE html>
 <html lang="pl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SK GOLD ACADEMY - Terminal</title>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@800;900&family=Inter:wght@400;600&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        :root {
-            --gold: #d4af37;
-            --dark-bg: #05070a;
-        }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SK GOLD ACADEMY - Terminal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@800;900&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --gold: #d4af37;
+            --dark-bg: #05070a;
+            --glass-bg: rgba(15, 23, 42, 0.6);
+        }
 
-        body { 
-            background-color: var(--dark-bg); 
-            color: #f8fafc; 
-            font-family: 'Inter', sans-serif;
-            margin: 0;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-        }
+        body { 
+            background-color: var(--dark-bg); 
+            color: #f8fafc; 
+            font-family: 'Inter', sans-serif;
+            background-image: 
+                radial-gradient(circle at top right, rgba(212, 175, 55, 0.1), transparent),
+                radial-gradient(circle at bottom left, rgba(212, 175, 55, 0.05), transparent);
+        }
 
-        /* --- TYLKO DOLNY HORYZONT RYNKOWY --- */
-        #marketCanvas {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 35%; /* Tylko dolna część ekranu */
-            z-index: 1;
-            opacity: 0.5;
-            mask-image: linear-gradient(to top, black 20%, transparent 100%);
-        }
+        .gold-text { 
+            color: var(--gold); 
+            text-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
+            font-family: 'Montserrat', sans-serif;
+        }
 
-        /* Złota poświata nad horyzontem */
-        .market-glow {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 40%;
-            background: radial-gradient(50% 50% at 50% 100%, rgba(212, 175, 55, 0.15) 0%, transparent 100%);
-            z-index: 2;
-            pointer-events: none;
-        }
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(212, 175, 55, 0.15);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+        }
 
-        /* Karta logowania - bardziej solidna */
-        .glass-card {
-            background: rgba(10, 12, 17, 0.95);
-            border: 1px solid rgba(212, 175, 55, 0.3);
-            box-shadow: 0 0 80px rgba(0, 0, 0, 0.9), 0 0 20px rgba(212, 175, 55, 0.05);
-            position: relative;
-            z-index: 10;
-            backdrop-filter: blur(10px);
-        }
+        .gold-btn {
+            background: linear-gradient(135deg, #d4af37 0%, #f1c40f 100%);
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
 
-        .gold-text { 
-            color: var(--gold); 
-            text-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
-            font-family: 'Montserrat', sans-serif;
-        }
+        .gold-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(212, 175, 55, 0.4);
+            filter: brightness(1.1);
+        }
 
-        .gold-btn {
-            background: linear-gradient(135deg, #d4af37 0%, #f1c40f 100%);
-            box-shadow: 0 10px 20px -5px rgba(212, 175, 55, 0.4);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
+        .input-field {
+            background: rgba(0, 0, 0, 0.4) !important;
+            border: 1px solid rgba(255, 255, 255, 0.05) !important;
+            transition: all 0.3s;
+        }
 
-        .gold-btn:hover {
-            transform: translateY(-2px);
-            filter: brightness(1.1);
-            box-shadow: 0 15px 30px -5px rgba(212, 175, 55, 0.6);
-        }
+        .input-field:focus {
+            border-color: var(--gold) !important;
+            box-shadow: 0 0 10px rgba(212, 175, 55, 0.1);
+            background: rgba(0, 0, 0, 0.6) !important;
+        }
 
-        .input-field {
-            background: rgba(255, 255, 255, 0.03) !important;
-            border: 1px solid rgba(255, 255, 255, 0.08) !important;
-            color: white !important;
-        }
+        .shimmer {
+            position: relative;
+            overflow: hidden;
+        }
 
-        .input-field:focus {
-            border-color: var(--gold) !important;
-            background: rgba(255, 255, 255, 0.05) !important;
-        }
+        .shimmer::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.05), transparent);
+            transform: rotate(45deg);
+            animation: shimmer 4s infinite linear;
+        }
 
-        .shimmer-line {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, var(--gold), transparent);
-            animation: move-shimmer 4s infinite;
-        }
-
-        @keyframes move-shimmer {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
-        }
-    </style>
+        @keyframes shimmer {
+            0% { transform: translateX(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) rotate(45deg); }
+        }
+    </style>
 </head>
-<body>
+<body class="flex items-center justify-center min-h-screen p-4">
+    <div class="glass-card p-10 md:p-12 rounded-[2.5rem] w-full max-w-md shimmer">
+        <div class="text-center mb-10">
+            <h1 class="text-4xl font-black italic gold-text tracking-tighter uppercase mb-2">
+                SK GOLD<span class="text-white">.</span>
+            </h1>
+            <p class="text-slate-500 text-[10px] font-black uppercase tracking-[0.4em]">Professional Terminal</p>
+        </div>
 
-    <canvas id="marketCanvas"></canvas>
-    <div class="market-glow"></div>
+        <div class="space-y-6">
+            <div>
+                <label class="text-[9px] uppercase tracking-[0.2em] text-slate-500 ml-1 font-bold">Inicjały / Nickname</label>
+                <input type="text" id="nickname" placeholder="Dla nowych użytkowników" 
+                    class="input-field w-full rounded-xl p-4 text-sm font-semibold text-white mt-1 outline-none">
+            </div>
+            
+            <div class="space-y-4">
+                <input type="email" id="email" placeholder="Email" 
+                    class="input-field w-full rounded-xl p-4 text-sm font-semibold text-white outline-none">
+                <input type="password" id="password" placeholder="Hasło" 
+                    class="input-field w-full rounded-xl p-4 text-sm font-semibold text-white outline-none">
+            </div>
+            
+            <button onclick="handleLogin()" class="gold-btn w-full py-4 rounded-xl font-black text-[11px] uppercase tracking-[0.2em] text-black mt-4">
+                Autoryzacja
+            </button>
+            
+            <p id="msg" class="text-center text-[10px] mt-4 font-bold uppercase tracking-wider min-h-[15px]"></p>
+        </div>
+        
+        <div class="mt-8 pt-6 border-t border-white/5 text-center">
+            <p class="text-[9px] text-slate-600 font-bold uppercase tracking-widest">© 2026 SK GOLD ACADEMY SYSTEM</p>
+        </div>
+    </div>
 
-    <div class="glass-card p-10 md:p-12 rounded-[2rem] w-full max-w-md overflow-hidden">
-        <div class="shimmer-line"></div>
-        
-        <div class="text-center mb-10">
-            <h1 class="text-4xl font-black italic gold-text tracking-tighter uppercase mb-2">
-                SK GOLD<span class="text-white">.</span>
-            </h1>
-            <p class="text-slate-500 text-[10px] font-black uppercase tracking-[0.4em]">Professional Terminal</p>
-        </div>
+    <script>
+        const SUPABASE_URL = 'https://bkutgpaoxkvwhvsfznjm.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJrdXRncGFveGt2d2h2c2Z6bmptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc1OTgwMTQsImV4cCI6MjA4MzE3NDAxNH0.ycpuwln6hNlmVEh4dtsMbiRQwWTqN7TQobDyrlLcRCw';
+        const klientSupabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        <div class="space-y-6">
-            <div>
-                <label class="text-[9px] uppercase tracking-[0.2em] text-slate-500 ml-1 font-bold">Inicjały / Nickname</label>
-                <input type="text" id="nickname" placeholder="Dla nowych użytkowników" 
-                    class="input-field w-full rounded-xl p-4 text-sm font-semibold mt-1 outline-none">
-            </div>
-            
-            <div class="space-y-4">
-                <input type="email" id="email" placeholder="Email" 
-                    class="input-field w-full rounded-xl p-4 text-sm font-semibold outline-none">
-                <input type="password" id="password" placeholder="Hasło" 
-                    class="input-field w-full rounded-xl p-4 text-sm font-semibold outline-none">
-            </div>
-            
-            <button onclick="handleLogin()" class="gold-btn w-full py-4 rounded-xl font-black text-[11px] uppercase tracking-[0.2em] text-black mt-4">
-                Autoryzacja
-            </button>
-            
-            <p id="msg" class="text-center text-[10px] mt-4 font-bold uppercase tracking-wider min-h-[15px]"></p>
-        </div>
-        
-        <div class="mt-8 pt-6 border-t border-white/5 text-center">
-            <p class="text-[9px] text-slate-600 font-bold uppercase tracking-widest">© 2026 SK GOLD ACADEMY SYSTEM</p>
-        </div>
-    </div>
+        async function handleLogin() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const nickname = document.getElementById('nickname').value;
+            const msg = document.getElementById('msg');
 
-    <script>
-        // --- SK GOLD MARKET HORIZON ENGINE ---
-        const canvas = document.getElementById('marketCanvas');
-        const ctx = canvas.getContext('2d');
-        let candles = [];
+            msg.innerText = "ŁĄCZENIE Z SERWEREM...";
+            msg.style.color = "#64748b";
 
-        function resize() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight * 0.35;
-        }
-        window.addEventListener('resize', resize);
-        resize();
+            if (!email || !password) {
+                msg.innerText = "BŁĄD: BRAK DANYCH";
+                msg.style.color = "#ef4444";
+                return;
+            }
 
-        class Candle {
-            constructor(x) {
-                this.reset(x);
-            }
-            reset(x = canvas.width + 10) {
-                this.x = x;
-                this.y = Math.random() * (canvas.height - 40) + 20;
-                this.w = 4;
-                this.h = Math.random() * 30 + 5;
-                this.speed = 0.5; // Stała prędkość dla efektu przesuwu taśmy
-                this.isBullish = Math.random() > 0.45;
-            }
-            draw() {
-                const color = this.isBullish ? 'rgba(74, 222, 128, 0.4)' : 'rgba(239, 68, 68, 0.4)';
-                ctx.fillStyle = color;
-                // Knot
-                ctx.fillRect(this.x + 2, this.y - 5, 1, this.h + 10);
-                // Body
-                ctx.fillRect(this.x, this.y, this.w, this.h);
-                
-                this.x -= this.speed;
-                if (this.x < -10) this.reset();
-            }
-        }
+            const { data, error } = await klientSupabase.auth.signInWithPassword({ email, password });
 
-        // Gęsty horyzont świec
-        for(let i = 0; i < 60; i++) {
-            candles.push(new Candle(Math.random() * canvas.width));
-        }
+            if (error) {
+                if (!nickname) {
+                    msg.innerText = "NIEZNANY PROFIL. PODAJ NICK";
+                    msg.style.color = "#ef4444";
+                    return;
+                }
 
-        function animate() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            // Dodajemy linie siatki w tle horyzontu
-            ctx.strokeStyle = 'rgba(255,255,255,0.02)';
-            for(let i=0; i<canvas.height; i+=20) {
-                ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(canvas.width, i); ctx.stroke();
-            }
+                const { error: regError } = await klientSupabase.auth.signUp({ 
+                    email, 
+                    password,
+                    options: { data: { display_name: nickname } }
+                });
 
-            candles.forEach(c => c.draw());
-            requestAnimationFrame(animate);
-        }
-        animate();
-
-        // --- AUTH LOGIC (SUPABASE) ---
-        const SUPABASE_URL = 'https://bkutgpaoxkvwhvsfznjm.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJrdXRncGFveGt2d2h2c2Z6bmptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc1OTgwMTQsImV4cCI6MjA4MzE3NDAxNH0.ycpuwln6hNlmVEh4dtsMbiRQwWTqN7TQobDyrlLcRCw';
-        const klientSupabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-        async function handleLogin() {
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const nickname = document.getElementById('nickname').value;
-            const msg = document.getElementById('msg');
-
-            msg.innerText = "AUTORYZACJA...";
-            msg.style.color = "#d4af37";
-
-            const { data, error } = await klientSupabase.auth.signInWithPassword({ email, password });
-
-            if (error) {
-                if (!nickname) {
-                    msg.innerText = "BŁĄD: PODAJ NICKNAME";
-                    msg.style.color = "#ef4444";
-                    return;
-                }
-                const { error: regError } = await klientSupabase.auth.signUp({ 
-                    email, password, options: { data: { display_name: nickname } }
-                });
-                msg.innerText = regError ? "BŁĄD REJESTRACJI" : "KONTO UTWORZONE. ZALOGUJ SIĘ.";
-                msg.style.color = regError ? "#ef4444" : "#4ade80";
-            } else {
-                msg.innerText = "ZALOGOWANO...";
-                msg.style.color = "#4ade80";
-                setTimeout(() => { window.location.href = 'panel.html'; }, 600);
-            }
-        }
-    </script>
+                if (regError) {
+                    msg.innerText = "BŁĄD SYSTEMU: " + regError.message.toUpperCase();
+                    msg.style.color = "#ef4444";
+                } else {
+                    msg.innerText = "KONTO UTWORZONE. ZALOGUJ SIĘ.";
+                    msg.style.color = "#4ade80";
+                }
+            } else {
+                msg.innerText = "DOSTĘP PRZYZNANY...";
+                msg.style.color = "#4ade80";
+                setTimeout(() => {
+                    window.location.href = 'panel.html';
+                }, 500);
+            }
+        }
+    </script>
 </body>
 </html>
