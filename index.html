@@ -11,16 +11,25 @@
         :root {
             --gold: #d4af37;
             --dark-bg: #05070a;
-            --glass-bg: rgba(15, 23, 42, 0.6);
+            --glass-bg: rgba(7, 10, 15, 0.8);
         }
 
         body { 
             background-color: var(--dark-bg); 
             color: #f8fafc; 
             font-family: 'Inter', sans-serif;
-            background-image: 
-                radial-gradient(circle at top right, rgba(212, 175, 55, 0.1), transparent),
-                radial-gradient(circle at bottom left, rgba(212, 175, 55, 0.05), transparent);
+            overflow: hidden; /* Świece tła nie mogą powodować scrolla */
+        }
+
+        /* Stylizacja tła z animacją */
+        #bgCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            filter: blur(3px) opacity(0.4); /* Rozmycie tła dla efektu głębi */
         }
 
         .gold-text { 
@@ -31,9 +40,9 @@
 
         .glass-card {
             background: var(--glass-bg);
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(212, 175, 55, 0.15);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
         }
 
         .gold-btn {
@@ -44,20 +53,19 @@
 
         .gold-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(212, 175, 55, 0.4);
-            filter: brightness(1.1);
+            box-shadow: 0 8px 25px rgba(212, 175, 55, 0.5);
+            filter: brightness(1.2);
         }
 
         .input-field {
-            background: rgba(0, 0, 0, 0.4) !important;
+            background: rgba(0, 0, 0, 0.6) !important;
             border: 1px solid rgba(255, 255, 255, 0.05) !important;
             transition: all 0.3s;
         }
 
         .input-field:focus {
             border-color: var(--gold) !important;
-            box-shadow: 0 0 10px rgba(212, 175, 55, 0.1);
-            background: rgba(0, 0, 0, 0.6) !important;
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.1);
         }
 
         .shimmer {
@@ -68,13 +76,11 @@
         .shimmer::after {
             content: '';
             position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.05), transparent);
+            top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(212, 175, 55, 0.05), transparent);
             transform: rotate(45deg);
-            animation: shimmer 4s infinite linear;
+            animation: shimmer 6s infinite linear;
         }
 
         @keyframes shimmer {
@@ -84,7 +90,10 @@
     </style>
 </head>
 <body class="flex items-center justify-center min-h-screen p-4">
-    <div class="glass-card p-10 md:p-12 rounded-[2.5rem] w-full max-w-md shimmer">
+
+    <canvas id="bgCanvas"></canvas>
+
+    <div class="glass-card p-10 md:p-12 rounded-[2.5rem] w-full max-w-md shimmer relative z-10">
         <div class="text-center mb-10">
             <h1 class="text-4xl font-black italic gold-text tracking-tighter uppercase mb-2">
                 SK GOLD<span class="text-white">.</span>
@@ -119,6 +128,63 @@
     </div>
 
     <script>
+        // --- TŁO: ANIMACJA ŚWIEC ---
+        const canvas = document.getElementById('bgCanvas');
+        const ctx = canvas.getContext('2d');
+        let candles = [];
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        class Candle {
+            constructor(x) {
+                this.x = x;
+                this.y = Math.random() * canvas.height;
+                this.w = 15;
+                this.h = Math.random() * 100 + 20;
+                this.speed = Math.random() * 0.5 + 0.2;
+                this.isBullish = Math.random() > 0.5;
+            }
+            draw() {
+                const color = this.isBullish ? '#4ade80' : '#ef4444';
+                ctx.strokeStyle = color;
+                ctx.fillStyle = color;
+                ctx.lineWidth = 1;
+                
+                // Knot
+                ctx.beginPath();
+                ctx.moveTo(this.x + this.w/2, this.y - 10);
+                ctx.lineTo(this.x + this.w/2, this.y + this.h + 10);
+                ctx.stroke();
+                
+                // Korpus
+                ctx.fillRect(this.x, this.y, this.w, this.h);
+                
+                this.x -= this.speed;
+                if (this.x < -20) {
+                    this.x = canvas.width + 20;
+                    this.y = Math.random() * canvas.height;
+                }
+            }
+        }
+
+        // Inicjalizacja świec w tle
+        for(let i = 0; i < 30; i++) {
+            candles.push(new Candle(Math.random() * canvas.width));
+        }
+
+        function animateBg() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            candles.forEach(c => c.draw());
+            requestAnimationFrame(animateBg);
+        }
+        animateBg();
+
+        // --- LOGIKA LOGOWANIA ---
         const SUPABASE_URL = 'https://bkutgpaoxkvwhvsfznjm.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJrdXRncGFveGt2d2h2c2Z6bmptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc1OTgwMTQsImV4cCI6MjA4MzE3NDAxNH0.ycpuwln6hNlmVEh4dtsMbiRQwWTqN7TQobDyrlLcRCw';
         const klientSupabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -130,7 +196,7 @@
             const msg = document.getElementById('msg');
 
             msg.innerText = "ŁĄCZENIE Z SERWEREM...";
-            msg.style.color = "#64748b";
+            msg.style.color = "#d4af37";
 
             if (!email || !password) {
                 msg.innerText = "BŁĄD: BRAK DANYCH";
@@ -165,7 +231,7 @@
                 msg.style.color = "#4ade80";
                 setTimeout(() => {
                     window.location.href = 'panel.html';
-                }, 500);
+                }, 800);
             }
         }
     </script>
