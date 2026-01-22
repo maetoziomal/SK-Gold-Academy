@@ -374,40 +374,72 @@
 
         <div id="tabReports" class="tab-content hidden">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div class="card p-10 rounded-[2.5rem] border-l-4 border-l-gold">
-                    <h3 class="gold-text font-black mb-8 uppercase text-xs italic tracking-[0.3em]">Podsumowanie tygodnia</h3>
-                    <div id="weeklyReportContent" class="space-y-6 text-sm"></div>
+                <div class="card p-8 md:p-10 rounded-[2.5rem] relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-6 opacity-10">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-gold">
+                            <path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path>
+                            <path d="M22 12A10 10 0 0 0 12 2v10z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="gold-text font-black mb-10 uppercase text-[10px] italic tracking-[0.4em]">Weekly Performance Audit</h3>
+                    <div id="weeklyReportContent" class="space-y-6 text-sm">
+                        </div>
                 </div>
-                <div class="card p-10 rounded-[2.5rem]">
-                    <h3 class="text-slate-400 font-black mb-8 uppercase text-xs italic tracking-[0.3em]">Lekcja tygodnia</h3>
-                    <textarea id="weeklyLesson" oninput="saveWeeklyLesson()" class="w-full h-48 bg-slate-900/50 border border-slate-800 rounded-3xl p-6 text-white text-sm outline-none focus:border-gold-text transition-all leading-relaxed" placeholder="Czego nauczyłeś się w tym tygodniu?"></textarea>
+
+                <div class="card p-8 md:p-10 rounded-[2.5rem] border-b-4 border-gold/20">
+                    <h3 class="text-slate-400 font-black mb-6 uppercase text-[10px] italic tracking-[0.4em]">Psychology & Lessons</h3>
+                    <textarea id="weeklyLesson" oninput="saveWeeklyLesson()" 
+                        class="w-full h-48 rounded-2xl p-6 text-white text-sm outline-none leading-relaxed resize-none transition-all" 
+                        placeholder="Zapisz najważniejszą lekcję z tego tygodnia..."></textarea>
                 </div>
             </div>
         </div>
 
         <div id="tabCalc" class="tab-content hidden">
-            <div class="max-w-md mx-auto card p-12 rounded-[3.5rem] border-b-8 border-b-gold shadow-2xl">
-                <h3 class="text-2xl font-black gold-text mb-4 text-center uppercase tracking-tighter italic">Kalkulator Lotów</h3>
-                <p class="text-center text-[10px] text-slate-500 uppercase font-black tracking-widest mb-8">Kapitał operacyjny: <span id="calcBalanceDisplay" class="text-white mono">0.00 $</span></p>
+            <div class="max-w-2xl mx-auto">
+                <div class="card p-8 md:p-12 rounded-[3rem] relative overflow-hidden">
+                    <div class="text-center mb-10">
+                        <h3 class="text-2xl font-black gold-text uppercase tracking-tighter italic">Position Sizer</h3>
+                        <p class="text-[10px] text-slate-500 uppercase font-black tracking-widest mt-2">
+                            Equity: <span id="calcBalanceDisplay" class="text-white mono">0.00 $</span>
+                        </p>
+                    </div>
 
-                <div class="space-y-8">
-                    <div>
-                        <label class="block text-[11px] uppercase text-slate-500 mb-3 font-black tracking-widest text-center">Ryzyko na trade (%)</label>
-                        <input type="number" id="riskPct" value="1" oninput="calculateLot()" class="mono w-full bg-slate-900 p-5 rounded-2xl border border-slate-800 text-white focus:border-gold-text outline-none text-2xl font-black text-center">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div class="space-y-6">
+                            <div class="space-y-2">
+                                <label class="block text-[9px] uppercase text-slate-500 font-black tracking-widest ml-1 text-center md:text-left">Risk Amount (%)</label>
+                                <input type="number" id="riskPct" value="1" oninput="calculateLot()" 
+                                    class="mono w-full p-5 rounded-2xl text-2xl font-black text-center outline-none">
+                            </div>
+                            <div class="space-y-2">
+                                <label class="block text-[9px] uppercase text-slate-500 font-black tracking-widest ml-1 text-center md:text-left">Stop Loss (Pips)</label>
+                                <input type="number" id="slPips" value="20" oninput="calculateLot()" 
+                                    class="mono w-full p-5 rounded-2xl text-2xl font-black text-center outline-none">
+                            </div>
+                        </div>
+
+                        <div class="bg-black/60 rounded-[2rem] border border-gold/10 p-8 flex flex-col justify-center items-center relative">
+                            <div class="absolute top-4 right-6">
+                                <span class="flex h-2 w-2">
+                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-gold opacity-75"></span>
+                                    <span class="relative inline-flex rounded-full h-2 w-2 bg-gold"></span>
+                                </span>
+                            </div>
+                            <p class="text-slate-500 text-[9px] uppercase font-black tracking-widest mb-2">Recommended Lot</p>
+                            <h2 id="resultLot" class="mono text-6xl font-black green-glow tracking-tighter">0.00</h2>
+                            <p class="text-[10px] text-slate-400 mt-6 italic font-bold uppercase tracking-wider">
+                                Cash at risk: <span id="riskAmount" class="text-white mono font-black">0.00 $</span>
+                            </p>
+                        </div>
                     </div>
-                    <div>
-                        <label class="block text-[11px] uppercase text-slate-500 mb-3 font-black tracking-widest text-center">Stop Loss (Pips)</label>
-                        <input type="number" id="slPips" value="20" oninput="calculateLot()" class="mono w-full bg-slate-900 p-5 rounded-2xl border border-slate-800 text-white focus:border-gold-text outline-none text-2xl font-black text-center">
-                    </div>
-                    <div class="bg-black/40 p-10 rounded-[2.5rem] border border-dashed border-gold/20 text-center mt-10">
-                        <p class="text-slate-500 text-[11px] uppercase mb-4 font-black tracking-widest">Sugerowany Lot</p>
-                        <h2 id="resultLot" class="mono text-6xl font-black gold-text tracking-tighter">0.00</h2>
-                        <p class="text-[12px] text-slate-400 mt-6 italic font-semibold">Ryzykujesz gotówką: <span id="riskAmount" class="text-white mono">0.00 $</span></p>
+                    
+                    <div class="mt-8 pt-6 border-t border-white/5 text-center">
+                        <p class="text-[8px] text-slate-600 font-bold uppercase tracking-[0.3em]">SK Gold Mathematical Engine v2.0</p>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
     <script>
         
