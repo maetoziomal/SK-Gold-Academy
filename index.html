@@ -23,6 +23,15 @@
                 radial-gradient(circle at bottom left, rgba(212, 175, 55, 0.05), transparent);
         }
 
+        body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background:
+        radial-gradient(circle at center, rgba(212,175,55,0.25), transparent 60%);
+    pointer-events: none;
+}
+
         .gold-text { 
             color: var(--gold); 
             text-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
@@ -34,6 +43,7 @@
             backdrop-filter: blur(18px);
             border-radius: 2.5rem;
             position: relative;
+            background-blend-mode: overlay;
             box-shadow:
             0 0 0 1px rgba(212,175,55,0.18),
             0 25px 60px rgba(0,0,0,0.8),
@@ -59,11 +69,27 @@
     pointer-events: none;
 }
 
+        .glass-card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(
+        120deg,
+        transparent 20%,
+        rgba(212,175,55,0.08),
+        transparent 80%
+    );
+    pointer-events: none;
+}
+
         .gold-btn {
     background: linear-gradient(135deg, #d4af37, #f5d76e);
     box-shadow:
         0 0 0 1px rgba(212,175,55,0.35),
         0 8px 25px rgba(212,175,55,0.35);
+            border-radius: 14px;
+            letter-spacing: 0.25em;
 }
 
         .gold-btn:hover {
