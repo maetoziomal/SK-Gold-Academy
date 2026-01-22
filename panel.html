@@ -334,18 +334,40 @@
         const SUPABASE_URL = 'https://bkutgpaoxkvwhvsfznjm.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJrdXRncGFveGt2d2h2c2Z6bmptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc1OTgwMTQsImV4cCI6MjA4MzE3NDAxNH0.ycpuwln6hNlmVEh4dtsMbiRQwWTqN7TQobDyrlLcRCw';
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        // 🔐 JEDYNY DOZWOLONY USER (ADMIN)
+        const ADMIN_USER_ID = "TU_WKLEJ_SWÓJ_USER_ID_Z_SUPABASE";
+
 
         let equityChart, currentMonth = new Date().getMonth(), currentYear = new Date().getFullYear();
         let allTrades = [];
         let currentTotalBalance = 0;
 
         async function checkUser() {
-            const { data: { user } } = await _supabase.auth.getUser();
-            if (!user) { window.location.href = 'index.html'; return; }
-            document.getElementById('welcomeText').innerHTML = `Sesja aktywna: <span class="text-white font-black italic tracking-normal">${user.user_metadata.display_name || "PRO TRADER"}</span>`;
-            await loadSettings();
-            fetchTrades();
-        }
+    const { data: { user } } = await _supabase.auth.getUser();
+
+    // ❌ BRAK SESJI → WYLOGUJ
+    if (!user) {
+        window.location.href = 'index.html';
+        return;
+    }
+
+    // ❌ NIE ADMIN → WYLOGUJ
+    if (user.id !== ADMIN_USER_ID) {
+        alert("Brak uprawnień.");
+        await _supabase.auth.signOut();
+        window.location.href = 'index.html';
+        return;
+    }
+
+    // ✅ ADMIN
+    document.getElementById('welcomeText').innerHTML =
+        `Sesja aktywna: <span class="text-white font-black italic tracking-normal">
+        ${user.user_metadata.display_name || "ADMIN"}
+        </span>`;
+
+    await loadSettings();
+    fetchTrades();
+}
 
         async function loadSettings() {
             const { data } = await _supabase.from('user_settings').select('*').single();
