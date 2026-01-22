@@ -30,17 +30,41 @@
         }
 
         .glass-card {
-            background: var(--glass-bg);
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(212, 175, 55, 0.15);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+            background: linear-gradient(180deg, #0b1220, #05070a);
+            backdrop-filter: blur(18px);
+            border-radius: 2.5rem;
+            position: relative;
+            box-shadow:
+            0 0 0 1px rgba(212,175,55,0.18),
+            0 25px 60px rgba(0,0,0,0.8),
+            inset 0 0 40px rgba(212,175,55,0.05);
         }
 
+        .glass-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(
+        120deg,
+        transparent,
+        rgba(212,175,55,0.6),
+        transparent
+    );
+    -webkit-mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    pointer-events: none;
+}
+
         .gold-btn {
-            background: linear-gradient(135deg, #d4af37 0%, #f1c40f 100%);
-            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
+    background: linear-gradient(135deg, #d4af37, #f5d76e);
+    box-shadow:
+        0 0 0 1px rgba(212,175,55,0.35),
+        0 8px 25px rgba(212,175,55,0.35);
+}
 
         .gold-btn:hover {
             transform: translateY(-2px);
@@ -81,15 +105,20 @@
             0% { transform: translateX(-100%) rotate(45deg); }
             100% { transform: translateX(100%) rotate(45deg); }
         }
+
+        input::placeholder {
+    color: #6b7280;
+    letter-spacing: 0.08em;
+}
     </style>
 </head>
 <body class="flex items-center justify-center min-h-screen p-4">
     <div class="glass-card p-10 md:p-12 rounded-[2.5rem] w-full max-w-md shimmer">
         <div class="text-center mb-10">
-            <h1 class="text-4xl font-black italic gold-text tracking-tighter uppercase mb-2">
+            <h1 class="text-4xl font-black italic gold-text tracking-tight uppercase mb-1">
                 SK GOLD<span class="text-white">.</span>
             </h1>
-            <p class="text-slate-500 text-[10px] font-black uppercase tracking-[0.4em]">Professional Terminal</p>
+            <p class="text-slate-400 text-[9px] font-black uppercase tracking-[0.45em]">Professional Terminal</p>
         </div>
 
         <div class="space-y-6">
