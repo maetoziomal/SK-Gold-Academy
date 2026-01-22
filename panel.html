@@ -44,7 +44,13 @@
             text-shadow: 0 0 10px rgba(212, 175, 55, 0.4);
         }
 
-        .hidden { display: none; }
+        .hidden {
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+}
 
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
@@ -414,14 +420,31 @@
         }
 
         function switchTab(tab) {
-    document.querySelectorAll('[id^="tab"]').forEach(el => el.classList.add('hidden'));
-    document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.remove('hidden');
-    document.querySelectorAll('nav button').forEach(btn => btn.classList.remove('nav-active'));
-    document.getElementById('btn' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('nav-active');
-    if(tab === 'dashboard') calculateStats();
-    if(tab === 'calendar') renderCalendar();
-    if(tab === 'calc') {
-        document.getElementById('calcBalanceDisplay').innerText = currentTotalBalance.toFixed(2) + " $";
+    const allTabs = document.querySelectorAll('[id^="tab"]');
+    const nextTab = document.getElementById(
+        'tab' + tab.charAt(0).toUpperCase() + tab.slice(1)
+    );
+
+    allTabs.forEach(t => {
+        if (t === nextTab) {
+            t.classList.remove('hidden');
+        } else {
+            t.classList.add('hidden');
+        }
+    });
+
+    document.querySelectorAll('nav button')
+        .forEach(btn => btn.classList.remove('nav-active'));
+
+    document.getElementById(
+        'btn' + tab.charAt(0).toUpperCase() + tab.slice(1)
+    ).classList.add('nav-active');
+
+    if (tab === 'dashboard') calculateStats();
+    if (tab === 'calendar') renderCalendar();
+    if (tab === 'calc') {
+        document.getElementById('calcBalanceDisplay').innerText =
+            currentTotalBalance.toFixed(2) + " $";
         calculateLot();
     }
 }
