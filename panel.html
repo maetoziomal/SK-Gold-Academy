@@ -15,13 +15,16 @@
             --card-bg: rgba(15, 23, 42, 0.7);
         }
         body {
-            background-color: var(--dark-bg);
-            color: #f8fafc;
-            font-family: 'Inter', sans-serif;
-            min-height: 100vh;
-            background-image: radial-gradient(circle at top right, rgba(212, 175, 55, 0.05), transparent),
-                              radial-gradient(circle at bottom left, rgba(212, 175, 55, 0.05), transparent);
-        }
+    min-height: 100vh;
+    font-family: 'Inter', sans-serif;
+    color: #f8fafc;
+    background:
+        radial-gradient(circle at 70% 20%, rgba(212,175,55,0.18), transparent 55%),
+        radial-gradient(circle at 20% 80%, rgba(212,175,55,0.10), transparent 60%),
+        linear-gradient(180deg, #05070a 0%, #020617 100%);
+    overflow-x: hidden;
+}
+
         h1, h2, h3, .nav-btn { font-family: 'Montserrat', sans-serif; }
         .mono { font-family: 'JetBrains Mono', monospace; }
 
@@ -29,11 +32,18 @@
         .gold-dot { color: var(--gold); text-shadow: 0 0 15px var(--gold); }
 
         .card {
-            background: var(--card-bg);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(212, 175, 55, 0.15);
-            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
-        }
+    background: linear-gradient(
+        145deg,
+        rgba(20, 25, 40, 0.75),
+        rgba(10, 15, 25, 0.55)
+    );
+    backdrop-filter: blur(18px);
+    border: 1px solid rgba(212, 175, 55, 0.18);
+    box-shadow:
+        0 25px 60px -20px rgba(0, 0, 0, 0.85),
+        inset 0 0 0 1px rgba(255,255,255,0.03);
+    position: relative;
+}
 
         .gold-bg { background: linear-gradient(135deg, #d4af37 0%, #f1c40f 100%); }
         .loss-bg { background: linear-gradient(135deg, #7f1d1d 0%, #ef4444 100%); }
@@ -93,6 +103,34 @@
             border: 2px solid var(--gold);
         }
         .day-profit { font-size: 0.65rem; font-family: 'JetBrains Mono', monospace; margin-top: 4px; font-weight: 800; }
+        @media (max-width: 768px) {
+
+    header {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+
+    nav {
+        gap: 1.5rem;
+    }
+
+    .card {
+        border-radius: 1.75rem !important;
+    }
+
+    h1 {
+        font-size: 2.2rem !important;
+    }
+
+    #statusCard {
+        padding: 1.5rem !important;
+    }
+
+    canvas {
+        max-height: 220px;
+    }
+}
     </style>
 </head>
 <body class="p-2 md:p-8">
