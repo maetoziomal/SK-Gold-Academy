@@ -44,14 +44,9 @@
             text-shadow: 0 0 10px rgba(212, 175, 55, 0.4);
         }
 
-        .hidden {
-    pointer-events: none;
-    position: absolute;
-    inset: 0;
-    opacity: 0;
-    transform: translateY(20px) scale(0.98);
-}
+        .hidden { display: none; }
 
+        .tab-content { animation: fadeIn 0.4s ease-out; }
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
@@ -98,46 +93,6 @@
             border: 2px solid var(--gold);
         }
         .day-profit { font-size: 0.65rem; font-family: 'JetBrains Mono', monospace; margin-top: 4px; font-weight: 800; }
-
-        /* =========================
-   TAB TRANSITIONS – PREMIUM
-========================= */
-
-.tab-content {
-    animation: tabIn 0.45s cubic-bezier(0.4, 0, 0.2, 1);
-    will-change: transform, opacity;
-}
-
-.tab-exit {
-    animation: tabOut 0.35s ease-in forwards;
-}
-
-@keyframes tabIn {
-    from {
-        opacity: 0;
-        transform: translateY(20px) scale(0.985);
-        filter: blur(6px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-        filter: blur(0);
-    }
-}
-
-@keyframes tabOut {
-    from {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-        filter: blur(0);
-    }
-    to {
-        opacity: 0;
-        transform: translateY(-15px) scale(0.985);
-        filter: blur(6px);
-    }
-}
-
     </style>
 </head>
 <body class="p-2 md:p-8">
@@ -420,34 +375,17 @@
         }
 
         function switchTab(tab) {
-    const allTabs = document.querySelectorAll('[id^="tab"]');
-    const nextTab = document.getElementById(
-        'tab' + tab.charAt(0).toUpperCase() + tab.slice(1)
-    );
-
-    allTabs.forEach(t => {
-        if (t === nextTab) {
-            t.classList.remove('hidden');
-        } else {
-            t.classList.add('hidden');
+            document.querySelectorAll('[id^="tab"]').forEach(el => el.classList.add('hidden'));
+            document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.remove('hidden');
+            document.querySelectorAll('nav button').forEach(btn => btn.classList.remove('nav-active'));
+            document.getElementById('btn' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('nav-active');
+            if(tab === 'dashboard') calculateStats();
+            if(tab === 'calendar') renderCalendar();
+            if(tab === 'calc') {
+                document.getElementById('calcBalanceDisplay').innerText = currentTotalBalance.toFixed(2) + " $";
+                calculateLot();
+            }
         }
-    });
-
-    document.querySelectorAll('nav button')
-        .forEach(btn => btn.classList.remove('nav-active'));
-
-    document.getElementById(
-        'btn' + tab.charAt(0).toUpperCase() + tab.slice(1)
-    ).classList.add('nav-active');
-
-    if (tab === 'dashboard') calculateStats();
-    if (tab === 'calendar') renderCalendar();
-    if (tab === 'calc') {
-        document.getElementById('calcBalanceDisplay').innerText =
-            currentTotalBalance.toFixed(2) + " $";
-        calculateLot();
-    }
-}
 
         async function fetchTrades() {
             const { data } = await _supabase.from('trades').select('*').order('created_at', { ascending: true });
