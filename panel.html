@@ -11,88 +11,75 @@
     <style>
         :root {
             --gold: #d4af37;
-            --dark-bg: #020617;
-            --card-bg: rgba(15, 23, 42, 0.7);
+            --neon-green: #4ade80;
+            --neon-red: #ef4444;
+            --dark-bg: #05070a; /* Jeszcze głębsza czerń */
+            --glass: rgba(15, 23, 42, 0.45);
         }
+
         body {
             background-color: var(--dark-bg);
             color: #f8fafc;
             font-family: 'Inter', sans-serif;
             min-height: 100vh;
-            background-image: radial-gradient(circle at top right, rgba(212, 175, 55, 0.05), transparent),
-                              radial-gradient(circle at bottom left, rgba(212, 175, 55, 0.05), transparent);
+            /* Subtelniejszy gradient tła */
+            background-image: 
+                radial-gradient(circle at 50% -20%, rgba(212, 175, 55, 0.12), transparent),
+                radial-gradient(circle at 0% 100%, rgba(74, 222, 128, 0.03), transparent);
         }
+
         h1, h2, h3, .nav-btn { font-family: 'Montserrat', sans-serif; }
         .mono { font-family: 'JetBrains Mono', monospace; }
 
-        .gold-text { color: var(--gold); text-shadow: 0 0 10px rgba(212, 175, 55, 0.2); }
-        .gold-dot { color: var(--gold); text-shadow: 0 0 15px var(--gold); }
+        /* Tekst z poświatą neonową */
+        .gold-text { color: var(--gold); text-shadow: 0 0 15px rgba(212, 175, 55, 0.3); }
+        .green-glow { color: var(--neon-green); text-shadow: 0 0 20px rgba(74, 222, 128, 0.5); }
+        .red-glow { color: var(--neon-red); text-shadow: 0 0 20px rgba(239, 68, 68, 0.5); }
 
+        /* Karty "Glass" */
         .card {
-            background: var(--card-bg);
+            background: var(--glass);
             backdrop-filter: blur(12px);
-            border: 1px solid rgba(212, 175, 55, 0.15);
-            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-top: 1px solid rgba(255, 255, 255, 0.1); /* Górna krawędź udaje światło */
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+        }
+
+        /* Specjalny styl dla Status Card (ten zielony efekt z obrazka) */
+        .status-card-green {
+            background: linear-gradient(145deg, rgba(74, 222, 128, 0.1), rgba(0,0,0,0.4));
+            border: 1px solid rgba(74, 222, 128, 0.2);
+            position: relative;
+            overflow: hidden;
         }
 
         .gold-bg { background: linear-gradient(135deg, #d4af37 0%, #f1c40f 100%); }
         .loss-bg { background: linear-gradient(135deg, #7f1d1d 0%, #ef4444 100%); }
 
+        /* Nawigacja */
+        .nav-btn { transition: all 0.3s ease; border-bottom: 2px solid transparent; }
         .nav-active {
-            border-bottom: 3px solid var(--gold);
             color: var(--gold);
-            text-shadow: 0 0 10px rgba(212, 175, 55, 0.4);
+            border-bottom: 2px solid var(--gold);
+            text-shadow: 0 0 15px rgba(212, 175, 55, 0.4);
         }
 
-        .hidden { display: none; }
-
-        .tab-content { animation: fadeIn 0.4s ease-out; }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+        /* Nowoczesne Inputy */
+        input, select, textarea { 
+            background: rgba(0, 0, 0, 0.3) !important; 
+            border: 1px solid rgba(255, 255, 255, 0.1) !important; 
+            color: white !important;
+            transition: all 0.3s ease;
         }
+        input:focus { border-color: var(--gold) !important; background: rgba(0, 0, 0, 0.5) !important; }
 
-        .custom-scroll::-webkit-scrollbar { height: 4px; width: 4px; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 10px; }
-
-        input, select, textarea { transition: all 0.2s ease; }
-        input:focus { box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.2); }
-
-        .danger-glow {
-            box-shadow: 0 0 30px rgba(239, 68, 68, 0.2);
-            border: 1px solid rgba(239, 68, 68, 0.5);
-        }
-
-        .emotion-btn { filter: grayscale(1); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .emotion-btn.active { filter: grayscale(0); transform: scale(1.3); text-shadow: 0 0 15px rgba(255,255,255,0.5); }
-
-
-        /* STYLE DLA KALENDARZA */
-        .calendar-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 10px;
-        }
+        /* Kalendarz */
         .calendar-day {
-            aspect-ratio: 1/1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            border-radius: 1rem;
-            background: rgba(15, 23, 42, 0.4);
+            background: rgba(255, 255, 255, 0.02);
             border: 1px solid rgba(255, 255, 255, 0.05);
-            transition: all 0.2s;
-            cursor: pointer;
+            transition: 0.3s;
         }
-        .calendar-day:hover {
-            border-color: var(--gold);
-            transform: translateY(-2px);
-        }
-        .calendar-day.current-day {
-            border: 2px solid var(--gold);
-        }
-        .day-profit { font-size: 0.65rem; font-family: 'JetBrains Mono', monospace; margin-top: 4px; font-weight: 800; }
+        .calendar-day:hover { background: rgba(212, 175, 55, 0.1); border-color: var(--gold); }
     </style>
 </head>
 <body class="p-2 md:p-8">
