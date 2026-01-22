@@ -49,10 +49,10 @@
         .loss-bg { background: linear-gradient(135deg, #7f1d1d 0%, #ef4444 100%); }
 
         .nav-active {
-            border-bottom: 3px solid var(--gold);
-            color: var(--gold);
-            text-shadow: 0 0 10px rgba(212, 175, 55, 0.4);
-        }
+    border-bottom: 3px solid var(--gold);
+    color: var(--gold);
+    text-shadow: 0 0 15px rgba(212, 175, 55, 0.6);
+}
 
         .hidden { display: none; }
 
@@ -146,38 +146,30 @@
 .card {
     animation: fadeUp 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
-        @media (max-width: 768px) {
-
-    .mobile-nav {
-        position: fixed;
-        bottom: 1rem;
-        left: 50%;
-        transform: translateX(-50%);
-        background: rgba(15, 23, 42, 0.85);
-        backdrop-filter: blur(20px);
-        border: 1px solid rgba(212,175,55,0.2);
-        border-radius: 2rem;
-        padding: 0.75rem 1.5rem;
-        display: flex;
-        gap: 2rem;
-        z-index: 50;
-        box-shadow: 0 20px 50px rgba(0,0,0,0.7);
-    }
-
-    .mobile-nav a {
-        font-size: 0.65rem;
-        font-weight: 800;
-        letter-spacing: 0.15em;
-        text-transform: uppercase;
-        color: #94a3b8;
-    }
-
-    .mobile-nav a.active {
-        color: #facc15;
-        text-shadow: 0 0 10px rgba(212,175,55,0.4);
-    }
+        
+        .premium-nav {
+    background: linear-gradient(
+        180deg,
+        rgba(2,6,23,0.85),
+        rgba(2,6,23,0.65)
+    );
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(212,175,55,0.15);
+    box-shadow:
+        0 10px 40px rgba(0,0,0,0.6),
+        inset 0 -1px 0 rgba(255,255,255,0.03);
 }
 
+.premium-nav::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(212,175,55,0.6), transparent);
+}
+        
     </style>
 </head>
 <body class="p-2 md:p-8">
@@ -247,7 +239,7 @@
             </div>
         </div>
 
-        <nav class="flex gap-8 mb-8 border-b border-slate-800/50 px-4 overflow-x-auto custom-scroll whitespace-nowrap">
+        <nav class="premium-nav sticky top-0 z-40 flex gap-8 mb-8 px-4 py-3 overflow-x-auto custom-scroll whitespace-nowrap">
             <button id="btnDashboard" onclick="switchTab('dashboard')" class="nav-btn pb-4 font-black text-[11px] uppercase tracking-[0.25em] nav-active">Dashboard</button>
             <button id="btnJournal" onclick="switchTab('journal')" class="nav-btn pb-4 font-black text-[11px] uppercase tracking-[0.25em] text-slate-500">Dziennik</button>
             <button id="btnCalendar" onclick="switchTab('calendar')" class="nav-btn pb-4 font-black text-[11px] uppercase tracking-[0.25em] text-slate-500">Kalendarz</button>
@@ -690,12 +682,5 @@
 
         checkUser();
     </script>
-    
-    <div class="mobile-nav md:hidden">
-    <a class="active">Dashboard</a>
-    <a>Dziennik</a>
-    <a>Raporty</a>
-        
-</div>
 </body>
 </html>
