@@ -263,61 +263,81 @@
         </div>
 
         <div id="tabJournal" class="tab-content hidden">
-            <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
-                <div class="card p-8 rounded-[2.5rem] h-fit sticky top-4 border-t-4 border-t-gold">
-                    <h3 class="text-xl font-black mb-8 gold-text uppercase italic tracking-tighter">Nowa Pozycja</h3>
-                    <div class="space-y-5">
-                        <input type="text" id="pair" placeholder="INSTRUMENT (NP. XAUUSD)" class="w-full bg-slate-900 border border-slate-800 p-4 rounded-2xl text-white focus:border-gold-text outline-none text-sm font-black uppercase tracking-widest">
-                        <input type="number" id="profitInput" placeholder="WYNIK ($)" class="mono w-full bg-slate-900 border border-slate-800 p-4 rounded-2xl text-white focus:border-gold-text outline-none text-sm font-black">
-
-                        <div class="grid grid-cols-2 gap-4">
-                            <select id="type" class="bg-slate-900 p-4 rounded-2xl border border-slate-800 text-white focus:border-gold-text outline-none text-[11px] font-black uppercase">
-                                <option value="Long">Long 📈</option>
-                                <option value="Short">Short 📉</option>
-                            </select>
-                            <select id="strategy" class="bg-slate-900 p-4 rounded-2xl border border-slate-800 text-white focus:border-gold-text outline-none text-[11px] font-black uppercase">
-                                <option value="Scalping">Scalping</option>
-                                <option value="Trend">Trend Follow</option>
-                                <option value="Reversal">Reversal</option>
-                                <option value="News">News</option>
-                            </select>
-                        </div>
-
-                        <div class="py-4">
-                            <p class="text-[10px] text-slate-500 uppercase mb-4 block tracking-[0.2em] font-black text-center">Twoje emocje</p>
-                            <div class="flex justify-between bg-black/40 p-4 rounded-2xl border border-slate-800">
-                                <span onclick="selectEmotion('🧘‍♂️', this)" class="emotion-btn text-3xl active cursor-pointer">🧘‍♂️</span>
-                                <span onclick="selectEmotion('🤑', this)" class="emotion-btn text-3xl cursor-pointer">🤑</span>
-                                <span onclick="selectEmotion('😡', this)" class="emotion-btn text-3xl cursor-pointer">😡</span>
-                                <span onclick="selectEmotion('🏃‍♂️', this)" class="emotion-btn text-3xl cursor-pointer">🏃‍♂️</span>
-                                <span onclick="selectEmotion('😨', this)" class="emotion-btn text-3xl cursor-pointer">😨</span>
+            <div class="grid grid-cols-1 xl:grid-cols-12 gap-8">
+                
+                <div class="xl:col-span-4 space-y-6">
+                    <div class="card p-8 rounded-[2.5rem] border-t-4 border-gold/50 shadow-2xl">
+                        <h3 class="text-xl font-black mb-8 gold-text uppercase italic tracking-tighter">Nowa Operacja</h3>
+                        <div class="space-y-5">
+                            <div class="space-y-1">
+                                <label class="text-[9px] uppercase text-slate-500 font-black tracking-widest ml-1">Instrument</label>
+                                <input type="text" id="pair" placeholder="NP. XAUUSD" class="w-full p-4 rounded-2xl text-sm font-black uppercase tracking-widest outline-none">
                             </div>
-                            <input type="hidden" id="emotionValue" value="🧘‍♂️">
+
+                            <div class="space-y-1">
+                                <label class="text-[9px] uppercase text-slate-500 font-black tracking-widest ml-1">Wynik Netto ($)</label>
+                                <input type="number" id="profitInput" placeholder="0.00" class="mono w-full p-4 rounded-2xl text-sm font-black outline-none">
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="space-y-1">
+                                    <label class="text-[9px] uppercase text-slate-500 font-black tracking-widest ml-1">Typ</label>
+                                    <select id="type" class="w-full p-4 rounded-2xl text-[11px] font-black uppercase outline-none cursor-pointer">
+                                        <option value="Long">BUY 📈</option>
+                                        <option value="Short">SELL 📉</option>
+                                    </select>
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="text-[9px] uppercase text-slate-500 font-black tracking-widest ml-1">Strategia</label>
+                                    <select id="strategy" class="w-full p-4 rounded-2xl text-[11px] font-black uppercase outline-none cursor-pointer">
+                                        <option value="Scalping">Scalping</option>
+                                        <option value="Trend">Trend Follow</option>
+                                        <option value="Reversal">Reversal</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="py-2">
+                                <label class="text-[9px] uppercase text-slate-500 font-black tracking-widest mb-3 block text-center">Psychologia & Emocje</label>
+                                <div class="flex justify-between bg-black/40 p-4 rounded-2xl border border-white/5">
+                                    <span onclick="selectEmotion('🧘‍♂️', this)" class="emotion-btn text-2xl active cursor-pointer">🧘‍♂️</span>
+                                    <span onclick="selectEmotion('🤑', this)" class="emotion-btn text-2xl cursor-pointer">🤑</span>
+                                    <span onclick="selectEmotion('😡', this)" class="emotion-btn text-2xl cursor-pointer">😡</span>
+                                    <span onclick="selectEmotion('😨', this)" class="emotion-btn text-2xl cursor-pointer">😨</span>
+                                </div>
+                                <input type="hidden" id="emotionValue" value="🧘‍♂️">
+                            </div>
+
+                            <button id="addTradeBtn" onclick="addTrade()" class="gold-bg w-full text-black font-black py-5 rounded-2xl hover:brightness-110 active:scale-95 transition-all text-[11px] uppercase shadow-lg shadow-gold/20 tracking-widest mt-4">
+                                Księguj pozycję
+                            </button>
                         </div>
-
-                        <input type="text" id="note" placeholder="Dlaczego to wziąłeś?" class="w-full bg-slate-900 border border-slate-800 p-4 rounded-2xl text-white focus:border-gold-text outline-none text-sm">
-
-                        <button id="addTradeBtn" onclick="addTrade()" class="gold-bg w-full text-black font-black py-5 rounded-2xl hover:scale-[1.02] active:scale-95 transition-all text-[11px] uppercase mt-4 shadow-xl shadow-gold/10 tracking-[0.2em]">
-                            Dodaj do Dziennika
-                        </button>
                     </div>
                 </div>
 
-                <div class="xl:col-span-2 space-y-6">
-                    <div class="card rounded-[2rem] overflow-hidden">
-                        <table class="w-full text-left border-collapse">
-                            <thead class="bg-slate-900/80 text-slate-500 text-[10px] uppercase font-black tracking-[0.2em]">
-                                <tr>
-                                    <th class="p-6">Pozycja</th>
-                                    <th class="p-6">Wynik</th>
-                                    <th class="p-6 text-center">Emocja</th>
-                                    <th class="p-6 text-right">Akcja</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tradesTable" class="text-sm"></tbody>
-                        </table>
+                <div class="xl:col-span-8">
+                    <div class="card rounded-[2.5rem] overflow-hidden">
+                        <div class="bg-white/5 p-6 border-b border-white/5 flex justify-between items-center">
+                            <h3 class="text-[10px] font-black uppercase text-slate-400 tracking-[0.3em]">Recent Transactions</h3>
+                            <span class="text-[9px] text-gold font-bold uppercase tracking-widest">Live Feed</span>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead class="text-slate-500 text-[9px] uppercase font-black tracking-widest border-b border-white/5">
+                                    <tr>
+                                        <th class="p-6">Asset / Strategy</th>
+                                        <th class="p-6">Net Profit</th>
+                                        <th class="p-6 text-center">Mindset</th>
+                                        <th class="p-6 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tradesTable" class="text-sm divide-y divide-white/[0.02]">
+                                    </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
+
             </div>
         </div>
 
