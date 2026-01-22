@@ -11,38 +11,55 @@
         :root {
             --gold: #d4af37;
             --dark-bg: #05070a;
-            --glass-bg: rgba(7, 10, 15, 0.8);
+            --glass-bg: rgba(7, 10, 15, 0.85);
         }
 
         body { 
             background-color: var(--dark-bg); 
             color: #f8fafc; 
             font-family: 'Inter', sans-serif;
-            overflow: hidden; /* Świece tła nie mogą powodować scrolla */
+            margin: 0;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100-vh;
         }
 
-        /* Stylizacja tła z animacją */
+        /* --- STYLIZACJA TŁA TRADINGOWEGO --- */
         #bgCanvas {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: -1;
-            filter: blur(3px) opacity(0.4); /* Rozmycie tła dla efektu głębi */
+            z-index: 1;
+            filter: blur(2px); /* Delikatne rozmycie dla głębi */
+        }
+
+        /* Winieta przyciemniająca brzegi */
+        .vignette {
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(circle at center, transparent 20%, var(--dark-bg) 100%);
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        /* --- KARTA LOGOWANIA --- */
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            box-shadow: 0 0 60px rgba(0, 0, 0, 0.9);
+            position: relative;
+            z-index: 10;
         }
 
         .gold-text { 
             color: var(--gold); 
             text-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
             font-family: 'Montserrat', sans-serif;
-        }
-
-        .glass-card {
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(212, 175, 55, 0.2);
-            box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
         }
 
         .gold-btn {
@@ -78,9 +95,9 @@
             position: absolute;
             top: -50%; left: -50%;
             width: 200%; height: 200%;
-            background: linear-gradient(45deg, transparent, rgba(212, 175, 55, 0.05), transparent);
+            background: linear-gradient(45deg, transparent, rgba(212, 175, 55, 0.03), transparent);
             transform: rotate(45deg);
-            animation: shimmer 6s infinite linear;
+            animation: shimmer 8s infinite linear;
         }
 
         @keyframes shimmer {
@@ -89,11 +106,12 @@
         }
     </style>
 </head>
-<body class="flex items-center justify-center min-h-screen p-4">
+<body>
 
     <canvas id="bgCanvas"></canvas>
+    <div class="vignette"></div>
 
-    <div class="glass-card p-10 md:p-12 rounded-[2.5rem] w-full max-w-md shimmer relative z-10">
+    <div class="glass-card p-10 md:p-12 rounded-[2.5rem] w-full max-w-md shimmer">
         <div class="text-center mb-10">
             <h1 class="text-4xl font-black italic gold-text tracking-tighter uppercase mb-2">
                 SK GOLD<span class="text-white">.</span>
@@ -128,7 +146,7 @@
     </div>
 
     <script>
-        // --- TŁO: ANIMACJA ŚWIEC ---
+        // --- LIVE TRADING BACKGROUND ENGINE ---
         const canvas = document.getElementById('bgCanvas');
         const ctx = canvas.getContext('2d');
         let candles = [];
@@ -142,49 +160,43 @@
 
         class Candle {
             constructor(x) {
+                this.reset(x);
+            }
+            reset(x = canvas.width + 50) {
                 this.x = x;
                 this.y = Math.random() * canvas.height;
-                this.w = 15;
-                this.h = Math.random() * 100 + 20;
-                this.speed = Math.random() * 0.5 + 0.2;
+                this.w = 3;
+                this.h = Math.random() * 60 + 10;
+                this.speed = Math.random() * 0.3 + 0.1;
                 this.isBullish = Math.random() > 0.5;
+                this.opacity = Math.random() * 0.4 + 0.1;
             }
             draw() {
-                const color = this.isBullish ? '#4ade80' : '#ef4444';
-                ctx.strokeStyle = color;
+                const color = this.isBullish ? `rgba(74, 222, 128, ${this.opacity})` : `rgba(239, 68, 68, ${this.opacity})`;
                 ctx.fillStyle = color;
-                ctx.lineWidth = 1;
                 
                 // Knot
-                ctx.beginPath();
-                ctx.moveTo(this.x + this.w/2, this.y - 10);
-                ctx.lineTo(this.x + this.w/2, this.y + this.h + 10);
-                ctx.stroke();
-                
+                ctx.fillRect(this.x + this.w/2, this.y - 10, 1, this.h + 20);
                 // Korpus
                 ctx.fillRect(this.x, this.y, this.w, this.h);
                 
                 this.x -= this.speed;
-                if (this.x < -20) {
-                    this.x = canvas.width + 20;
-                    this.y = Math.random() * canvas.height;
-                }
+                if (this.x < -50) this.reset();
             }
         }
 
-        // Inicjalizacja świec w tle
-        for(let i = 0; i < 30; i++) {
+        for(let i = 0; i < 40; i++) {
             candles.push(new Candle(Math.random() * canvas.width));
         }
 
-        function animateBg() {
+        function animate() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             candles.forEach(c => c.draw());
-            requestAnimationFrame(animateBg);
+            requestAnimationFrame(animate);
         }
-        animateBg();
+        animate();
 
-        // --- LOGIKA LOGOWANIA ---
+        // --- AUTH LOGIC ---
         const SUPABASE_URL = 'https://bkutgpaoxkvwhvsfznjm.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJrdXRncGFveGt2d2h2c2Z6bmptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc1OTgwMTQsImV4cCI6MjA4MzE3NDAxNH0.ycpuwln6hNlmVEh4dtsMbiRQwWTqN7TQobDyrlLcRCw';
         const klientSupabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -196,7 +208,7 @@
             const msg = document.getElementById('msg');
 
             msg.innerText = "ŁĄCZENIE Z SERWEREM...";
-            msg.style.color = "#d4af37";
+            msg.style.color = "#64748b";
 
             if (!email || !password) {
                 msg.innerText = "BŁĄD: BRAK DANYCH";
@@ -214,13 +226,12 @@
                 }
 
                 const { error: regError } = await klientSupabase.auth.signUp({ 
-                    email, 
-                    password,
+                    email, password,
                     options: { data: { display_name: nickname } }
                 });
 
                 if (regError) {
-                    msg.innerText = "BŁĄD SYSTEMU: " + regError.message.toUpperCase();
+                    msg.innerText = "BŁĄD: " + regError.message.toUpperCase();
                     msg.style.color = "#ef4444";
                 } else {
                     msg.innerText = "KONTO UTWORZONE. ZALOGUJ SIĘ.";
@@ -229,9 +240,7 @@
             } else {
                 msg.innerText = "DOSTĘP PRZYZNANY...";
                 msg.style.color = "#4ade80";
-                setTimeout(() => {
-                    window.location.href = 'panel.html';
-                }, 800);
+                setTimeout(() => { window.location.href = 'panel.html'; }, 600);
             }
         }
     </script>
