@@ -204,40 +204,60 @@
         </nav>
 
         <div id="tabDashboard" class="tab-content">
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-                <div class="lg:col-span-2 card p-6 rounded-[2rem]">
-                    <h3 class="font-black mb-6 text-slate-500 uppercase text-[10px] tracking-[0.3em]">Krzywa kapitału</h3>
-                    <div class="h-[320px]"><canvas id="equityChart"></canvas></div>
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
+                
+                <div class="lg:col-span-8 card p-8 rounded-[2.5rem] relative overflow-hidden">
+                    <div class="flex justify-between items-center mb-8">
+                        <h3 class="font-black text-slate-500 uppercase text-[10px] tracking-[0.4em]">Equity Curve / Performance</h3>
+                        <div class="flex gap-4">
+                            <span class="flex items-center gap-2 text-[9px] font-bold uppercase text-slate-400">
+                                <span class="w-2 h-2 rounded-full bg-gold"></span> Growth
+                            </span>
+                        </div>
+                    </div>
+                    <div class="h-[350px] w-full"><canvas id="equityChart"></canvas></div>
                 </div>
-                <div class="space-y-6">
-                    <div class="card p-8 rounded-[2rem] text-center border-t-4 border-t-gold bg-slate-900/40">
-                        <p class="text-gold uppercase text-[10px] font-black tracking-[0.3em] mb-3">Aktualne Saldo</p>
-                        <h2 id="liveBalance" class="mono text-5xl font-black italic tracking-tighter text-white">0.00</h2>
+
+                <div class="lg:col-span-4 space-y-6">
+                    <div class="card p-10 rounded-[2.5rem] text-center border-t-2 border-gold/30 relative">
+                        <div class="absolute top-4 left-1/2 -translate-x-1/2 w-12 h-1 bg-gold/20 rounded-full"></div>
+                        <p class="text-slate-500 uppercase text-[10px] font-black tracking-[0.3em] mb-4">Total Balance</p>
+                        <h2 id="liveBalance" class="mono text-5xl font-black italic tracking-tighter text-white">
+                            0.00
+                        </h2>
+                        <p class="text-[9px] text-gold/60 mt-4 font-bold uppercase tracking-widest">Available Margin 100%</p>
                     </div>
 
-                    <div class="card p-8 rounded-[2rem] text-center border-r-4 border-r-gold">
-                        <p class="text-slate-500 uppercase text-[10px] font-black tracking-[0.3em] mb-3">Wynik całkowity</p>
-                        <h2 id="totalProfit" class="mono text-5xl font-black italic tracking-tighter">0.00</h2>
+                    <div class="card p-8 rounded-[2.5rem] bg-gradient-to-br from-slate-900/80 to-black/40">
+                        <div class="flex justify-between items-center mb-4">
+                            <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Performance Score</span>
+                            <span class="text-green-400 mono text-xs">High</span>
+                        </div>
+                        <div class="space-y-4">
+                            <div class="h-1 w-full bg-white/5 rounded-full overflow-hidden">
+                                <div class="h-full bg-green-500/50 w-[75%] shadow-[0_0_10px_rgba(74,222,128,0.3)]"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-10">
-                <div class="card p-6 rounded-2xl text-center">
-                    <p class="text-[10px] text-slate-500 uppercase font-black tracking-widest mb-1">Win Rate</p>
-                    <p id="winRate" class="mono gold-text font-black text-2xl">0%</p>
+                <div class="card p-6 rounded-3xl text-center group hover:border-gold/40 transition-all">
+                    <p class="text-[9px] text-slate-500 uppercase font-black tracking-[0.2em] mb-2">Win Rate</p>
+                    <p id="winRate" class="mono green-glow font-black text-3xl">0%</p>
                 </div>
-                <div class="card p-6 rounded-2xl text-center">
-                    <p class="text-[10px] text-slate-500 uppercase font-black tracking-widest mb-1">Profit Factor</p>
-                    <p id="profitFactor" class="mono text-white font-black text-2xl">0.00</p>
+                <div class="card p-6 rounded-3xl text-center group hover:border-gold/40 transition-all">
+                    <p class="text-[9px] text-slate-500 uppercase font-black tracking-[0.2em] mb-2">Profit Factor</p>
+                    <p id="profitFactor" class="mono text-white font-black text-3xl">0.00</p>
                 </div>
-                <div class="card p-6 rounded-2xl text-center">
-                    <p class="text-[10px] text-slate-500 uppercase font-black tracking-widest mb-1">Liczba Trade</p>
-                    <p id="tradeCount" class="mono text-white font-black text-2xl">0</p>
+                <div class="card p-6 rounded-3xl text-center group hover:border-gold/40 transition-all">
+                    <p class="text-[9px] text-slate-500 uppercase font-black tracking-[0.2em] mb-2">Positions</p>
+                    <p id="tradeCount" class="mono text-white font-black text-3xl">0</p>
                 </div>
-                <div class="card p-6 rounded-2xl text-center">
-                    <p class="text-[10px] text-slate-500 uppercase font-black tracking-widest mb-1">Średni R:R</p>
-                    <p id="riskReward" class="mono text-white font-black text-2xl">0.00</p>
+                <div class="card p-6 rounded-3xl text-center group hover:border-gold/40 transition-all">
+                    <p class="text-[9px] text-slate-500 uppercase font-black tracking-[0.2em] mb-2">Avg R:R</p>
+                    <p id="riskReward" class="mono text-gold font-black text-3xl text-shadow-gold">0.00</p>
                 </div>
             </div>
         </div>
