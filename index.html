@@ -24,13 +24,13 @@
         }
 
         body::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    background:
-        radial-gradient(circle at center, rgba(212,175,55,0.25), transparent 60%);
-    pointer-events: none;
-}
+            content: "";
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(circle at center, rgba(212,175,55,0.25), transparent 60%);
+            pointer-events: none;
+        }
 
         .gold-text { 
             color: var(--gold); 
@@ -45,52 +45,54 @@
             position: relative;
             background-blend-mode: overlay;
             box-shadow:
-            0 0 0 1px rgba(212,175,55,0.18),
-            0 25px 60px rgba(0,0,0,0.8),
-            inset 0 0 40px rgba(212,175,55,0.05);
+                0 0 0 1px rgba(212,175,55,0.18),
+                0 25px 60px rgba(0,0,0,0.8),
+                inset 0 0 40px rgba(212,175,55,0.05);
+            overflow: hidden;
         }
 
         .glass-card::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    padding: 1px;
-    background: linear-gradient(
-        120deg,
-        transparent,
-        rgba(212,175,55,0.6),
-        transparent
-    );
-    -webkit-mask:
-        linear-gradient(#000 0 0) content-box,
-        linear-gradient(#000 0 0);
-    -webkit-mask-composite: xor;
-    pointer-events: none;
-}
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            padding: 1px;
+            background: linear-gradient(
+                120deg,
+                transparent,
+                rgba(212,175,55,0.6),
+                transparent
+            );
+            -webkit-mask:
+                linear-gradient(#000 0 0) content-box,
+                linear-gradient(#000 0 0);
+            -webkit-mask-composite: xor;
+            pointer-events: none;
+        }
 
         .glass-card::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    background: linear-gradient(
-        120deg,
-        transparent 20%,
-        rgba(212,175,55,0.08),
-        transparent 80%
-    );
-    pointer-events: none;
-}
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: linear-gradient(
+                120deg,
+                transparent 20%,
+                rgba(212,175,55,0.08),
+                transparent 80%
+            );
+            pointer-events: none;
+        }
 
         .gold-btn {
-    background: linear-gradient(135deg, #d4af37, #f5d76e);
-    box-shadow:
-        0 0 0 1px rgba(212,175,55,0.35),
-        0 8px 25px rgba(212,175,55,0.35);
+            background: linear-gradient(135deg, #d4af37, #f5d76e);
+            box-shadow:
+                0 0 0 1px rgba(212,175,55,0.35),
+                0 8px 25px rgba(212,175,55,0.35);
             border-radius: 14px;
             letter-spacing: 0.25em;
-}
+            transition: all 0.3s;
+        }
 
         .gold-btn:hover {
             transform: translateY(-2px);
@@ -133,22 +135,44 @@
         }
 
         input::placeholder {
-    color: #6b7280;
-    letter-spacing: 0.08em;
-}
+            color: #6b7280;
+            letter-spacing: 0.08em;
+        }
+
+        /* Animacja pola nickname */
+        .fade-slide {
+            transition: all 0.3s ease;
+            opacity: 0;
+            transform: translateY(-10px);
+            max-height: 0;
+            overflow: hidden;
+        }
+
+        .fade-slide.show {
+            opacity: 1;
+            transform: translateY(0);
+            max-height: 100px; /* dopasuj w razie potrzeby */
+        }
     </style>
 </head>
 <body class="flex items-center justify-center min-h-screen p-4">
     <div class="glass-card p-10 md:p-12 rounded-[2.5rem] w-full max-w-md shimmer">
-        <div class="text-center mb-10">
+        <div class="text-center mb-6">
             <h1 class="text-4xl font-black italic gold-text tracking-tight uppercase mb-1">
                 SK GOLD<span class="text-white">.</span>
             </h1>
             <p class="text-slate-400 text-[9px] font-black uppercase tracking-[0.45em]">Professional Terminal</p>
         </div>
 
+        <!-- Przełącznik logowanie / rejestracja -->
+        <div class="text-center mb-6">
+            <button id="loginBtn" class="gold-btn px-6 py-2 mr-2">Logowanie</button>
+            <button id="registerBtn" class="gold-btn px-6 py-2">Rejestracja</button>
+        </div>
+
         <div class="space-y-6">
-            <div>
+            <!-- Nick tylko przy rejestracji -->
+            <div id="nicknameField" class="fade-slide">
                 <label class="text-[9px] uppercase tracking-[0.2em] text-slate-500 ml-1 font-bold">Inicjały / Nickname</label>
                 <input type="text" id="nickname" placeholder="Dla nowych użytkowników" 
                     class="input-field w-full rounded-xl p-4 text-sm font-semibold text-white mt-1 outline-none">
@@ -161,8 +185,8 @@
                     class="input-field w-full rounded-xl p-4 text-sm font-semibold text-white outline-none">
             </div>
             
-            <button onclick="handleLogin()" class="gold-btn w-full py-4 rounded-xl font-black text-[11px] uppercase tracking-[0.2em] text-black mt-4">
-                Autoryzacja
+            <button id="submitBtn" class="gold-btn w-full py-4 rounded-xl font-black text-[11px] uppercase tracking-[0.2em] text-black mt-4">
+                Zaloguj się
             </button>
             
             <p id="msg" class="text-center text-[10px] mt-4 font-bold uppercase tracking-wider min-h-[15px]"></p>
@@ -178,49 +202,75 @@
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJrdXRncGFveGt2d2h2c2Z6bmptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc1OTgwMTQsImV4cCI6MjA4MzE3NDAxNH0.ycpuwln6hNlmVEh4dtsMbiRQwWTqN7TQobDyrlLcRCw';
         const klientSupabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        async function handleLogin() {
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const nickname = document.getElementById('nickname').value;
-            const msg = document.getElementById('msg');
+        let mode = "login"; // domyślnie logowanie
 
-            msg.innerText = "ŁĄCZENIE Z SERWEREM...";
+        const loginBtn = document.getElementById('loginBtn');
+        const registerBtn = document.getElementById('registerBtn');
+        const nicknameField = document.getElementById('nicknameField');
+        const submitBtn = document.getElementById('submitBtn');
+        const msg = document.getElementById('msg');
+
+        loginBtn.onclick = () => {
+            mode = "login";
+            nicknameField.classList.remove('show');
+            submitBtn.innerText = "Zaloguj się";
+        }
+
+        registerBtn.onclick = () => {
+            mode = "register";
+            nicknameField.classList.add('show');
+            submitBtn.innerText = "Zarejestruj się";
+        }
+
+        submitBtn.onclick = async () => {
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const nickname = document.getElementById('nickname').value.trim();
+
             msg.style.color = "#64748b";
 
-            if (!email || !password) {
-                msg.innerText = "BŁĄD: BRAK DANYCH";
+            // Walidacja
+            if (!email || !password || (mode === "register" && !nickname)) {
+                msg.innerText = "Uzupełnij wszystkie wymagane pola";
                 msg.style.color = "#ef4444";
                 return;
             }
 
-            const { data, error } = await klientSupabase.auth.signInWithPassword({ email, password });
+            if (!/\S+@\S+\.\S+/.test(email)) {
+                msg.innerText = "Niepoprawny adres email";
+                msg.style.color = "#ef4444";
+                return;
+            }
 
-            if (error) {
-                if (!nickname) {
-                    msg.innerText = "NIEZNANY PROFIL. PODAJ NICK";
+            if (password.length < 6) {
+                msg.innerText = "Hasło musi mieć min. 6 znaków";
+                msg.style.color = "#ef4444";
+                return;
+            }
+
+            if (mode === "login") {
+                const { data, error } = await klientSupabase.auth.signInWithPassword({ email, password });
+                if (error) {
+                    msg.innerText = "Błąd logowania: " + error.message;
                     msg.style.color = "#ef4444";
-                    return;
+                } else {
+                    msg.innerText = "Dostęp przyznany...";
+                    msg.style.color = "#4ade80";
+                    setTimeout(() => window.location.href = 'panel.html', 500);
                 }
-
-                const { error: regError } = await klientSupabase.auth.signUp({ 
+            } else {
+                const { error } = await klientSupabase.auth.signUp({ 
                     email, 
                     password,
                     options: { data: { display_name: nickname } }
                 });
-
-                if (regError) {
-                    msg.innerText = "BŁĄD SYSTEMU: " + regError.message.toUpperCase();
+                if (error) {
+                    msg.innerText = "Błąd rejestracji: " + error.message;
                     msg.style.color = "#ef4444";
                 } else {
-                    msg.innerText = "KONTO UTWORZONE. ZALOGUJ SIĘ.";
+                    msg.innerText = "Konto utworzone. Możesz się teraz zalogować.";
                     msg.style.color = "#4ade80";
                 }
-            } else {
-                msg.innerText = "DOSTĘP PRZYZNANY...";
-                msg.style.color = "#4ade80";
-                setTimeout(() => {
-                    window.location.href = 'panel.html';
-                }, 500);
             }
         }
     </script>
