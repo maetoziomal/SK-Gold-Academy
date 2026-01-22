@@ -15,46 +15,34 @@
             --card-bg: rgba(15, 23, 42, 0.7);
         }
         body {
-    min-height: 100vh;
-    font-family: 'Inter', sans-serif;
-    color: #f8fafc;
-    background:
-        radial-gradient(circle at 70% 20%, rgba(212,175,55,0.18), transparent 55%),
-        radial-gradient(circle at 20% 80%, rgba(212,175,55,0.10), transparent 60%),
-        linear-gradient(180deg, #05070a 0%, #020617 100%);
-    overflow-x: hidden;
-}
-
+            background-color: var(--dark-bg);
+            color: #f8fafc;
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            background-image: radial-gradient(circle at top right, rgba(212, 175, 55, 0.05), transparent),
+                              radial-gradient(circle at bottom left, rgba(212, 175, 55, 0.05), transparent);
+        }
         h1, h2, h3, .nav-btn { font-family: 'Montserrat', sans-serif; }
         .mono { font-family: 'JetBrains Mono', monospace; }
 
         .gold-text { color: var(--gold); text-shadow: 0 0 10px rgba(212, 175, 55, 0.2); }
         .gold-dot { color: var(--gold); text-shadow: 0 0 15px var(--gold); }
 
-         .card {
-    background: linear-gradient(
-        145deg,
-        rgba(20, 25, 40, 0.85),
-        rgba(5, 8, 15, 0.65)
-    );
-    backdrop-filter: blur(22px);
-    border: 1px solid rgba(212, 175, 55, 0.22);
-    box-shadow:
-        0 40px 80px -25px rgba(0, 0, 0, 0.9),
-        0 0 60px rgba(212, 175, 55, 0.05),
-        inset 0 0 0 1px rgba(255,255,255,0.04);
-    position: relative;
-    overflow: hidden;
-}
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(212, 175, 55, 0.15);
+            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
+        }
 
         .gold-bg { background: linear-gradient(135deg, #d4af37 0%, #f1c40f 100%); }
         .loss-bg { background: linear-gradient(135deg, #7f1d1d 0%, #ef4444 100%); }
 
         .nav-active {
-    border-bottom: 3px solid var(--gold);
-    color: var(--gold);
-    text-shadow: 0 0 15px rgba(212, 175, 55, 0.6);
-}
+            border-bottom: 3px solid var(--gold);
+            color: var(--gold);
+            text-shadow: 0 0 10px rgba(212, 175, 55, 0.4);
+        }
 
         .hidden { display: none; }
 
@@ -105,140 +93,11 @@
             border: 2px solid var(--gold);
         }
         .day-profit { font-size: 0.65rem; font-family: 'JetBrains Mono', monospace; margin-top: 4px; font-weight: 800; }
-        @media (max-width: 768px) {
-
-    header {
-        flex-direction: column;
-        gap: 1rem;
-        text-align: center;
-    }
-
-    nav {
-        gap: 1.5rem;
-    }
-
-    .card {
-        border-radius: 1.75rem !important;
-    }
-
-    h1 {
-        font-size: 2.2rem !important;
-    }
-
-    #statusCard {
-        padding: 1.5rem !important;
-    }
-
-    canvas {
-        max-height: 220px;
-    }
-}
-
-        @keyframes fadeUp {
-    from {
-        opacity: 0;
-        transform: translateY(25px) scale(0.98);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
-}
-
-.card {
-    animation: fadeUp 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-        
-        .premium-nav {
-    background: linear-gradient(
-        180deg,
-        rgba(2,6,23,0.85),
-        rgba(2,6,23,0.65)
-    );
-    backdrop-filter: blur(20px);
-    border-bottom: 1px solid rgba(212,175,55,0.15);
-    box-shadow:
-        0 10px 40px rgba(0,0,0,0.6),
-        inset 0 -1px 0 rgba(255,255,255,0.03);
-}
-
-.premium-nav::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(212,175,55,0.6), transparent);
-}
-
-        .hero-card::before {
-    content: "";
-    position: absolute;
-    inset: -1px;
-    border-radius: inherit;
-    background: linear-gradient(
-        120deg,
-        transparent 20%,
-        rgba(212,175,55,0.25),
-        transparent 80%
-    );
-    opacity: 0.35;
-    pointer-events: none;
-}
-
-.hero-card::after {
-    content: "";
-    position: absolute;
-    top: -60%;
-    left: -60%;
-    width: 220%;
-    height: 220%;
-    background: linear-gradient(
-        45deg,
-        transparent,
-        rgba(255,255,255,0.06),
-        transparent
-    );
-    animation: heroSweep 8s linear infinite;
-    pointer-events: none;
-}
-
-#statusCard > * {
-  position: relative;
-  z-index: 2;
-}
-
-@keyframes heroSweep {
-    0% { transform: translateX(-50%) rotate(25deg); }
-    100% { transform: translateX(50%) rotate(25deg); 
-}
-
-#statusCard {
-  position: relative;
-  overflow: hidden;
-}
-
-#statusCard::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(
-    circle at top center,
-    rgba(255, 200, 80, 0.45),
-    rgba(255, 180, 60, 0.20),
-    transparent 70%
-  );
-  pointer-events: none;
-  mix-blend-mode: screen;
-  z-index: 1;
-}
-        
     </style>
 </head>
-<body class="p-0 md:p-2">
-    <div class="max-w-7xl mx-auto w-full">
-        <header class="flex justify-between items-center mb-4 px-2">
+<body class="p-2 md:p-8">
+    <div class="max-w-6xl mx-auto w-full">
+        <header class="flex justify-between items-center mb-8 px-2">
             <div>
                 <h1 class="text-3xl md:text-4xl font-black italic gold-text tracking-tighter uppercase leading-none">
                     SK GOLD<span class="gold-dot">.</span>
@@ -252,7 +111,7 @@
             </button>
         </header>
 
-        <div id="statusCard" class="card hero-card p-6 rounded-[2.5rem] mb-10 relative overflow-hidden transition-all duration-700">
+        <div id="statusCard" class="card p-6 rounded-[2rem] mb-8 relative overflow-hidden transition-all duration-700">
             <div class="absolute -right-10 -top-10 opacity-[0.03] select-none pointer-events-none">
                 <span class="text-[12rem] font-black italic tracking-tighter uppercase">GOLD</span>
             </div>
@@ -303,7 +162,7 @@
             </div>
         </div>
 
-        <nav class="premium-nav sticky top-0 z-40 flex gap-8 mb-8 px-4 py-3 overflow-x-auto custom-scroll whitespace-nowrap">
+        <nav class="flex gap-8 mb-8 border-b border-slate-800/50 px-4 overflow-x-auto custom-scroll whitespace-nowrap">
             <button id="btnDashboard" onclick="switchTab('dashboard')" class="nav-btn pb-4 font-black text-[11px] uppercase tracking-[0.25em] nav-active">Dashboard</button>
             <button id="btnJournal" onclick="switchTab('journal')" class="nav-btn pb-4 font-black text-[11px] uppercase tracking-[0.25em] text-slate-500">Dziennik</button>
             <button id="btnCalendar" onclick="switchTab('calendar')" class="nav-btn pb-4 font-black text-[11px] uppercase tracking-[0.25em] text-slate-500">Kalendarz</button>
@@ -472,43 +331,22 @@
     </div>
 
     <script>
+        
         const SUPABASE_URL = 'https://bkutgpaoxkvwhvsfznjm.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJrdXRncGFveGt2d2h2c2Z6bmptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc1OTgwMTQsImV4cCI6MjA4MzE3NDAxNH0.ycpuwln6hNlmVEh4dtsMbiRQwWTqN7TQobDyrlLcRCw';
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        // 🔐 JEDYNY DOZWOLONY USER (ADMIN)
-        const ADMIN_USER_ID = "5fd670c3-f953-4fa8-b133-e4e8d5b907de";
-
 
         let equityChart, currentMonth = new Date().getMonth(), currentYear = new Date().getFullYear();
         let allTrades = [];
         let currentTotalBalance = 0;
 
         async function checkUser() {
-    const { data: { user } } = await _supabase.auth.getUser();
-
-    // ❌ BRAK SESJI → WYLOGUJ
-    if (!user) {
-        window.location.href = 'index.html';
-        return;
-    }
-
-    // ❌ NIE ADMIN → WYLOGUJ
-    if (user.id !== ADMIN_USER_ID) {
-        alert("Brak uprawnień.");
-        await _supabase.auth.signOut();
-        window.location.href = 'index.html';
-        return;
-    }
-
-    // ✅ ADMIN
-    document.getElementById('welcomeText').innerHTML =
-        `Sesja aktywna: <span class="text-white font-black italic tracking-normal">
-        ${user.user_metadata.display_name || "ADMIN"}
-        </span>`;
-
-    await loadSettings();
-    fetchTrades();
-}
+            const { data: { user } } = await _supabase.auth.getUser();
+            if (!user) { window.location.href = 'index.html'; return; }
+            document.getElementById('welcomeText').innerHTML = `Sesja aktywna: <span class="text-white font-black italic tracking-normal">${user.user_metadata.display_name || "PRO TRADER"}</span>`;
+            await loadSettings();
+            fetchTrades();
+        }
 
         async function loadSettings() {
             const { data } = await _supabase.from('user_settings').select('*').single();
