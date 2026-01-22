@@ -419,286 +419,172 @@
         </div>
 
     <script>
+    const SUPABASE_URL = 'https://bkutgpaoxkvwhvsfznjm.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJrdXRncGFveGt2d2h2c2Z6bmptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc1OTgwMTQsImV4cCI6MjA4MzE3NDAxNH0.ycpuwln6hNlmVEh4dtsMbiRQwWTqN7TQobDyrlLcRCw';
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let equityChart, currentMonth = new Date().getMonth(), currentYear = new Date().getFullYear();
+    let allTrades = [];
+    let currentTotalBalance = 0;
+
+    async function checkUser() {
+        const { data: { user } } = await _supabase.auth.getUser();
+        const DOZWOLONE_EMAILE = ['mwilkbiznes@outlook.com'];
         
-        const SUPABASE_URL = 'https://bkutgpaoxkvwhvsfznjm.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJrdXRncGFveGt2d2h2c2Z6bmptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc1OTgwMTQsImV4cCI6MjA4MzE3NDAxNH0.ycpuwln6hNlmVEh4dtsMbiRQwWTqN7TQobDyrlLcRCw';
-        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        if (!user) { window.location.href = 'index.html'; return; }
+        if (!DOZWOLONE_EMAILE.includes(user.email)) {
+            document.body.innerHTML = `<div style="background:#05070a; color:white; height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; font-family:sans-serif; text-align:center; padding:20px;"><h1>SYSTEM LOCK</h1><button onclick="window.location.href='index.html'">Wróć</button></div>`;
+            return;
+        }
 
-        let equityChart, currentMonth = new Date().getMonth(), currentYear = new Date().getFullYear();
-        let allTrades = [];
-        let currentTotalBalance = 0;
-
-        async function checkUser() {
-    const { data: { user } } = await _supabase.auth.getUser();
-    
-    // --- TUTAJ JEST BLOKADA ---
-    const DOZWOLONE_EMAILE = ['mwilkbiznes@outlook.com']; // WPISZ SWÓJ MAIL TUTAJ
-    
-    if (!user) { 
-        window.location.href = 'index.html'; 
-        return; 
+        document.getElementById('welcomeText').innerHTML = `Sesja aktywna: <span class="text-white font-black italic">${user.user_metadata.display_name || "PRO TRADER"}</span>`;
+        await loadSettings();
+        fetchTrades();
     }
 
-    if (!DOZWOLONE_EMAILE.includes(user.email)) {
-        document.body.innerHTML = `
-            <div style="background:#05070a; color:white; height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; font-family:sans-serif; text-align:center; padding:20px;">
-                <h1 style="color:#d4af37; font-size:24px; text-transform:uppercase; letter-spacing:5px;">SYSTEM LOCK</h1>
-                <p style="color:#64748b; margin-top:10px; font-size:12px; text-transform:uppercase; tracking:2px;">Dostęp ograniczony. Trwa aktualizacja zabezpieczeń.</p>
-                <button onclick="window.location.href='index.html'" style="margin-top:30px; background:linear-gradient(135deg, #d4af37, #f1c40f); color:black; border:none; padding:12px 24px; border-radius:12px; font-weight:900; cursor:pointer; text-transform:uppercase; font-size:10px;">Wróć do logowania</button>
-            </div>
-        `;
-        return; // Zatrzymuje dalsze ładowanie panelu
+    async function loadSettings() {
+        const { data } = await _supabase.from('user_settings').select('*').single();
+        if (data) {
+            document.getElementById('startBalance').value = data.start_balance || 1000;
+            document.getElementById('dailyGoalPct').value = data.daily_goal_pct || 10;
+            document.getElementById('dailyLossLimit').value = data.daily_loss_limit || 3;
+            document.getElementById('weeklyLesson').value = data.weekly_lesson || "";
+        }
     }
-    // --- KONIEC BLOKADY ---
 
-    document.getElementById('welcomeText').innerHTML = `Sesja aktywna: <span class="text-white font-black italic tracking-normal">${user.user_metadata.display_name || "PRO TRADER"}</span>`;
-    await loadSettings();
-    fetchTrades();
-}
+    async function saveSettings() {
+        const { data: { user } } = await _supabase.auth.getUser();
+        await _supabase.from('user_settings').upsert({
+            user_id: user.id,
+            start_balance: parseFloat(document.getElementById('startBalance').value) || 0,
+            daily_goal_pct: parseFloat(document.getElementById('dailyGoalPct').value) || 0,
+            daily_loss_limit: parseFloat(document.getElementById('dailyLossLimit').value) || 3
+        });
+        calculateStats();
+    }
 
-        async function loadSettings() {
-            const { data } = await _supabase.from('user_settings').select('*').single();
-            if (data) {
-                document.getElementById('startBalance').value = data.start_balance;
-                document.getElementById('dailyGoalPct').value = data.daily_goal_pct;
-                document.getElementById('dailyLossLimit').value = data.daily_loss_limit || 3;
-                document.getElementById('weeklyLesson').value = data.weekly_lesson || "";
-            }
-        }
+    function switchTab(tab) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+        document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.remove('hidden');
+        document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('nav-active'));
+        document.getElementById('btn' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('nav-active');
+        if(tab === 'dashboard') calculateStats();
+    }
 
-        async function saveSettings() {
-            const { data: { user } } = await _supabase.auth.getUser();
-            await _supabase.from('user_settings').upsert({
-                user_id: user.id,
-                start_balance: parseFloat(document.getElementById('startBalance').value) || 0,
-                daily_goal_pct: parseFloat(document.getElementById('dailyGoalPct').value) || 0,
-                daily_loss_limit: parseFloat(document.getElementById('dailyLossLimit').value) || 3
-            });
-            calculateStats();
-        }
+    async function fetchTrades() {
+        const { data } = await _supabase.from('trades').select('*').order('created_at', { ascending: true });
+        allTrades = data || [];
+        calculateStats();
+    }
 
-        async function saveWeeklyLesson() {
-            const { data: { user } } = await _supabase.auth.getUser();
-            await _supabase.from('user_settings').upsert({ user_id: user.id, weekly_lesson: document.getElementById('weeklyLesson').value });
-        }
+    function calculateStats() {
+        const table = document.getElementById('tradesTable');
+        const startBalance = parseFloat(document.getElementById('startBalance').value) || 0;
+        const dailyGoalPct = parseFloat(document.getElementById('dailyGoalPct').value) || 0;
+        const lossLimitPct = parseFloat(document.getElementById('dailyLossLimit').value) || 0;
 
-        function switchTab(tab) {
-            document.querySelectorAll('[id^="tab"]').forEach(el => el.classList.add('hidden'));
-            document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.remove('hidden');
-            document.querySelectorAll('nav button').forEach(btn => btn.classList.remove('nav-active'));
-            document.getElementById('btn' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('nav-active');
-            if(tab === 'dashboard') calculateStats();
-            if(tab === 'calendar') renderCalendar();
-            if(tab === 'calc') {
-                document.getElementById('calcBalanceDisplay').innerText = currentTotalBalance.toFixed(2) + " $";
-                calculateLot();
-            }
-        }
+        let runningBalance = startBalance;
+        let dailyProfit = 0;
+        let wins = 0, sumWins = 0, sumLosses = 0;
+        let chartLabels = ['Start'];
+        let chartData = [startBalance];
 
-        async function fetchTrades() {
-            const { data } = await _supabase.from('trades').select('*').order('created_at', { ascending: true });
-            allTrades = data || [];
-            calculateStats();
-            if(!document.getElementById('tabCalendar').classList.contains('hidden')) renderCalendar();
-        }
+        const today = new Date().toLocaleDateString();
+        table.innerHTML = '';
 
-        function calculateStats() {
-            const table = document.getElementById('tradesTable');
-            let total = 0, wins = 0, losses = 0, sumWins = 0, sumLosses = 0, dailyProfit = 0;
-            let equityData = [0], labels = ['0'];
-            const today = new Date().toLocaleDateString();
-            table.innerHTML = '';
+        allTrades.forEach((t, index) => {
+            const profit = parseFloat(t.profit);
+            runningBalance += profit;
+            
+            chartLabels.push(index + 1);
+            chartData.push(runningBalance);
 
-            [...allTrades].reverse().forEach((t) => {
-                const profit = parseFloat(t.profit);
-                if (new Date(t.created_at).toLocaleDateString() === today) dailyProfit += profit;
+            if (new Date(t.created_at).toLocaleDateString() === today) dailyProfit += profit;
+            if (profit > 0) { wins++; sumWins += profit; } else { sumLosses += Math.abs(profit); }
 
-                let emotion = "🧘‍♂️", strategy = "Scalp", session = "LDN";
-                if (t.note && t.note.includes('|')) {
-                    const parts = t.note.split('|');
-                    emotion = parts[0]?.trim() || "🧘‍♂️";
-                    strategy = parts[1]?.trim() || "Scalp";
-                    if(parts[3]) session = parts[3].trim();
-                }
+            const row = `<tr>
+                <td class="p-6 font-bold">${t.pair} <span class="text-[9px] text-slate-500 block">${t.type}</span></td>
+                <td class="p-6 mono ${profit >= 0 ? 'text-green-400' : 'text-red-500'}">${profit >= 0 ? '+' : ''}${profit.toFixed(2)} PLN</td>
+                <td class="p-6 text-center text-xl">${t.note || '🧘‍♂️'}</td>
+                <td class="p-6 text-right"><button onclick="deleteTrade('${t.id}')" class="text-red-900 hover:text-red-500">Usuń</button></td>
+            </tr>`;
+            table.innerHTML = row + table.innerHTML;
+        });
 
-                table.innerHTML += `
-                    <tr class="border-b border-slate-800/50 text-white hover:bg-white/[0.03] transition">
-                        <td class="p-6">
-                            <div class="font-black text-xs uppercase italic">${t.pair} <span class="gold-text ml-3 mono text-[10px] not-italic">${session}</span></div>
-                            <div class="text-[10px] text-slate-500 uppercase font-black tracking-widest mt-1">${strategy}</div>
-                        </td>
-                        <td class="p-6 font-black mono italic text-lg ${profit >= 0 ? 'text-green-400' : 'text-red-400'}">
-                            ${profit >= 0 ? '+' : ''}${profit.toFixed(2)}
-                        </td>
-                        <td class="p-6 text-center text-3xl">${emotion}</td>
-                        <td class="p-6 text-right">
-                            <button onclick="deleteTrade(${t.id})" class="text-red-900/50 hover:text-red-500 transition-all font-black text-[10px] uppercase">Usuń</button>
-                        </td>
-                    </tr>`;
-            });
+        // Aktualizacja UI
+        currentTotalBalance = runningBalance;
+        document.getElementById('totalProfit').innerHTML = `${dailyProfit >= 0 ? '+' : ''}${dailyProfit.toFixed(2)} <span class="text-2xl opacity-50">PLN</span>`;
+        document.getElementById('liveBalance').innerText = runningBalance.toFixed(2);
+        
+        const winRate = allTrades.length > 0 ? (wins / allTrades.length * 100).toFixed(0) : 0;
+        document.getElementById('winRate').innerText = winRate + '%';
+        document.getElementById('profitFactor').innerText = sumLosses > 0 ? (sumWins / sumLosses).toFixed(2) : sumWins.toFixed(2);
+        document.getElementById('tradeCount').innerText = allTrades.length;
 
-            const startBalance = parseFloat(document.getElementById('startBalance').value) || 0;
-            allTrades.forEach((t, i) => {
-                const profit = parseFloat(t.profit);
-                total += profit;
-                if(profit > 0) { wins++; sumWins += profit; }
-                else if(profit < 0) { losses++; sumLosses += Math.abs(profit); }
-                equityData.push(equityData[equityData.length - 1] + profit);
-                labels.push(i + 1);
-            });
+        // Paski postępu
+        const goalValue = (startBalance * (dailyGoalPct / 100));
+        const lossLimitValue = (startBalance * (lossLimitPct / 100));
+        
+        const goalProg = Math.min(Math.max((dailyProfit / goalValue) * 100, 0), 100);
+        const lossProg = Math.min(Math.max((Math.abs(Math.min(dailyProfit, 0)) / lossLimitValue) * 100, 0), 100);
 
-            currentTotalBalance = startBalance + total;
-            document.getElementById('liveBalance').innerText = currentTotalBalance.toFixed(2);
-            document.getElementById('totalProfit').innerText = (total >= 0 ? '+' : '') + total.toFixed(2);
-            document.getElementById('totalProfit').className = `mono text-5xl font-black italic tracking-tighter ${total >= 0 ? 'text-green-400' : 'text-red-400'}`;
-            document.getElementById('winRate').innerText = (allTrades.length > 0 ? ((wins / allTrades.length) * 100).toFixed(0) : 0) + "%";
-            document.getElementById('tradeCount').innerText = allTrades.length;
-            document.getElementById('profitFactor').innerText = sumLosses > 0 ? (sumWins / sumLosses).toFixed(2) : sumWins.toFixed(2);
-            document.getElementById('riskReward').innerText = (losses > 0 && wins > 0) ? ((sumWins/wins)/(sumLosses/losses)).toFixed(2) : "0.00";
+        document.getElementById('goalBar').style.width = goalProg + '%';
+        document.getElementById('lossBar').style.width = lossProg + '%';
+        document.getElementById('goalStatus').innerText = `${dailyProfit.toFixed(2)} / ${goalValue.toFixed(2)}`;
+        document.getElementById('lossStatus').innerText = `${Math.abs(Math.min(dailyProfit, 0)).toFixed(2)} / ${lossLimitValue.toFixed(2)}`;
 
-            updateDailyGoalAndSafety(dailyProfit, startBalance);
-            updateCharts(labels, equityData);
-            generateWeeklyReport();
-            calculateLot();
-        }
+        updateChart(chartLabels, chartData);
+    }
 
-        function updateCharts(labels, equity) {
-            const ctx1 = document.getElementById('equityChart').getContext('2d');
-            if (equityChart) equityChart.destroy();
-            equityChart = new Chart(ctx1, {
-                type: 'line',
-                data: { labels: labels, datasets: [{ data: equity, borderColor: '#d4af37', borderWidth: 4, fill: true, backgroundColor: 'rgba(212, 175, 55, 0.05)', tension: 0.4, pointRadius: 0 }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { display: false }, grid: { display: false } }, y: { ticks: { color: '#475569', font: { size: 9, family: 'JetBrains Mono' } }, grid: { color: 'rgba(71, 85, 105, 0.1)' } } } }
-            });
-        }
+    function updateChart(labels, data) {
+        const ctx = document.getElementById('equityChart').getContext('2d');
+        if (equityChart) equityChart.destroy();
+        equityChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Balance',
+                    data: data,
+                    borderColor: '#d4af37',
+                    backgroundColor: 'rgba(212, 175, 55, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+        });
+    }
 
-        // LOGIKA KALENDARZA
-        function renderCalendar() {
-            const grid = document.getElementById('calendarGrid');
-            const monthYearLabel = document.getElementById('currentMonthYear');
-            grid.innerHTML = '';
+    async function addTrade() {
+        const pair = document.getElementById('pair').value;
+        const profit = document.getElementById('profitInput').value;
+        const emotion = document.getElementById('emotionValue').value;
+        if(!pair || !profit) return;
 
-            const firstDay = new Date(currentYear, currentMonth, 1).getDay();
-            const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-            const monthNames = ["Styczeń", "Luty", "Marzec", "Kwiecień", "Maj", "Czerwiec", "Lipiec", "Sierpień", "Wrzesień", "Październik", "Listopad", "Grudzień"];
+        const { data: { user } } = await _supabase.auth.getUser();
+        await _supabase.from('trades').insert([{
+            user_id: user.id,
+            pair: pair.toUpperCase(),
+            profit: parseFloat(profit),
+            type: document.getElementById('type').value,
+            note: emotion
+        }]);
+        
+        document.getElementById('pair').value = '';
+        document.getElementById('profitInput').value = '';
+        fetchTrades();
+    }
 
-            monthYearLabel.innerText = `${monthNames[currentMonth]} ${currentYear}`;
+    function selectEmotion(emo, btn) {
+        document.getElementById('emotionValue').value = emo;
+        document.querySelectorAll('.emotion-btn').forEach(b => b.classList.remove('opacity-100'));
+        btn.classList.add('opacity-100');
+    }
 
-            // Puste pola przed 1 dniem miesiąca
-            const startOffset = firstDay === 0 ? 6 : firstDay - 1;
-            for(let i = 0; i < startOffset; i++) {
-                grid.innerHTML += `<div class="p-4 opacity-0"></div>`;
-            }
+    async function logout() { await _supabase.auth.signOut(); window.location.href = 'index.html'; }
 
-            // Generowanie dni
-            for(let day = 1; day <= daysInMonth; day++) {
-                const dateStr = new Date(currentYear, currentMonth, day).toLocaleDateString();
-                let dailySum = 0;
-                allTrades.forEach(t => {
-                    if(new Date(t.created_at).toLocaleDateString() === dateStr) dailySum += parseFloat(t.profit);
-                });
-
-                const isToday = new Date().toLocaleDateString() === dateStr;
-                const profitClass = dailySum > 0 ? 'text-green-400' : (dailySum < 0 ? 'text-red-400' : 'text-slate-600');
-
-                grid.innerHTML += `
-                    <div onclick="showDaySummary('${dateStr}', ${dailySum})" class="calendar-day ${isToday ? 'current-day' : ''}">
-                        <span class="text-[10px] font-black">${day}</span>
-                        <span class="day-profit ${profitClass}">${dailySum !== 0 ? dailySum.toFixed(2) : ''}</span>
-                    </div>
-                `;
-            }
-        }
-
-        function changeMonth(dir) {
-            currentMonth += dir;
-            if(currentMonth < 0) { currentMonth = 11; currentYear--; }
-            if(currentMonth > 11) { currentMonth = 0; currentYear++; }
-            renderCalendar();
-        }
-
-        function showDaySummary(date, profit) {
-            const summary = document.getElementById('daySummary');
-            summary.classList.remove('hidden');
-            document.getElementById('summaryDate').innerText = date;
-            document.getElementById('summaryProfit').innerText = profit.toFixed(2) + " $";
-            document.getElementById('summaryProfit').className = `mono text-2xl font-black italic ${profit >= 0 ? 'text-green-400' : 'text-red-400'}`;
-        }
-
-        async function addTrade() {
-            const { data: { user } } = await _supabase.auth.getUser();
-            const pair = document.getElementById('pair').value;
-            const profit = document.getElementById('profitInput').value;
-            if(!pair || !profit) return;
-            const emotion = document.getElementById('emotionValue').value;
-            const strategy = document.getElementById('strategy').value;
-            const hour = new Date().getHours();
-            let session = (hour >= 8 && hour < 14) ? 'LDN' : (hour >= 14 && hour < 21) ? 'NY' : 'ASIA';
-            const finalNote = `${emotion} | ${strategy} | ${document.getElementById('note').value} | ${session}`;
-            await _supabase.from('trades').insert([{ user_id: user.id, pair: pair.toUpperCase(), profit: parseFloat(profit), type: document.getElementById('type').value, note: finalNote }]);
-            document.getElementById('pair').value = ''; document.getElementById('profitInput').value = ''; document.getElementById('note').value = '';
-            fetchTrades();
-        }
-
-        function calculateLot() {
-            const riskAmount = currentTotalBalance * (parseFloat(document.getElementById('riskPct').value) / 100);
-            document.getElementById('riskAmount').innerText = riskAmount.toFixed(2) + " $";
-            const sl = parseFloat(document.getElementById('slPips').value);
-            document.getElementById('resultLot').innerText = sl > 0 ? (riskAmount / sl).toFixed(2) : "0.00";
-        }
-
-        function updateDailyGoalAndSafety(dailyProfit, startBalance) {
-            const goalAmount = startBalance * (parseFloat(document.getElementById('dailyGoalPct').value) / 100);
-            const lossLimitAmount = startBalance * (parseFloat(document.getElementById('dailyLossLimit').value) / 100);
-            document.getElementById('goalBar').style.width = `${goalAmount > 0 ? Math.max(0, Math.min((dailyProfit / goalAmount) * 100, 100)) : 0}%`;
-            document.getElementById('goalStatus').innerText = `${dailyProfit.toFixed(2)} / ${goalAmount.toFixed(2)} USD`;
-            const dailyLoss = dailyProfit < 0 ? Math.abs(dailyProfit) : 0;
-            document.getElementById('lossBar').style.width = `${lossLimitAmount > 0 ? Math.max(0, Math.min((dailyLoss / lossLimitAmount) * 100, 100)) : 0}%`;
-            document.getElementById('lossStatus').innerText = `${dailyLoss.toFixed(2)} / ${lossLimitAmount.toFixed(2)} USD`;
-            const statusCard = document.getElementById('statusCard');
-            const addBtn = document.getElementById('addTradeBtn');
-            if (dailyProfit <= -lossLimitAmount && lossLimitAmount !== 0) {
-                statusCard.classList.add('danger-glow');
-                document.getElementById('limitAlert').innerHTML = `<span class="w-2 h-2 rounded-full bg-red-500"></span> LIMIT PRZEKROCZONY`;
-                addBtn.disabled = true; addBtn.classList.add('grayscale', 'opacity-50');
-            } else {
-                statusCard.classList.remove('danger-glow');
-                document.getElementById('limitAlert').innerHTML = `<span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> Ryzyko pod kontrolą`;
-                addBtn.disabled = false; addBtn.classList.remove('grayscale', 'opacity-100');
-            }
-        }
-
-        function selectEmotion(emo, el) { document.querySelectorAll('.emotion-btn').forEach(b => b.classList.remove('active')); el.classList.add('active'); document.getElementById('emotionValue').value = emo; }
-        async function deleteTrade(id) { if(confirm("Usunąć ten wpis?")) { await _supabase.from('trades').delete().eq('id', id); fetchTrades(); } }
-        async function logout() { await _supabase.auth.signOut(); window.location.href = 'index.html'; }
-
-        function generateWeeklyReport() {
-            const now = new Date();
-            const dayOfWeek = now.getDay();
-            const diff = now.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
-            const monday = new Date(now.setDate(diff));
-            monday.setHours(0,0,0,0);
-            const weeklyTrades = allTrades.filter(t => new Date(t.created_at) >= monday);
-            let wProfit = 0, wWins = 0;
-            weeklyTrades.forEach(t => {
-                wProfit += parseFloat(t.profit);
-                if(parseFloat(t.profit) > 0) wWins++;
-            });
-            document.getElementById('weeklyReportContent').innerHTML = `
-    <div class="flex justify-between items-center border-b border-white/5 pb-5">
-        <span class="font-black text-slate-500 uppercase text-[9px] tracking-widest">Total P/L</span>
-        <span class="mono font-black ${wProfit >= 0 ? 'text-green-400 green-glow' : 'text-red-400 red-glow'} text-xl italic">${wProfit.toFixed(2)} $</span>
-    </div>
-    <div class="flex justify-between items-center border-b border-white/5 pb-5">
-        <span class="font-black text-slate-500 uppercase text-[9px] tracking-widest">Executions</span>
-        <span class="text-white font-black mono text-xl">${weeklyTrades.length}</span>
-    </div>
-    <div class="flex justify-between items-center">
-        <span class="font-black text-slate-500 uppercase text-[9px] tracking-widest">Efficiency</span>
-        <span class="gold-text font-black mono text-xl">${weeklyTrades.length > 0 ? ((wWins/weeklyTrades.length)*100).toFixed(0) : 0}%</span>
-    </div>`;
-
-        checkUser();
-    </script>
+    window.onload = checkUser;
+</script>
 </body>
 </html>
