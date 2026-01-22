@@ -31,18 +31,20 @@
         .gold-text { color: var(--gold); text-shadow: 0 0 10px rgba(212, 175, 55, 0.2); }
         .gold-dot { color: var(--gold); text-shadow: 0 0 15px var(--gold); }
 
-        .card {
+         .card {
     background: linear-gradient(
         145deg,
-        rgba(20, 25, 40, 0.75),
-        rgba(10, 15, 25, 0.55)
+        rgba(20, 25, 40, 0.85),
+        rgba(5, 8, 15, 0.65)
     );
-    backdrop-filter: blur(18px);
-    border: 1px solid rgba(212, 175, 55, 0.18);
+    backdrop-filter: blur(22px);
+    border: 1px solid rgba(212, 175, 55, 0.22);
     box-shadow:
-        0 25px 60px -20px rgba(0, 0, 0, 0.85),
-        inset 0 0 0 1px rgba(255,255,255,0.03);
+        0 40px 80px -25px rgba(0, 0, 0, 0.9),
+        0 0 60px rgba(212, 175, 55, 0.05),
+        inset 0 0 0 1px rgba(255,255,255,0.04);
     position: relative;
+    overflow: hidden;
 }
 
         .gold-bg { background: linear-gradient(135deg, #d4af37 0%, #f1c40f 100%); }
@@ -169,6 +171,68 @@
     height: 1px;
     background: linear-gradient(90deg, transparent, rgba(212,175,55,0.6), transparent);
 }
+
+        .hero-card::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    background: linear-gradient(
+        120deg,
+        transparent 20%,
+        rgba(212,175,55,0.25),
+        transparent 80%
+    );
+    opacity: 0.35;
+    pointer-events: none;
+}
+
+.hero-card::after {
+    content: "";
+    position: absolute;
+    top: -60%;
+    left: -60%;
+    width: 220%;
+    height: 220%;
+    background: linear-gradient(
+        45deg,
+        transparent,
+        rgba(255,255,255,0.06),
+        transparent
+    );
+    animation: heroSweep 8s linear infinite;
+    pointer-events: none;
+}
+
+#statusCard > * {
+  position: relative;
+  z-index: 2;
+}
+
+@keyframes heroSweep {
+    0% { transform: translateX(-50%) rotate(25deg); }
+    100% { transform: translateX(50%) rotate(25deg); 
+}
+
+#statusCard {
+  position: relative;
+  overflow: hidden;
+}
+
+#statusCard::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at top center,
+    rgba(255, 200, 80, 0.45),
+    rgba(255, 180, 60, 0.20),
+    transparent 70%
+  );
+  pointer-events: none;
+  mix-blend-mode: screen;
+  z-index: 1;
+}
         
     </style>
 </head>
@@ -188,7 +252,7 @@
             </button>
         </header>
 
-        <div id="statusCard" class="card p-6 rounded-[2rem] mb-8 relative overflow-hidden transition-all duration-700">
+        <div id="statusCard" class="card hero-card p-6 rounded-[2.5rem] mb-10 relative overflow-hidden transition-all duration-700">
             <div class="absolute -right-10 -top-10 opacity-[0.03] select-none pointer-events-none">
                 <span class="text-[12rem] font-black italic tracking-tighter uppercase">GOLD</span>
             </div>
