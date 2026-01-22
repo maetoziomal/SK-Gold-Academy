@@ -688,13 +688,14 @@
                 <div class="flex justify-between"><span class="font-black text-slate-500 uppercase text-[10px] tracking-widest">Skuteczność</span><span class="gold-text font-black mono text-lg">${weeklyTrades.length > 0 ? ((wWins/weeklyTrades.length)*100).toFixed(0) : 0}%</span></div>`;
         }
 
-        <div class="mobile-nav md:hidden">
+        checkUser();
+    </script>
+    
+    <div class="mobile-nav md:hidden">
     <a class="active">Dashboard</a>
     <a>Dziennik</a>
     <a>Raporty</a>
+        
 </div>
-
-        checkUser();
-    </script>
 </body>
 </html>
