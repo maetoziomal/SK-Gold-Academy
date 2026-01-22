@@ -117,7 +117,7 @@ body::before {
     max-height: 100px;
 }
 
-/* Nowe przyciski logowania/rejestracji */
+/* Toggle buttons */
 .toggle-btn {
     padding: 0.5rem 2rem;
     border-radius: 1rem;
@@ -153,6 +153,30 @@ body::before {
     border-color: rgba(212,175,55,0.5);
     box-shadow: 0 0 15px rgba(212,175,55,0.6), 0 5px 20px rgba(212,175,55,0.3);
 }
+
+/* Nowy przycisk submit */
+.gold-btn {
+    background: linear-gradient(135deg, #d4af37, #f5d76e);
+    color: #000;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    border-radius: 1rem;
+    padding: 1rem;
+    width: 100%;
+    box-shadow: 0 0 10px rgba(212,175,55,0.6), 0 5px 15px rgba(212,175,55,0.3);
+    transition: all 0.3s;
+}
+
+.gold-btn:hover {
+    filter: brightness(1.2);
+    transform: translateY(-2px);
+    box-shadow: 0 0 20px rgba(212,175,55,0.8), 0 5px 20px rgba(212,175,55,0.4);
+}
+
+.gold-btn span {
+    color: #fff; /* Jasny tekst dla lepszej widoczności */
+}
 </style>
 </head>
 <body class="flex items-center justify-center min-h-screen p-4">
@@ -164,7 +188,7 @@ body::before {
         <p class="text-slate-400 text-[9px] font-black uppercase tracking-[0.45em]">Professional Terminal</p>
     </div>
 
-    <!-- Przełącznik logowanie / rejestracja -->
+    <!-- Toggle -->
     <div class="text-center mb-6">
         <button id="loginBtn" class="toggle-btn active">Logowanie</button>
         <button id="registerBtn" class="toggle-btn">Rejestracja</button>
@@ -184,10 +208,7 @@ body::before {
                 class="input-field w-full rounded-xl p-4 text-sm font-semibold text-white outline-none">
         </div>
 
-        <button id="submitBtn" class="gold-btn w-full py-4 rounded-xl font-black text-[11px] uppercase tracking-[0.2em] text-black mt-4">
-            Zaloguj się
-        </button>
-
+        <button id="submitBtn" class="gold-btn"><span>Zaloguj się</span></button>
         <p id="msg" class="text-center text-[10px] mt-4 font-bold uppercase tracking-wider min-h-[15px]"></p>
     </div>
 
@@ -218,7 +239,7 @@ function setActiveButton(activeBtn) {
 loginBtn.onclick = () => {
     mode = "login";
     nicknameField.classList.remove('show');
-    submitBtn.innerText = "Zaloguj się";
+    submitBtn.innerHTML = "<span>Zaloguj się</span>";
     setActiveButton(loginBtn);
     card.style.transform = "translateY(0px)";
 }
@@ -226,7 +247,7 @@ loginBtn.onclick = () => {
 registerBtn.onclick = () => {
     mode = "register";
     nicknameField.classList.add('show');
-    submitBtn.innerText = "Zarejestruj się";
+    submitBtn.innerHTML = "<span>Zarejestruj się</span>";
     setActiveButton(registerBtn);
     card.style.transform = "translateY(-5px)";
 }
