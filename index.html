@@ -11,59 +11,29 @@
         :root {
             --gold: #d4af37;
             --dark-bg: #05070a;
-            --glass-bg: rgba(10, 12, 17, 0.9);
+            --glass-bg: rgba(15, 23, 42, 0.6);
         }
 
         body { 
             background-color: var(--dark-bg); 
             color: #f8fafc; 
             font-family: 'Inter', sans-serif;
-            margin: 0;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-        }
-
-        /* --- TŁO: HORYZONT RYNKOWY --- */
-        #marketCanvas {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 40%;
-            z-index: 1;
-            opacity: 0.4;
-            mask-image: linear-gradient(to top, black 20%, transparent 100%);
-            pointer-events: none;
-        }
-
-        .market-glow {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 50%;
-            background: radial-gradient(50% 50% at 50% 100%, rgba(212, 175, 55, 0.1) 0%, transparent 100%);
-            z-index: 2;
-            pointer-events: none;
-        }
-
-        /* --- KARTA LOGOWANIA --- */
-        .glass-card {
-            background: var(--glass-bg);
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(212, 175, 55, 0.2);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
-            position: relative;
-            z-index: 10;
+            background-image: 
+                radial-gradient(circle at top right, rgba(212, 175, 55, 0.1), transparent),
+                radial-gradient(circle at bottom left, rgba(212, 175, 55, 0.05), transparent);
         }
 
         .gold-text { 
             color: var(--gold); 
             text-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
             font-family: 'Montserrat', sans-serif;
+        }
+
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(212, 175, 55, 0.15);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
         }
 
         .gold-btn {
@@ -82,7 +52,6 @@
             background: rgba(0, 0, 0, 0.4) !important;
             border: 1px solid rgba(255, 255, 255, 0.05) !important;
             transition: all 0.3s;
-            color: white !important;
         }
 
         .input-field:focus {
@@ -99,11 +68,13 @@
         .shimmer::after {
             content: '';
             position: absolute;
-            top: -50%; left: -50%;
-            width: 200%; height: 200%;
-            background: linear-gradient(45deg, transparent, rgba(212, 175, 55, 0.03), transparent);
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.05), transparent);
             transform: rotate(45deg);
-            animation: shimmer 5s infinite linear;
+            animation: shimmer 4s infinite linear;
         }
 
         @keyframes shimmer {
@@ -112,11 +83,7 @@
         }
     </style>
 </head>
-<body>
-
-    <canvas id="marketCanvas"></canvas>
-    <div class="market-glow"></div>
-
+<body class="flex items-center justify-center min-h-screen p-4">
     <div class="glass-card p-10 md:p-12 rounded-[2.5rem] w-full max-w-md shimmer">
         <div class="text-center mb-10">
             <h1 class="text-4xl font-black italic gold-text tracking-tighter uppercase mb-2">
@@ -129,14 +96,14 @@
             <div>
                 <label class="text-[9px] uppercase tracking-[0.2em] text-slate-500 ml-1 font-bold">Inicjały / Nickname</label>
                 <input type="text" id="nickname" placeholder="Dla nowych użytkowników" 
-                    class="input-field w-full rounded-xl p-4 text-sm font-semibold mt-1 outline-none">
+                    class="input-field w-full rounded-xl p-4 text-sm font-semibold text-white mt-1 outline-none">
             </div>
             
             <div class="space-y-4">
                 <input type="email" id="email" placeholder="Email" 
-                    class="input-field w-full rounded-xl p-4 text-sm font-semibold outline-none">
+                    class="input-field w-full rounded-xl p-4 text-sm font-semibold text-white outline-none">
                 <input type="password" id="password" placeholder="Hasło" 
-                    class="input-field w-full rounded-xl p-4 text-sm font-semibold outline-none">
+                    class="input-field w-full rounded-xl p-4 text-sm font-semibold text-white outline-none">
             </div>
             
             <button onclick="handleLogin()" class="gold-btn w-full py-4 rounded-xl font-black text-[11px] uppercase tracking-[0.2em] text-black mt-4">
@@ -152,62 +119,6 @@
     </div>
 
     <script>
-        // --- LIVE MARKET HORIZON ENGINE ---
-        const canvas = document.getElementById('marketCanvas');
-        const ctx = canvas.getContext('2d');
-        let candles = [];
-
-        function resize() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight * 0.4;
-        }
-        window.addEventListener('resize', resize);
-        resize();
-
-        class Candle {
-            constructor(x) {
-                this.reset(x);
-            }
-            reset(x = canvas.width + 10) {
-                this.x = x;
-                this.y = Math.random() * (canvas.height - 60) + 30;
-                this.w = 3;
-                this.h = Math.random() * 40 + 5;
-                this.speed = 0.6;
-                this.isBullish = Math.random() > 0.48;
-            }
-            draw() {
-                const color = this.isBullish ? 'rgba(74, 222, 128, 0.4)' : 'rgba(239, 68, 68, 0.4)';
-                ctx.fillStyle = color;
-                // Wick
-                ctx.fillRect(this.x + 1, this.y - 5, 1, this.h + 10);
-                // Body
-                ctx.fillRect(this.x, this.y, this.w, this.h);
-                
-                this.x -= this.speed;
-                if (this.x < -10) this.reset();
-            }
-        }
-
-        for(let i = 0; i < 50; i++) {
-            candles.push(new Candle(Math.random() * canvas.width));
-        }
-
-        function animate() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            // Subtle Grid
-            ctx.strokeStyle = 'rgba(212, 175, 55, 0.03)';
-            ctx.lineWidth = 1;
-            for(let i=0; i<canvas.height; i+=30) {
-                ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(canvas.width, i); ctx.stroke();
-            }
-
-            candles.forEach(c => c.draw());
-            requestAnimationFrame(animate);
-        }
-        animate();
-
-        // --- AUTH LOGIC ---
         const SUPABASE_URL = 'https://bkutgpaoxkvwhvsfznjm.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJrdXRncGFveGt2d2h2c2Z6bmptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc1OTgwMTQsImV4cCI6MjA4MzE3NDAxNH0.ycpuwln6hNlmVEh4dtsMbiRQwWTqN7TQobDyrlLcRCw';
         const klientSupabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -218,8 +129,8 @@
             const nickname = document.getElementById('nickname').value;
             const msg = document.getElementById('msg');
 
-            msg.innerText = "AUTORYZACJA...";
-            msg.style.color = "#d4af37";
+            msg.innerText = "ŁĄCZENIE Z SERWEREM...";
+            msg.style.color = "#64748b";
 
             if (!email || !password) {
                 msg.innerText = "BŁĄD: BRAK DANYCH";
@@ -235,15 +146,26 @@
                     msg.style.color = "#ef4444";
                     return;
                 }
+
                 const { error: regError } = await klientSupabase.auth.signUp({ 
-                    email, password, options: { data: { display_name: nickname } }
+                    email, 
+                    password,
+                    options: { data: { display_name: nickname } }
                 });
-                msg.innerText = regError ? "BŁĄD SYSTEMU" : "KONTO UTWORZONE. ZALOGUJ SIĘ.";
-                msg.style.color = regError ? "#ef4444" : "#4ade80";
+
+                if (regError) {
+                    msg.innerText = "BŁĄD SYSTEMU: " + regError.message.toUpperCase();
+                    msg.style.color = "#ef4444";
+                } else {
+                    msg.innerText = "KONTO UTWORZONE. ZALOGUJ SIĘ.";
+                    msg.style.color = "#4ade80";
+                }
             } else {
                 msg.innerText = "DOSTĘP PRZYZNANY...";
                 msg.style.color = "#4ade80";
-                setTimeout(() => { window.location.href = 'panel.html'; }, 500);
+                setTimeout(() => {
+                    window.location.href = 'panel.html';
+                }, 500);
             }
         }
     </script>
