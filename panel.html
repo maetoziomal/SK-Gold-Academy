@@ -343,25 +343,31 @@
 
 
         <div id="tabCalendar" class="tab-content hidden">
-            <div class="card p-8 rounded-[2rem]">
-                <div class="flex justify-between items-center mb-8">
-                    <h3 id="currentMonthYear" class="gold-text font-black uppercase text-xl italic tracking-tighter">Styczeń 2026</h3>
-                    <div class="flex gap-2">
-                        <button onclick="changeMonth(-1)" class="bg-slate-800 hover:bg-gold hover:text-black p-2 rounded-lg transition">←</button>
-                        <button onclick="changeMonth(1)" class="bg-slate-800 hover:bg-gold hover:text-black p-2 rounded-lg transition">→</button>
+            <div class="card p-4 md:p-8 rounded-[2rem] md:rounded-[2.5rem]">
+                <div class="flex justify-between items-center mb-8 px-2">
+                    <h3 id="currentMonthYear" class="gold-text font-black uppercase text-lg md:text-xl italic tracking-tighter">Styczeń 2026</h3>
+                    <div class="flex gap-3">
+                        <button onclick="changeMonth(-1)" class="bg-white/5 hover:bg-gold hover:text-black w-10 h-10 flex items-center justify-center rounded-xl transition-all border border-white/10">←</button>
+                        <button onclick="changeMonth(1)" class="bg-white/5 hover:bg-gold hover:text-black w-10 h-10 flex items-center justify-center rounded-xl transition-all border border-white/10">→</button>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-7 gap-4 mb-4 text-center text-[10px] font-black text-slate-500 uppercase tracking-widest">
-                    <div>Pon</div><div>Wt</div><div>Śr</div><div>Czw</div><div>Pt</div><div>Sob</div><div>Nie</div>
+                <div class="grid grid-cols-7 gap-1 md:gap-4 mb-4 text-center text-[8px] md:text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                    <div>Pn</div><div>Wt</div><div>Śr</div><div>Czw</div><div>Pt</div><div>Sb</div><div>Nd</div>
                 </div>
 
-                <div id="calendarGrid" class="calendar-grid">
+                <div id="calendarGrid" class="grid grid-cols-7 gap-1 md:gap-4">
                     </div>
 
-                <div id="daySummary" class="mt-8 p-6 bg-black/40 border border-slate-800 rounded-2xl hidden">
-                    <h4 id="summaryDate" class="text-xs font-black uppercase text-slate-500 mb-2">12 Stycznia 2026</h4>
-                    <p class="text-2xl font-black italic">WYNIK DNIA: <span id="summaryProfit" class="mono text-white">0.00 $</span></p>
+                <div id="daySummary" class="mt-8 p-6 bg-black/60 border border-gold/20 rounded-[2rem] hidden animate-fadeIn">
+                    <div class="flex justify-between items-start mb-4">
+                        <h4 id="summaryDate" class="text-[10px] font-black uppercase text-slate-500 tracking-widest">12 Stycznia 2026</h4>
+                        <span class="text-[9px] bg-gold/10 text-gold px-2 py-1 rounded-md font-bold uppercase">Daily Report</span>
+                    </div>
+                    <div class="flex items-baseline gap-2">
+                        <span class="text-slate-400 text-xs font-bold uppercase">P/L:</span>
+                        <span id="summaryProfit" class="mono text-3xl font-black italic tracking-tighter text-white">0.00 $</span>
+                    </div>
                 </div>
             </div>
         </div>
