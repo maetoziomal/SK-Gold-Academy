@@ -145,6 +145,18 @@
         transform: scale(1.035);
     }
 }
+
+/* kontener wszystkich tabów */
+.tab-content {
+    max-height: calc(100vh - 200px); /* odejmij header + statusCard + nav */
+    overflow-y: auto;
+    padding-right: 8px; /* żeby scrollbar nie nachodził na treść */
+}
+
+/* opcjonalnie dla wszystkich paneli */
+.tab-panel {
+    padding-bottom: 2rem;
+}
     </style>
 </head>
 <body class="p-2 md:p-8">
@@ -440,11 +452,10 @@
 
     // nav styling
     document.querySelectorAll('nav button').forEach(btn => btn.classList.remove('nav-active'));
-    document.getElementById(
-        'btn' + tab.charAt(0).toUpperCase() + tab.slice(1)
-    ).classList.add('nav-active');
+    document.getElementById('btn' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('nav-active');
+    
+    activeTab.scrollTop = 0;
 
-    // logika specjalna
     if (tab === 'dashboard') calculateStats();
     if (tab === 'calendar') renderCalendar();
     if (tab === 'calc') {
