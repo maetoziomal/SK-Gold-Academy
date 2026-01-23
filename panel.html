@@ -395,14 +395,13 @@ button:active {
                     <div class="card rounded-[2rem] overflow-hidden">
                         <table class="w-full text-left border-collapse">
                             <thead class="bg-slate-900/80 text-slate-500 text-[10px] uppercase font-black tracking-[0.2em]">
-                                <tr id="trade-${trade.id}">
-                                    <tr id="trade-${trade.id}" class="trade-row">
-                                    <th class="p-6">Pozycja</th>
-                                    <th class="p-6">Wynik</th>
-                                    <th class="p-6 text-center">Emocja</th>
-                                    <th class="p-6 text-right">Akcja</th>
-                                </tr>
-                            </thead>
+    <tr>
+        <th class="p-6">Pozycja</th>
+        <th class="p-6">Wynik</th>
+        <th class="p-6 text-center">Emocja</th>
+        <th class="p-6 text-right">Akcja</th>
+    </tr>
+</thead>
                             <tbody id="tradesTable" class="text-sm"></tbody>
                         </table>
                     </div>
@@ -549,6 +548,7 @@ setTimeout(() => {
         }
 
         function switchTab(tab) {
+            localStorage.setItem('activeTab', tab);
     const tabs = document.querySelectorAll('[id^="tab"]');
     const buttons = document.querySelectorAll('nav button');
 
@@ -644,9 +644,9 @@ setTimeout(() => {
 );
             animateCounter(document.getElementById('liveBalance'));
             document.getElementById('totalProfit').innerText = (total >= 0 ? '+' : '') + total.toFixed(2);
-            animateCounter(document.getElementById('totalTrades'));
+            animateCounter(document.getElementById('tradeCount'));
             document.getElementById('totalProfit').className = `mono text-5xl font-black italic tracking-tighter ${total >= 0 ? 'text-green-400' : 'text-red-400'}`;
-            animateCounter(document.getElementById('totalTrades'));
+            animateCounter(document.getElementById('tradeCount'));
             document.getElementById('winRate').innerText = (allTrades.length > 0 ? ((wins / allTrades.length) * 100).toFixed(0) : 0) + "%";
             document.getElementById('tradeCount').innerText = allTrades.length;
             document.getElementById('profitFactor').innerText = sumLosses > 0 ? (sumWins / sumLosses).toFixed(2) : sumWins.toFixed(2);
@@ -669,30 +669,56 @@ setTimeout(() => {
             });
         }
 
-        // LOGIKA KALENDARZA
         function renderCalendar() {
-            const grid = document.querySelector('.calendar-grid');
-            grid.classList.add('fade-out');
-            const grid = document.getElementById('calendarGrid');
-            grid.classList.add('fade-out');
-            const monthYearLabel = document.getElementById('currentMonthYear');
-            grid.innerHTML = '';
+    const grid = document.getElementById('calendarGrid');
+    if (!grid) return;
 
-            const firstDay = new Date(currentYear, currentMonth, 1).getDay();
-            const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-            const monthNames = ["Styczeń", "Luty", "Marzec", "Kwiecień", "Maj", "Czerwiec", "Lipiec", "Sierpień", "Wrzesień", "Październik", "Listopad", "Grudzień"];
+    grid.classList.add('fade-out');
 
-            monthYearLabel.innerText = `${monthNames[currentMonth]} ${currentYear}`;
+    const monthYearLabel = document.getElementById('currentMonthYear');
+    grid.innerHTML = '';
 
-            // Puste pola przed 1 dniem miesiąca
-            const startOffset = firstDay === 0 ? 6 : firstDay - 1;
-            for(let i = 0; i < startOffset; i++) {
-                grid.innerHTML += `<div class="p-4 opacity-0"></div>`;
+    const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+    const monthNames = ["Styczeń", "Luty", "Marzec", "Kwiecień", "Maj", "Czerwiec", "Lipiec", "Sierpień", "Wrzesień", "Październik", "Listopad", "Grudzień"];
 
-                setTimeout(() => {
-    grid.classList.remove('fade-out');
-}, 50);
+    monthYearLabel.innerText = `${monthNames[currentMonth]} ${currentYear}`;
+
+    const startOffset = firstDay === 0 ? 6 : firstDay - 1;
+    for (let i = 0; i < startOffset; i++) {
+        grid.innerHTML += `<div class="p-4 opacity-0"></div>`;
+    }
+
+    for (let day = 1; day <= daysInMonth; day++) {
+        const dateStr = new Date(currentYear, currentMonth, day).toLocaleDateString();
+        let dailySum = 0;
+
+        allTrades.forEach(t => {
+            if (new Date(t.created_at).toLocaleDateString() === dateStr) {
+                dailySum += parseFloat(t.profit);
             }
+        });
+
+        const isToday = new Date().toLocaleDateString() === dateStr;
+        const profitClass =
+            dailySum > 0 ? 'text-green-400' :
+            dailySum < 0 ? 'text-red-400' : 'text-slate-600';
+
+        grid.innerHTML += `
+            <div onclick="showDaySummary('${dateStr}', ${dailySum})"
+                 class="calendar-day ${isToday ? 'current-day' : ''}">
+                <span class="text-[10px] font-black">${day}</span>
+                <span class="day-profit ${profitClass}">
+                    ${dailySum !== 0 ? dailySum.toFixed(2) : ''}
+                </span>
+            </div>
+        `;
+    }
+
+    setTimeout(() => {
+        grid.classList.remove('fade-out');
+    }, 50);
+}
 
             // Generowanie dni
             for(let day = 1; day <= daysInMonth; day++) {
