@@ -123,6 +123,28 @@
     transform: translateY(0);
     pointer-events: auto;
 }
+
+/* ===== DASHBOARD LIVE EFFECT ===== */
+
+.profit-positive {
+    color: #4ade80;
+    text-shadow: 0 0 12px rgba(74, 222, 128, 0.6);
+    animation: profitPulse 1.4s ease-in-out infinite;
+}
+
+.profit-negative {
+    color: #ef4444;
+    text-shadow: 0 0 14px rgba(239, 68, 68, 0.6);
+}
+
+@keyframes profitPulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.035);
+    }
+}
     </style>
 </head>
 <body class="p-2 md:p-8">
@@ -486,10 +508,23 @@
 
             currentTotalBalance = startBalance + total;
             const liveBalanceEl = document.getElementById('liveBalance');
-            const totalProfitEl = document.getElementById('totalProfit');
+const totalProfitEl = document.getElementById('totalProfit');
 
-            liveBalanceEl.innerText = currentTotalBalance.toFixed(2);
-            totalProfitEl.innerText = (total >= 0 ? '+' : '') + total.toFixed(2);
+liveBalanceEl.innerText = currentTotalBalance.toFixed(2);
+totalProfitEl.innerText = (total >= 0 ? '+' : '') + total.toFixed(2);
+
+// reset klas
+liveBalanceEl.classList.remove('profit-positive', 'profit-negative');
+totalProfitEl.classList.remove('profit-positive', 'profit-negative');
+
+// efekt wizualny
+if (total >= 0) {
+    liveBalanceEl.classList.add('profit-positive');
+    totalProfitEl.classList.add('profit-positive');
+} else {
+    liveBalanceEl.classList.add('profit-negative');
+    totalProfitEl.classList.add('profit-negative');
+}
 
             [liveBalanceEl, totalProfitEl].forEach(el => {
                 el.classList.remove('counter-animate');
