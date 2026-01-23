@@ -110,6 +110,19 @@
         opacity: 1;
     }
 }
+
+.tab-panel {
+    opacity: 0;
+    transform: translateY(12px);
+    pointer-events: none;
+    transition: opacity 0.35s ease, transform 0.35s ease;
+}
+
+.tab-panel.active {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
     </style>
 </head>
 <body class="p-2 md:p-8">
@@ -187,7 +200,7 @@
             <button id="btnCalc" onclick="switchTab('calc')" class="nav-btn pb-4 font-black text-[11px] uppercase tracking-[0.25em] text-slate-500">Kalkulator</button>
         </nav>
 
-        <div id="tabDashboard" class="tab-content">
+        <div id="tabDashboard" class="tab-content tab-panel active">
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
                 <div class="lg:col-span-2 card p-6 rounded-[2rem]">
                     <h3 class="font-black mb-6 text-slate-500 uppercase text-[10px] tracking-[0.3em]">Krzywa kapitału</h3>
@@ -226,7 +239,7 @@
             </div>
         </div>
 
-        <div id="tabJournal" class="tab-content hidden">
+        <div id="tabJournal" class="tab-content tab-panel">
             <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
                 <div class="card p-8 rounded-[2.5rem] h-fit sticky top-4 border-t-4 border-t-gold">
                     <h3 class="text-xl font-black mb-8 gold-text uppercase italic tracking-tighter">Nowa Pozycja</h3>
@@ -286,7 +299,7 @@
         </div>
 
 
-        <div id="tabCalendar" class="tab-content hidden">
+        <div id="tabCalendar" class="tab-content tab-panel">
             <div class="card p-8 rounded-[2rem]">
                 <div class="flex justify-between items-center mb-8">
                     <h3 id="currentMonthYear" class="gold-text font-black uppercase text-xl italic tracking-tighter">Styczeń 2026</h3>
@@ -310,7 +323,7 @@
             </div>
         </div>
 
-        <div id="tabReports" class="tab-content hidden">
+        <div id="tabReports" class="tab-content tab-panel">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div class="card p-10 rounded-[2.5rem] border-l-4 border-l-gold">
                     <h3 class="gold-text font-black mb-8 uppercase text-xs italic tracking-[0.3em]">Podsumowanie tygodnia</h3>
@@ -323,7 +336,7 @@
             </div>
         </div>
 
-        <div id="tabCalc" class="tab-content hidden">
+        <div id="tabCalc" class="tab-content tab-panel">
             <div class="max-w-md mx-auto card p-12 rounded-[3.5rem] border-b-8 border-b-gold shadow-2xl">
                 <h3 class="text-2xl font-black gold-text mb-4 text-center uppercase tracking-tighter italic">Kalkulator Lotów</h3>
                 <p class="text-center text-[10px] text-slate-500 uppercase font-black tracking-widest mb-8">Kapitał operacyjny: <span id="calcBalanceDisplay" class="text-white mono">0.00 $</span></p>
@@ -392,17 +405,32 @@
         }
 
         function switchTab(tab) {
-            document.querySelectorAll('[id^="tab"]').forEach(el => el.classList.add('hidden'));
-            document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.remove('hidden');
-            document.querySelectorAll('nav button').forEach(btn => btn.classList.remove('nav-active'));
-            document.getElementById('btn' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('nav-active');
-            if(tab === 'dashboard') calculateStats();
-            if(tab === 'calendar') renderCalendar();
-            if(tab === 'calc') {
-                document.getElementById('calcBalanceDisplay').innerText = currentTotalBalance.toFixed(2) + " $";
-                calculateLot();
-            }
-        }
+    // ukryj wszystkie panele
+    document.querySelectorAll('.tab-panel').forEach(el => {
+        el.classList.remove('active');
+    });
+
+    // aktywuj wybrany
+    const activeTab = document.getElementById(
+        'tab' + tab.charAt(0).toUpperCase() + tab.slice(1)
+    );
+    activeTab.classList.add('active');
+
+    // nav styling
+    document.querySelectorAll('nav button').forEach(btn => btn.classList.remove('nav-active'));
+    document.getElementById(
+        'btn' + tab.charAt(0).toUpperCase() + tab.slice(1)
+    ).classList.add('nav-active');
+
+    // logika specjalna
+    if (tab === 'dashboard') calculateStats();
+    if (tab === 'calendar') renderCalendar();
+    if (tab === 'calc') {
+        document.getElementById('calcBalanceDisplay').innerText =
+            currentTotalBalance.toFixed(2) + " $";
+        calculateLot();
+    }
+}
 
         async function fetchTrades() {
             const { data } = await _supabase.from('trades').select('*').order('created_at', { ascending: true });
