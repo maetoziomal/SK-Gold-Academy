@@ -47,12 +47,35 @@
         .hidden { display: none; }
 
         .tab-content {
-    animation: fadeIn 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.45s cubic-bezier(0.4,0,0.2,1),
+                transform 0.45s cubic-bezier(0.4,0,0.2,1);
 }
+
+.tab-content.active {
+    opacity: 1;
+    transform: translateY(0);
+}
+
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
+        @keyframes panelEnter {
+    from {
+        opacity: 0;
+        transform: translateY(30px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.panel-enter {
+    animation: panelEnter 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+}
 
         .custom-scroll::-webkit-scrollbar { height: 4px; width: 4px; }
         .custom-scroll::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 10px; }
@@ -95,10 +118,116 @@
             border: 2px solid var(--gold);
         }
         .day-profit { font-size: 0.65rem; font-family: 'JetBrains Mono', monospace; margin-top: 4px; font-weight: 800; }
+
+        .card {
+    transition: transform 0.35s cubic-bezier(0.4,0,0.2,1),
+                box-shadow 0.35s;
+}
+
+.card:hover {
+    transform: translateY(-4px);
+}
+        button {
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+button:active {
+    transform: scale(0.96);
+}
+
+        /* === ANIMACJA LICZNIKÓW (DASHBOARD ŻYJE) === */
+.counter-animate {
+    animation: counterPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes counterPop {
+    from {
+        transform: scale(0.9);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+        /* === ANIMACJE ZAKŁADEK === */
+.tab-content {
+    opacity: 0;
+    transform: translateX(20px) scale(0.98);
+    transition: opacity 0.45s ease, transform 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tab-content.active-tab {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+}
+
+.tab-content.hidden {
+    display: block;
+    pointer-events: none;
+    position: absolute;
+    width: 100%;
+    left: 0;
+}
+
+        .trade-flash {
+    animation: tradeFlash 0.8s ease;
+}
+
+@keyframes tradeFlash {
+    0% { box-shadow: 0 0 0 rgba(212,175,55,0); }
+    50% { box-shadow: 0 0 40px rgba(212,175,55,0.6); }
+    100% { box-shadow: 0 0 0 rgba(212,175,55,0); }
+}
+
+        .trade-row {
+    transition: opacity 0.35s ease, transform 0.35s ease;
+}
+
+.trade-row.removing {
+    opacity: 0;
+    transform: translateX(-40px);
+}
+
+        .trade-row:hover {
+    background: rgba(212,175,55,0.08);
+    transition: background 0.2s;
+}
+
+        .calendar-grid {
+    transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+.calendar-grid.fade-out {
+    opacity: 0;
+    transform: translateY(10px);
+}
+
+        .progress-bar {
+    height: 10px;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.08);
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    width: 0%;
+    transition: width 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.progress-green {
+    background: linear-gradient(90deg, #00ff9c, #00c67a);
+}
+
+.progress-red {
+    background: linear-gradient(90deg, #ff4d4d, #c70039);
+}
     </style>
 </head>
 <body class="p-2 md:p-8">
-    <div class="max-w-6xl mx-auto w-full">
+    <div class="max-w-6xl mx-auto w-full panel-enter">
         <header class="flex justify-between items-center mb-8 px-2">
             <div>
                 <h1 class="text-3xl md:text-4xl font-black italic gold-text tracking-tighter uppercase leading-none">
@@ -172,7 +301,7 @@
             <button id="btnCalc" onclick="switchTab('calc')" class="nav-btn pb-4 font-black text-[11px] uppercase tracking-[0.25em] text-slate-500">Kalkulator</button>
         </nav>
 
-        <div id="tabDashboard" class="tab-content">
+        <div id="tabDashboard" class="tab-content active-tab">
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
                 <div class="lg:col-span-2 card p-6 rounded-[2rem]">
                     <h3 class="font-black mb-6 text-slate-500 uppercase text-[10px] tracking-[0.3em]">Krzywa kapitału</h3>
@@ -196,6 +325,16 @@
                     <p class="text-[10px] text-slate-500 uppercase font-black tracking-widest mb-1">Win Rate</p>
                     <p id="winRate" class="mono gold-text font-black text-2xl">0%</p>
                 </div>
+                <!-- DZIENNY POSTĘP (WOW EFFECT) -->
+<div class="card p-6 rounded-2xl mb-10">
+    <p class="text-[10px] uppercase font-black tracking-widest text-slate-500 mb-3 text-center">
+        Postęp dnia
+    </p>
+
+    <div class="progress-bar">
+        <div id="dailyProgress" class="progress-fill"></div>
+    </div>
+</div>
                 <div class="card p-6 rounded-2xl text-center">
                     <p class="text-[10px] text-slate-500 uppercase font-black tracking-widest mb-1">Profit Factor</p>
                     <p id="profitFactor" class="mono text-white font-black text-2xl">0.00</p>
@@ -256,7 +395,8 @@
                     <div class="card rounded-[2rem] overflow-hidden">
                         <table class="w-full text-left border-collapse">
                             <thead class="bg-slate-900/80 text-slate-500 text-[10px] uppercase font-black tracking-[0.2em]">
-                                <tr>
+                                <tr id="trade-${trade.id}">
+                                    <tr id="trade-${trade.id}" class="trade-row">
                                     <th class="p-6">Pozycja</th>
                                     <th class="p-6">Wynik</th>
                                     <th class="p-6 text-center">Emocja</th>
@@ -342,6 +482,22 @@
         let allTrades = [];
         let currentTotalBalance = 0;
 
+        function animateNumber(el, start, end, duration = 600) {
+    const startTime = performance.now();
+
+    function update(now) {
+        const progress = Math.min((now - startTime) / duration, 1);
+        const value = start + (end - start) * progress;
+        el.innerText = value.toFixed(2);
+        if (progress < 1) requestAnimationFrame(update);
+    }
+    requestAnimationFrame(update);
+}
+        document.getElementById('statusCard').classList.add('trade-flash');
+setTimeout(() => {
+    document.getElementById('statusCard').classList.remove('trade-flash');
+}, 800);
+
         async function checkUser() {
             const { data: { user } } = await _supabase.auth.getUser();
             if (!user) { window.location.href = 'index.html'; return; }
@@ -360,6 +516,22 @@
             }
         }
 
+        function animateCounter(element) {
+    element.classList.remove('counter-animate');
+    void element.offsetWidth; // reset animacji
+    element.classList.add('counter-animate');
+}
+
+        function updateProgressBar(value, target = 500) {
+    const fill = document.getElementById('dailyProgress');
+    const percent = Math.min(Math.abs(value) / target * 100, 100);
+
+    fill.style.width = percent + '%';
+
+    fill.classList.remove('progress-green', 'progress-red');
+    fill.classList.add(value >= 0 ? 'progress-green' : 'progress-red');
+}
+
         async function saveSettings() {
             const { data: { user } } = await _supabase.auth.getUser();
             await _supabase.from('user_settings').upsert({
@@ -377,17 +549,40 @@
         }
 
         function switchTab(tab) {
-            document.querySelectorAll('[id^="tab"]').forEach(el => el.classList.add('hidden'));
-            document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.remove('hidden');
-            document.querySelectorAll('nav button').forEach(btn => btn.classList.remove('nav-active'));
-            document.getElementById('btn' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('nav-active');
-            if(tab === 'dashboard') calculateStats();
-            if(tab === 'calendar') renderCalendar();
-            if(tab === 'calc') {
-                document.getElementById('calcBalanceDisplay').innerText = currentTotalBalance.toFixed(2) + " $";
-                calculateLot();
-            }
-        }
+    const tabs = document.querySelectorAll('[id^="tab"]');
+    const buttons = document.querySelectorAll('nav button');
+
+    tabs.forEach(t => {
+        t.classList.remove('active-tab');
+        t.classList.add('hidden');
+    });
+
+    buttons.forEach(btn => btn.classList.remove('nav-active'));
+
+    const activeTab = document.getElementById(
+        'tab' + tab.charAt(0).toUpperCase() + tab.slice(1)
+    );
+
+    const activeBtn = document.getElementById(
+        'btn' + tab.charAt(0).toUpperCase() + tab.slice(1)
+    );
+
+    activeTab.classList.remove('hidden');
+
+    requestAnimationFrame(() => {
+        activeTab.classList.add('active-tab');
+    });
+
+    activeBtn.classList.add('nav-active');
+
+    if(tab === 'dashboard') calculateStats();
+    if(tab === 'calendar') renderCalendar();
+    if(tab === 'calc') {
+        document.getElementById('calcBalanceDisplay').innerText =
+            currentTotalBalance.toFixed(2) + " $";
+        calculateLot();
+    }
+}
 
         async function fetchTrades() {
             const { data } = await _supabase.from('trades').select('*').order('created_at', { ascending: true });
@@ -442,9 +637,16 @@
             });
 
             currentTotalBalance = startBalance + total;
-            document.getElementById('liveBalance').innerText = currentTotalBalance.toFixed(2);
+            animateNumber(
+    document.getElementById('liveBalance'),
+    parseFloat(document.getElementById('liveBalance').innerText) || 0,
+    currentTotalBalance
+);
+            animateCounter(document.getElementById('liveBalance'));
             document.getElementById('totalProfit').innerText = (total >= 0 ? '+' : '') + total.toFixed(2);
+            animateCounter(document.getElementById('totalTrades'));
             document.getElementById('totalProfit').className = `mono text-5xl font-black italic tracking-tighter ${total >= 0 ? 'text-green-400' : 'text-red-400'}`;
+            animateCounter(document.getElementById('totalTrades'));
             document.getElementById('winRate').innerText = (allTrades.length > 0 ? ((wins / allTrades.length) * 100).toFixed(0) : 0) + "%";
             document.getElementById('tradeCount').innerText = allTrades.length;
             document.getElementById('profitFactor').innerText = sumLosses > 0 ? (sumWins / sumLosses).toFixed(2) : sumWins.toFixed(2);
@@ -454,6 +656,7 @@
             updateCharts(labels, equityData);
             generateWeeklyReport();
             calculateLot();
+            updateProgressBar(dailyProfit);
         }
 
         function updateCharts(labels, equity) {
@@ -468,7 +671,10 @@
 
         // LOGIKA KALENDARZA
         function renderCalendar() {
+            const grid = document.querySelector('.calendar-grid');
+            grid.classList.add('fade-out');
             const grid = document.getElementById('calendarGrid');
+            grid.classList.add('fade-out');
             const monthYearLabel = document.getElementById('currentMonthYear');
             grid.innerHTML = '';
 
@@ -482,6 +688,10 @@
             const startOffset = firstDay === 0 ? 6 : firstDay - 1;
             for(let i = 0; i < startOffset; i++) {
                 grid.innerHTML += `<div class="p-4 opacity-0"></div>`;
+
+                setTimeout(() => {
+    grid.classList.remove('fade-out');
+}, 50);
             }
 
             // Generowanie dni
@@ -563,7 +773,19 @@
         }
 
         function selectEmotion(emo, el) { document.querySelectorAll('.emotion-btn').forEach(b => b.classList.remove('active')); el.classList.add('active'); document.getElementById('emotionValue').value = emo; }
-        async function deleteTrade(id) { if(confirm("Usunąć ten wpis?")) { await _supabase.from('trades').delete().eq('id', id); fetchTrades(); } }
+        async function deleteTrade(id) {
+    const row = document.getElementById(`trade-${id}`);
+    if (!row) return;
+
+    row.style.transition = "all 0.4s ease";
+    row.style.opacity = "0";
+    row.style.transform = "translateX(-20px)";
+
+    setTimeout(async () => {
+        await _supabase.from('trades').delete().eq('id', id);
+        fetchTrades();
+    }, 400);
+}
         async function logout() { await _supabase.auth.signOut(); window.location.href = 'index.html'; }
 
         function generateWeeklyReport() {
@@ -583,6 +805,11 @@
                 <div class="flex justify-between border-b border-slate-800/50 pb-4"><span class="font-black text-slate-500 uppercase text-[10px] tracking-widest">Liczba Wejść</span><span class="text-white font-black mono text-lg">${weeklyTrades.length}</span></div>
                 <div class="flex justify-between"><span class="font-black text-slate-500 uppercase text-[10px] tracking-widest">Skuteczność</span><span class="gold-text font-black mono text-lg">${weeklyTrades.length > 0 ? ((wWins/weeklyTrades.length)*100).toFixed(0) : 0}%</span></div>`;
         }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+    const savedTab = localStorage.getItem('activeTab') || 'dashboard';
+    switchTab(savedTab);
+});
 
         checkUser();
     </script>
