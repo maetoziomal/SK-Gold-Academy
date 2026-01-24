@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+Panel.html <!DOCTYPE html>
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
@@ -95,68 +95,6 @@
             border: 2px solid var(--gold);
         }
         .day-profit { font-size: 0.65rem; font-family: 'JetBrains Mono', monospace; margin-top: 4px; font-weight: 800; }
-        
-        .counter-animate {
-    animation: counterPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-@keyframes counterPop {
-    from {
-        transform: scale(0.9);
-        opacity: 0;
-    }
-    to {
-        transform: scale(1);
-        opacity: 1;
-    }
-}
-
-.tab-panel {
-    opacity: 0;
-    transform: translateY(12px);
-    pointer-events: none;
-    transition: opacity 0.35s ease, transform 0.35s ease;
-}
-
-.tab-panel.active {
-    opacity: 1;
-    transform: translateY(0);
-    pointer-events: auto;
-}
-
-/* ===== DASHBOARD LIVE EFFECT ===== */
-
-.profit-positive {
-    color: #4ade80;
-    text-shadow: 0 0 12px rgba(74, 222, 128, 0.6);
-    animation: profitPulse 1.4s ease-in-out infinite;
-}
-
-.profit-negative {
-    color: #ef4444;
-    text-shadow: 0 0 14px rgba(239, 68, 68, 0.6);
-}
-
-@keyframes profitPulse {
-    0%, 100% {
-        transform: scale(1);
-    }
-    50% {
-        transform: scale(1.035);
-    }
-}
-
-/* kontener wszystkich tabów */
-.tab-content {
-    max-height: calc(100vh - 200px); /* odejmij header + statusCard + nav */
-    overflow-y: auto;
-    padding-right: 8px; /* żeby scrollbar nie nachodził na treść */
-}
-
-/* opcjonalnie dla wszystkich paneli */
-.tab-panel {
-    padding-bottom: 2rem;
-}
     </style>
 </head>
 <body class="p-2 md:p-8">
@@ -234,7 +172,7 @@
             <button id="btnCalc" onclick="switchTab('calc')" class="nav-btn pb-4 font-black text-[11px] uppercase tracking-[0.25em] text-slate-500">Kalkulator</button>
         </nav>
 
-        <div id="tabDashboard" class="tab-content tab-panel active">
+        <div id="tabDashboard" class="tab-content">
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
                 <div class="lg:col-span-2 card p-6 rounded-[2rem]">
                     <h3 class="font-black mb-6 text-slate-500 uppercase text-[10px] tracking-[0.3em]">Krzywa kapitału</h3>
@@ -273,7 +211,7 @@
             </div>
         </div>
 
-        <div id="tabJournal" class="tab-content tab-panel">
+        <div id="tabJournal" class="tab-content hidden">
             <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
                 <div class="card p-8 rounded-[2.5rem] h-fit sticky top-4 border-t-4 border-t-gold">
                     <h3 class="text-xl font-black mb-8 gold-text uppercase italic tracking-tighter">Nowa Pozycja</h3>
@@ -333,7 +271,7 @@
         </div>
 
 
-        <div id="tabCalendar" class="tab-content tab-panel">
+        <div id="tabCalendar" class="tab-content hidden">
             <div class="card p-8 rounded-[2rem]">
                 <div class="flex justify-between items-center mb-8">
                     <h3 id="currentMonthYear" class="gold-text font-black uppercase text-xl italic tracking-tighter">Styczeń 2026</h3>
@@ -357,7 +295,7 @@
             </div>
         </div>
 
-        <div id="tabReports" class="tab-content tab-panel">
+        <div id="tabReports" class="tab-content hidden">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div class="card p-10 rounded-[2.5rem] border-l-4 border-l-gold">
                     <h3 class="gold-text font-black mb-8 uppercase text-xs italic tracking-[0.3em]">Podsumowanie tygodnia</h3>
@@ -370,7 +308,7 @@
             </div>
         </div>
 
-        <div id="tabCalc" class="tab-content tab-panel">
+        <div id="tabCalc" class="tab-content hidden">
             <div class="max-w-md mx-auto card p-12 rounded-[3.5rem] border-b-8 border-b-gold shadow-2xl">
                 <h3 class="text-2xl font-black gold-text mb-4 text-center uppercase tracking-tighter italic">Kalkulator Lotów</h3>
                 <p class="text-center text-[10px] text-slate-500 uppercase font-black tracking-widest mb-8">Kapitał operacyjny: <span id="calcBalanceDisplay" class="text-white mono">0.00 $</span></p>
@@ -439,31 +377,17 @@
         }
 
         function switchTab(tab) {
-    // ukryj wszystkie panele
-    document.querySelectorAll('.tab-panel').forEach(el => {
-        el.classList.remove('active');
-    });
-
-    // aktywuj wybrany
-    const activeTab = document.getElementById(
-        'tab' + tab.charAt(0).toUpperCase() + tab.slice(1)
-    );
-    activeTab.classList.add('active');
-
-    // nav styling
-    document.querySelectorAll('nav button').forEach(btn => btn.classList.remove('nav-active'));
-    document.getElementById('btn' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('nav-active');
-    
-    activeTab.scrollTop = 0;
-
-    if (tab === 'dashboard') calculateStats();
-    if (tab === 'calendar') renderCalendar();
-    if (tab === 'calc') {
-        document.getElementById('calcBalanceDisplay').innerText =
-            currentTotalBalance.toFixed(2) + " $";
-        calculateLot();
-    }
-}
+            document.querySelectorAll('[id^="tab"]').forEach(el => el.classList.add('hidden'));
+            document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.remove('hidden');
+            document.querySelectorAll('nav button').forEach(btn => btn.classList.remove('nav-active'));
+            document.getElementById('btn' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('nav-active');
+            if(tab === 'dashboard') calculateStats();
+            if(tab === 'calendar') renderCalendar();
+            if(tab === 'calc') {
+                document.getElementById('calcBalanceDisplay').innerText = currentTotalBalance.toFixed(2) + " $";
+                calculateLot();
+            }
+        }
 
         async function fetchTrades() {
             const { data } = await _supabase.from('trades').select('*').order('created_at', { ascending: true });
@@ -518,30 +442,8 @@
             });
 
             currentTotalBalance = startBalance + total;
-            const liveBalanceEl = document.getElementById('liveBalance');
-const totalProfitEl = document.getElementById('totalProfit');
-
-liveBalanceEl.innerText = currentTotalBalance.toFixed(2);
-totalProfitEl.innerText = (total >= 0 ? '+' : '') + total.toFixed(2);
-
-// reset klas
-liveBalanceEl.classList.remove('profit-positive', 'profit-negative');
-totalProfitEl.classList.remove('profit-positive', 'profit-negative');
-
-// efekt wizualny
-if (total >= 0) {
-    liveBalanceEl.classList.add('profit-positive');
-    totalProfitEl.classList.add('profit-positive');
-} else {
-    liveBalanceEl.classList.add('profit-negative');
-    totalProfitEl.classList.add('profit-negative');
-}
-
-            [liveBalanceEl, totalProfitEl].forEach(el => {
-                el.classList.remove('counter-animate');
-                void el.offsetWidth; // reset animacji
-                el.classList.add('counter-animate');
-            });
+            document.getElementById('liveBalance').innerText = currentTotalBalance.toFixed(2);
+            document.getElementById('totalProfit').innerText = (total >= 0 ? '+' : '') + total.toFixed(2);
             document.getElementById('totalProfit').className = `mono text-5xl font-black italic tracking-tighter ${total >= 0 ? 'text-green-400' : 'text-red-400'}`;
             document.getElementById('winRate').innerText = (allTrades.length > 0 ? ((wins / allTrades.length) * 100).toFixed(0) : 0) + "%";
             document.getElementById('tradeCount').innerText = allTrades.length;
@@ -656,7 +558,7 @@ if (total >= 0) {
             } else {
                 statusCard.classList.remove('danger-glow');
                 document.getElementById('limitAlert').innerHTML = `<span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> Ryzyko pod kontrolą`;
-                addBtn.disabled = false; addBtn.classList.remove('grayscale', 'opacity-50');
+                addBtn.disabled = false; addBtn.classList.remove('grayscale', 'opacity-100');
             }
         }
 
