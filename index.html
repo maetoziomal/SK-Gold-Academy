@@ -334,27 +334,6 @@ function togglePassword() {
     }
 }
 
-async function resetPassword() {
-    const email = document.getElementById('email').value.trim();
-
-    if (!email) {
-        msg.innerText = "Podaj email do resetu hasła";
-        msg.style.color = "#ef4444";
-        return;
-    }
-
-    const { error } = await klientSupabase.auth.resetPasswordForEmail(email, {
-        redirectTo: window.location.origin + "/index.html"
-    });
-
-    if (error) {
-        msg.innerText = "Błąd resetu: " + error.message;
-        msg.style.color = "#ef4444";
-    } else {
-        msg.innerText = "Wysłano email do resetu hasła";
-        msg.style.color = "#4ade80";
-    }
-}
 </script>
 </body>
 </html>
