@@ -216,7 +216,8 @@ body::before {
                 class="input-field w-full rounded-xl p-4 text-sm font-semibold text-white outline-none">
         </div>
         
-        <div class="flex items-center justify-end mt-2 text-[10px] uppercase tracking-widest text-slate-400 cursor-pointer select-none"
+        <div id="togglePassText"
+     class="flex items-center justify-end mt-2 text-[10px] uppercase tracking-widest text-slate-400 cursor-pointer select-none"
      onclick="togglePassword()">
     👁️ Pokaż hasło
 </div>
@@ -322,7 +323,15 @@ setTimeout(() => window.location.href = 'panel.html', 650);
 
 function togglePassword() {
     const pass = document.getElementById('password');
-    pass.type = pass.type === "password" ? "text" : "password";
+    const text = document.getElementById('togglePassText');
+
+    if (pass.type === "password") {
+        pass.type = "text";
+        text.innerHTML = "🙈 Ukryj hasło";
+    } else {
+        pass.type = "password";
+        text.innerHTML = "👁️ Pokaż hasło";
+    }
 }
 
 async function resetPassword() {
