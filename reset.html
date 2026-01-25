@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SK GOLD ACADEMY – Reset hasła</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@800;900&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+:root {
+    --gold: #d4af37;
+    --dark-bg: #05070a;
+}
+
+body {
+    background-color: var(--dark-bg);
+    color: #f8fafc;
+    font-family: 'Inter', sans-serif;
+    background-image:
+        radial-gradient(circle at top right, rgba(212,175,55,0.1), transparent),
+        radial-gradient(circle at bottom left, rgba(212,175,55,0.05), transparent);
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(circle at center, rgba(212,175,55,0.25), transparent 60%);
+    pointer-events: none;
+}
+
+.gold-text {
+    color: var(--gold);
+    font-family: 'Montserrat', sans-serif;
+    text-shadow: 0 0 15px rgba(212,175,55,0.3);
+}
+
+.glass-card {
+    background: linear-gradient(180deg, #0b1220, #05070a);
+    backdrop-filter: blur(18px);
+    border-radius: 2.5rem;
+    box-shadow:
+        0 0 0 1px rgba(212,175,55,0.18),
+        0 25px 60px rgba(0,0,0,0.8),
+        inset 0 0 40px rgba(212,175,55,0.05);
+    padding: 3rem;
+    max-width: 420px;
+    width: 100%;
+}
+
+.input-field {
+    background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,255,255,0.08);
+    padding: 1rem;
+    border-radius: 1rem;
+    color: #fff;
+    width: 100%;
+}
+
+.input-field:focus {
+    outline: none;
+    border-color: var(--gold);
+    box-shadow: 0 0 10px rgba(212,175,55,0.2);
+}
+
+.gold-btn {
+    background: linear-gradient(135deg, #d4af37, #f5d76e);
+    color: #000;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    border-radius: 1rem;
+    padding: 1rem;
+    width: 100%;
+    margin-top: 1.5rem;
+    transition: 0.3s;
+}
+
+.gold-btn:hover {
+    filter: brightness(1.15);
+    transform: translateY(-2px);
+}
+</style>
+</head>
+
+<body class="flex items-center justify-center min-h-screen p-4">
+
+<div class="glass-card text-center">
+    <h1 class="text-3xl font-black italic gold-text uppercase mb-2">
+        Reset hasła
+    </h1>
+    <p class="text-slate-400 text-[11px] uppercase tracking-widest mb-8">
+        Podaj email powiązany z kontem
+    </p>
+
+    <input type="email" id="email" placeholder="Email"
+        class="input-field mb-4">
+
+    <button class="gold-btn" onclick="sendReset()">
+        Wyślij link
+    </button>
+
+    <p id="msg" class="text-[11px] uppercase tracking-widest mt-6 min-h-[16px]"></p>
+
+    <div class="mt-8">
+        <button onclick="window.location.href='index.html'"
+            class="text-[10px] uppercase tracking-widest text-slate-400 hover:text-yellow-400 transition">
+            ← Wróć do logowania
+        </button>
+    </div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://bkutgpaoxkvwhvsfznjm.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJrdXRncGFveGt2d2h2c2Z6bmptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc1OTgwMTQsImV4cCI6MjA4MzE3NDAxNH0.ycpuwln6hNlmVEh4dtsMbiRQwWTqN7TQobDyrlLcRCw';
+
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+async function sendReset() {
+    const email = document.getElementById('email').value.trim();
+    const msg = document.getElementById('msg');
+
+    if (!email) {
+        msg.innerText = "Podaj adres email";
+        msg.style.color = "#ef4444";
+        return;
+    }
+
+    msg.innerText = "Wysyłanie linku...";
+    msg.style.color = "#64748b";
+
+    const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin + "/index.html"
+    });
+
+    if (error) {
+        msg.innerText = "Błąd wysyłki linku";
+        msg.style.color = "#ef4444";
+    } else {
+        msg.innerText = "Sprawdź email (także SPAM)";
+        msg.style.color = "#4ade80";
+    }
+}
+</script>
+
+</body>
+</html>
