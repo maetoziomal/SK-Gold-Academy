@@ -207,8 +207,19 @@ body::before {
             <input type="password" id="password" placeholder="Hasło" 
                 class="input-field w-full rounded-xl p-4 text-sm font-semibold text-white outline-none">
         </div>
+        
+        <div class="flex items-center justify-end mt-2 text-[10px] uppercase tracking-widest text-slate-400 cursor-pointer select-none"
+     onclick="togglePassword()">
+    👁️ Pokaż hasło
+</div>
 
         <button id="submitBtn" class="gold-btn"><span>Zaloguj się</span></button>
+        <div class="text-center mt-4">
+    <button onclick="resetPassword()" 
+        class="text-[10px] uppercase tracking-widest text-slate-400 hover:text-yellow-400 transition">
+        Nie pamiętam hasła
+    </button>
+</div>
         <p id="msg" class="text-center text-[10px] mt-4 font-bold uppercase tracking-wider min-h-[15px]"></p>
     </div>
 
@@ -297,6 +308,33 @@ submitBtn.onclick = async () => {
             msg.innerText = "Konto utworzone. Możesz się teraz zalogować.";
             msg.style.color = "#4ade80";
         }
+    }
+}
+
+function togglePassword() {
+    const pass = document.getElementById('password');
+    pass.type = pass.type === "password" ? "text" : "password";
+}
+
+async function resetPassword() {
+    const email = document.getElementById('email').value.trim();
+
+    if (!email) {
+        msg.innerText = "Podaj email do resetu hasła";
+        msg.style.color = "#ef4444";
+        return;
+    }
+
+    const { error } = await klientSupabase.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin + "/index.html"
+    });
+
+    if (error) {
+        msg.innerText = "Błąd resetu: " + error.message;
+        msg.style.color = "#ef4444";
+    } else {
+        msg.innerText = "Wysłano email do resetu hasła";
+        msg.style.color = "#4ade80";
     }
 }
 </script>
