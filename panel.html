@@ -95,6 +95,21 @@
             border: 2px solid var(--gold);
         }
         .day-profit { font-size: 0.65rem; font-family: 'JetBrains Mono', monospace; margin-top: 4px; font-weight: 800; }
+        /* Animacja zmiany zakładek */
+.tab-content {
+    animation: tabFade 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes tabFade {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
     </style>
 </head>
 <body class="p-2 md:p-8">
