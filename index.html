@@ -168,7 +168,6 @@
             position: relative;
             overflow: hidden;
         }
-        /* Subtelne poświaty dla kart */
         .stat-card::before {
             content: '';
             position: absolute;
@@ -225,6 +224,7 @@
             font-weight: 700;
             cursor: pointer;
             transition: opacity 0.3s;
+            white-space: nowrap;
         }
         .btn-primary:hover { opacity: 0.8; }
         
@@ -235,6 +235,7 @@
             border-radius: 8px;
             border: 1px solid var(--glass-border);
             font-size: 0.8rem;
+            white-space: nowrap;
         }
         .strong-buy-select select {
             background: transparent; color: white; border: none; outline: none;
@@ -274,7 +275,7 @@
         }
         .list-item:last-child { border-bottom: none; }
         .item-left { display: flex; align-items: center; gap: 10px; }
-        .item-icon { width: 30px; height: 30px; background: #333; border-radius: 50%; } /* Placeholder na avatary */
+        .item-icon { width: 30px; height: 30px; background: #333; border-radius: 50%; } 
         .item-name h4 { font-size: 0.9rem; }
         .item-name p { font-size: 0.7rem; color: var(--text-muted); }
         .badge-buy { background: rgba(0, 208, 132, 0.1); color: var(--accent-green); padding: 4px 10px; border-radius: 4px; font-size: 0.7rem; border: 1px solid rgba(0, 208, 132, 0.3);}
@@ -282,7 +283,7 @@
 
         footer { text-align: center; padding: 20px; color: var(--text-muted); font-size: 0.7rem; letter-spacing: 1px; }
 
-        /* --- SETTINGS SIDEBAR (Wysuwany z prawej) --- */
+        /* --- SETTINGS SIDEBAR --- */
         .settings-sidebar {
             position: fixed;
             top: 0; right: -400px;
@@ -302,9 +303,89 @@
         }
         .close-settings { background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer; }
         
-        /* Puste zakładki - informacja dla Ciebie */
         .empty-state { text-align: center; padding: 100px 20px; color: var(--text-muted); }
 
+        /* =========================================
+           RESPONSYWNOŚĆ (TELEFONY I TABLETY)
+           ========================================= */
+
+        /* Tablety i mniejsze ekrany */
+        @media (max-width: 900px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .bottom-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Telefony poziomo / małe tablety */
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                gap: 15px;
+                padding: 15px;
+            }
+            
+            .nav-tabs {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 5px;
+            }
+            
+            main {
+                padding: 15px;
+            }
+
+            .hero h1 {
+                font-size: 2.5rem; /* Zmniejszony tytuł */
+            }
+
+            .input-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .input-group input[type="text"] {
+                width: 100%;
+            }
+
+            .btn-primary, .strong-buy-select {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .settings-sidebar {
+                width: 100%; /* Panel boczny zajmuje cały ekran na tel */
+                right: -100%;
+            }
+        }
+
+        /* Małe telefony (pionowo) */
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr; /* Jedna kolumna ze statystykami */
+            }
+            
+            .hero h1 {
+                font-size: 2rem;
+            }
+            
+            .list-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .item-right {
+                text-align: left;
+                width: 100%;
+            }
+            
+            .badge-buy {
+                align-self: flex-start;
+            }
+        }
     </style>
 </head>
 <body>
@@ -472,22 +553,18 @@
             <p style="color: var(--text-muted); font-size: 0.9rem;">
                 To jest panel ustawień. Możesz tu dodać przełączniki RPC, ustawienia slippage, podłączenie portfela itp.
             </p>
-            </div>
+        </div>
     </aside>
 
     <script>
-        // Logika przełączania zakładek
         function switchTab(tabId) {
-            // Usuń aktywną klasę ze wszystkich zakładek i przycisków
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.nav-tabs button').forEach(btn => btn.classList.remove('active'));
             
-            // Dodaj aktywną klasę do wybranego elementu
             document.getElementById(tabId).classList.add('active');
             event.target.classList.add('active');
         }
 
-        // Logika panelu ustawień
         const settingsSidebar = document.getElementById('settingsSidebar');
         const settingsBtn = document.getElementById('settingsBtn');
         const closeSettings = document.getElementById('closeSettings');
