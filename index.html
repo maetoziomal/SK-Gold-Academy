@@ -4,80 +4,53 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Memecoin Sniper</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
         :root {
-            --bg-color: #0a0612;
-            --glass-bg: rgba(30, 25, 45, 0.4);
+            --bg-color: #0b0c10;
+            --glass-bg: rgba(20, 22, 35, 0.4);
             --glass-border: rgba(255, 255, 255, 0.08);
             --text-main: #ffffff;
-            --text-muted: #8b8598;
-            --accent-orange: #ff9d00;
+            --text-muted: #8b8d99;
+            --accent-orange: #f5a623;
             --accent-purple: #b620e0;
-            --accent-green: #00d26a;
+            --accent-green: #00d084;
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
+            font-family: 'Inter', sans-serif;
         }
 
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg-color);
+            background: radial-gradient(circle at 50% 0%, #1a1025 0%, #050508 70%, #000000 100%);
             color: var(--text-main);
             min-height: 100vh;
             overflow-x: hidden;
-            position: relative;
+            display: flex;
+            flex-direction: column;
         }
 
-        /* Kosmiczne tło */
-        body::before, body::after {
-            content: '';
-            position: fixed;
-            width: 600px;
-            height: 600px;
-            border-radius: 50%;
-            filter: blur(120px);
-            z-index: -1;
-            opacity: 0.4;
-        }
-
-        body::before {
-            background: radial-gradient(circle, var(--accent-orange) 0%, transparent 70%);
-            top: -100px;
-            left: -100px;
-        }
-
-        body::after {
-            background: radial-gradient(circle, var(--accent-purple) 0%, transparent 70%);
-            bottom: -100px;
-            right: -100px;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
+        /* Klasa pomocnicza dla efektu szkła */
         .glass {
             background: var(--glass-bg);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             border: 1px solid var(--glass-border);
             border-radius: 12px;
         }
 
-        /* Nawigacja */
-        nav {
+        /* --- NAWIGACJA --- */
+        header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 15px 0;
-            margin-bottom: 40px;
+            padding: 20px 40px;
+            border-bottom: 1px solid var(--glass-border);
         }
 
         .logo {
@@ -86,35 +59,31 @@
             gap: 10px;
             font-weight: 700;
             font-size: 1.2rem;
-            color: #ffd700;
+            color: var(--accent-orange);
+            letter-spacing: 1px;
         }
 
-        .nav-links {
+        .nav-tabs {
             display: flex;
-            gap: 10px;
+            gap: 20px;
         }
 
-        .nav-links button {
-            background: transparent;
+        .nav-tabs button {
+            background: none;
             border: none;
             color: var(--text-muted);
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
             padding: 8px 16px;
             border-radius: 8px;
-            font-size: 0.9rem;
-            font-weight: 500;
-            cursor: pointer;
             transition: 0.3s;
-            font-family: inherit;
         }
 
-        .nav-links button.active {
-            color: #ffd700;
-            background: rgba(255, 215, 0, 0.1);
-            border: 1px solid rgba(255, 215, 0, 0.2);
-        }
-
-        .nav-links button:hover:not(.active) {
+        .nav-tabs button:hover, .nav-tabs button.active {
             color: var(--text-main);
+            background: rgba(255, 255, 255, 0.05);
+            box-shadow: inset 0 0 10px rgba(245, 166, 35, 0.2);
         }
 
         .nav-icons {
@@ -122,58 +91,34 @@
             gap: 15px;
         }
 
-        .nav-icons button {
-            background: var(--glass-bg);
-            border: 1px solid var(--glass-border);
+        .nav-icons i {
             color: var(--text-muted);
-            width: 36px;
-            height: 36px;
-            border-radius: 8px;
+            font-size: 1.2rem;
             cursor: pointer;
-            transition: 0.3s;
+            transition: color 0.3s;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 50%;
         }
 
-        .nav-icons button:hover {
+        .nav-icons i:hover {
             color: var(--text-main);
-            border-color: rgba(255,255,255,0.2);
         }
 
-        /* Nagłówek */
-        .hero {
-            text-align: center;
-            margin-bottom: 40px;
+        /* --- GŁÓWNY KONTENER --- */
+        main {
+            flex: 1;
+            padding: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
         }
 
-        .hero-subtitle-top {
-            font-size: 0.8rem;
-            letter-spacing: 2px;
-            color: var(--accent-orange);
-            margin-bottom: 10px;
-            text-transform: uppercase;
-        }
-
-        .hero-title {
-            font-size: 4rem;
-            font-weight: 800;
-            margin-bottom: 10px;
-            background: linear-gradient(90deg, #ffde59, #ff914d, #c13584, #833ab4);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            letter-spacing: -1px;
-        }
-
-        .hero-subtitle-bottom {
-            font-size: 0.9rem;
-            color: var(--text-muted);
-            letter-spacing: 1px;
-        }
-
-        /* System Zakładek (Tabs) */
+        /* ZARZĄDZANIE ZAKŁADKAMI */
         .tab-content {
             display: none;
-            animation: fadeIn 0.4s ease-in-out;
+            animation: fadeIn 0.4s ease;
         }
-
         .tab-content.active {
             display: block;
         }
@@ -183,142 +128,240 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Puste zakładki - stylowanie placeholdera */
-        .empty-tab-placeholder {
-            padding: 100px 20px;
+        /* --- HERO SECTION --- */
+        .hero {
             text-align: center;
+            margin-bottom: 40px;
+        }
+        .hero h2 {
+            font-size: 0.8rem;
+            color: var(--accent-orange);
+            letter-spacing: 3px;
+            margin-bottom: 10px;
+        }
+        .hero h1 {
+            font-size: 4rem;
+            font-weight: 800;
+            background: linear-gradient(90deg, #ffd700, #ff8c00, #ff0080, #b620e0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+        .hero p {
             color: var(--text-muted);
-            border: 1px dashed var(--glass-border);
-            border-radius: 12px;
-            margin-top: 20px;
+            font-size: 0.9rem;
+            letter-spacing: 2px;
         }
 
-        /* Sekcja Analyzer (z poprzedniego kodu) */
-        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 30px; }
-        .stat-card { padding: 20px; display: flex; align-items: center; gap: 15px; }
-        .stat-icon { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
-        .icon-yellow { background: rgba(255, 215, 0, 0.1); color: #ffd700; }
-        .icon-red { background: rgba(255, 69, 58, 0.1); color: #ff453a; }
-        .icon-purple { background: rgba(182, 32, 224, 0.1); color: #b620e0; }
-        .icon-blue { background: rgba(10, 132, 255, 0.1); color: #0a84ff; }
-        .stat-info h4 { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
-        .stat-info h2 { font-size: 1.5rem; font-weight: 700; margin-bottom: 2px; }
-        .stat-info p { font-size: 0.7rem; color: var(--text-muted); }
-        .analyzer-panel { padding: 30px; margin-bottom: 15px; border: 1px solid rgba(255, 157, 0, 0.3); box-shadow: 0 0 20px rgba(255, 157, 0, 0.05); }
-        .analyzer-header { margin-bottom: 20px; }
-        .analyzer-header h3 { font-size: 1.1rem; display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
-        .analyzer-header h3::before { content: ''; width: 6px; height: 6px; background: #ffd700; border-radius: 50%; display: inline-block; }
-        .analyzer-header p { font-size: 0.8rem; color: var(--text-muted); }
-        .input-group { display: flex; gap: 15px; align-items: center; }
-        .input-wrapper { flex-grow: 1; }
-        .input-wrapper input { width: 100%; background: rgba(0, 0, 0, 0.3); border: 1px solid var(--glass-border); color: var(--text-main); padding: 15px 20px; border-radius: 8px; font-family: monospace; font-size: 0.9rem; outline: none; transition: 0.3s; }
-        .input-wrapper input:focus { border-color: var(--accent-orange); }
-        .btn-analyze { background: linear-gradient(90deg, #ff914d, #c13584); border: none; color: white; padding: 15px 30px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.3s; }
-        .btn-analyze:hover { opacity: 0.9; box-shadow: 0 0 15px rgba(193, 53, 132, 0.4); }
-        .strong-buy { display: flex; align-items: center; gap: 10px; font-size: 0.8rem; color: var(--text-muted); }
-        .strong-buy select { background: rgba(0, 0, 0, 0.3); border: 1px solid var(--glass-border); color: white; padding: 8px 12px; border-radius: 6px; outline: none; }
-        .btn-copy { width: 100%; padding: 15px; background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--text-muted); border-radius: 12px; cursor: pointer; font-size: 0.9rem; display: flex; justify-content: center; align-items: center; gap: 8px; margin-bottom: 30px; transition: 0.3s; }
-        .btn-copy:hover { background: rgba(255,255,255,0.05); color: var(--text-main); }
-        .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; padding-bottom: 50px; }
+        /* --- STATYSTYKI --- */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            position: relative;
+            overflow: hidden;
+        }
+        /* Subtelne poświaty dla kart */
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%; width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.03) 0%, transparent 60%);
+            pointer-events: none;
+        }
+        .stat-icon {
+            font-size: 1.5rem;
+            width: 40px; height: 40px;
+            display: flex; justify-content: center; align-items: center;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .stat-info p { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; }
+        .stat-info h3 { font-size: 1.5rem; margin: 3px 0; }
+        .stat-info span { font-size: 0.7rem; color: var(--text-muted); }
+
+        /* --- ANALIZATOR --- */
+        .analyzer-box {
+            padding: 25px;
+            margin-bottom: 15px;
+            position: relative;
+            box-shadow: 0 0 20px rgba(245, 166, 35, 0.1);
+        }
+        .analyzer-header { margin-bottom: 15px; }
+        .analyzer-header h3 { color: var(--accent-orange); font-size: 1rem; margin-bottom: 5px; }
+        .analyzer-header p { color: var(--text-muted); font-size: 0.75rem; }
+        
+        .input-group {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        .input-group input[type="text"] {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--glass-border);
+            padding: 15px;
+            border-radius: 8px;
+            color: white;
+            font-family: monospace;
+        }
+        .input-group input[type="text"]:focus {
+            outline: none;
+            border-color: var(--accent-purple);
+        }
+        .btn-primary {
+            background: linear-gradient(90deg, #ff8c00, #ff0080);
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 700;
+            cursor: pointer;
+            transition: opacity 0.3s;
+        }
+        .btn-primary:hover { opacity: 0.8; }
+        
+        .strong-buy-select {
+            display: flex; align-items: center; gap: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: 1px solid var(--glass-border);
+            font-size: 0.8rem;
+        }
+        .strong-buy-select select {
+            background: transparent; color: white; border: none; outline: none;
+        }
+
+        .btn-copy {
+            width: 100%;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--glass-border);
+            color: var(--text-muted);
+            border-radius: 8px;
+            cursor: pointer;
+            margin-bottom: 30px;
+            transition: 0.3s;
+        }
+        .btn-copy:hover { background: rgba(255, 255, 255, 0.08); color: white; }
+
+        /* --- DOLNE PANELE --- */
+        .bottom-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
         .list-panel { padding: 20px; }
-        .list-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; font-size: 0.9rem; color: #ffd700; }
-        .list-header .view-all { color: var(--text-muted); font-size: 0.75rem; text-decoration: none; background: rgba(255,255,255,0.05); padding: 4px 10px; border-radius: 4px; }
-        .live-tag { background: rgba(0, 210, 106, 0.1); color: var(--accent-green); padding: 4px 10px; border-radius: 4px; font-size: 0.75rem; }
-        .list-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .list-item:last-child { border-bottom: none; padding-bottom: 0; }
-        .item-left { display: flex; align-items: center; gap: 15px; }
-        .token-icon { width: 32px; height: 32px; background: #333; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; }
-        .item-info h5 { font-size: 0.9rem; margin-bottom: 4px; }
-        .item-info p { font-size: 0.75rem; color: var(--text-muted); }
-        .item-right { display: flex; align-items: center; gap: 15px; font-size: 0.8rem; }
-        .tag-buy { background: rgba(0, 210, 106, 0.1); color: var(--accent-green); padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; }
-        .tag-buy.regular { color: #ffd700; background: rgba(255, 215, 0, 0.1); }
-        .time { color: var(--text-muted); }
-        .value-green { color: var(--accent-green); font-weight: 600; }
-
-        @media (max-width: 900px) {
-            .stats-grid { grid-template-columns: repeat(2, 1fr); }
-            .dashboard-grid { grid-template-columns: 1fr; }
-            .input-group { flex-direction: column; align-items: stretch; }
-            .strong-buy { justify-content: flex-start; }
-            .hero-title { font-size: 2.5rem; }
-            .nav-links { display: none; }
+        .list-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 20px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
         }
+        .badge-live { color: var(--accent-green); border: 1px solid var(--accent-green); padding: 2px 8px; border-radius: 4px; font-size: 0.7rem;}
+        
+        .list-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .list-item:last-child { border-bottom: none; }
+        .item-left { display: flex; align-items: center; gap: 10px; }
+        .item-icon { width: 30px; height: 30px; background: #333; border-radius: 50%; } /* Placeholder na avatary */
+        .item-name h4 { font-size: 0.9rem; }
+        .item-name p { font-size: 0.7rem; color: var(--text-muted); }
+        .badge-buy { background: rgba(0, 208, 132, 0.1); color: var(--accent-green); padding: 4px 10px; border-radius: 4px; font-size: 0.7rem; border: 1px solid rgba(0, 208, 132, 0.3);}
+        .item-right { text-align: right; font-size: 0.8rem; color: var(--text-muted); }
+
+        footer { text-align: center; padding: 20px; color: var(--text-muted); font-size: 0.7rem; letter-spacing: 1px; }
+
+        /* --- SETTINGS SIDEBAR (Wysuwany z prawej) --- */
+        .settings-sidebar {
+            position: fixed;
+            top: 0; right: -400px;
+            width: 350px; height: 100vh;
+            background: rgba(10, 10, 15, 0.95);
+            backdrop-filter: blur(20px);
+            border-left: 1px solid var(--glass-border);
+            z-index: 1000;
+            transition: right 0.4s ease;
+            padding: 30px;
+            box-shadow: -5px 0 30px rgba(0,0,0,0.5);
+        }
+        .settings-sidebar.open { right: 0; }
+        .settings-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 30px; border-bottom: 1px solid var(--glass-border); padding-bottom: 15px;
+        }
+        .close-settings { background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer; }
+        
+        /* Puste zakładki - informacja dla Ciebie */
+        .empty-state { text-align: center; padding: 100px 20px; color: var(--text-muted); }
+
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <nav>
-            <div class="logo">
-                <i class="fa-solid fa-crosshairs"></i> MEMECOIN SNIPER
-            </div>
-            <div class="nav-links">
-                <button class="tab-link active" onclick="openTab(event, 'analyzer')">ANALYZER</button>
-                <button class="tab-link" onclick="openTab(event, 'watchlist')">WATCHLIST</button>
-                <button class="tab-link" onclick="openTab(event, 'leaderboard')">LEADERBOARD</button>
-                <button class="tab-link" onclick="openTab(event, 'docs')">DOCS</button>
-            </div>
-            <div class="nav-icons">
-                <button><i class="fa-brands fa-github"></i></button>
-                <button><i class="fa-brands fa-twitter"></i></button>
-                <button><i class="fa-regular fa-sun"></i></button>
-            </div>
+    <header>
+        <div class="logo">
+            <i class="fa-solid fa-crosshairs"></i> MEMECOIN SNIPER
+        </div>
+        <nav class="nav-tabs">
+            <button class="active" onclick="switchTab('analyzer')">ANALYZER</button>
+            <button onclick="switchTab('watchlist')">WATCHLIST</button>
+            <button onclick="switchTab('leaderboard')">LEADERBOARD</button>
+            <button onclick="switchTab('docs')">DOCS</button>
         </nav>
+        <div class="nav-icons">
+            <i class="fa-brands fa-github"></i>
+            <i class="fa-brands fa-twitter"></i>
+            <i class="fa-solid fa-gear" id="settingsBtn"></i>
+        </div>
+    </header>
 
-        <header class="hero">
-            <div class="hero-subtitle-top">REAL-TIME ANALYZER • EDGE TOOL</div>
-            <h1 class="hero-title">MEMECOIN SNIPER</h1>
-            <div class="hero-subtitle-bottom">FIND. ANALYZE. SNIPE. BEFORE THE CROWD.</div>
-        </header>
-
+    <main>
         <div id="analyzer" class="tab-content active">
+            <section class="hero">
+                <h2>REAL-TIME ANALYZER • EDGE TOOL</h2>
+                <h1>MEMECOIN SNIPER</h1>
+                <p>FIND. ANALYZE. SNIPE. BEFORE THE CROWD.</p>
+            </section>
+
             <section class="stats-grid">
                 <div class="stat-card glass">
-                    <div class="stat-icon icon-yellow"><i class="fa-solid fa-bolt"></i></div>
-                    <div class="stat-info">
-                        <h4>TOKENS ANALYZED</h4>
-                        <h2>12.4K</h2>
-                        <p>TODAY</p>
-                    </div>
+                    <div class="stat-icon" style="color: var(--accent-orange);"><i class="fa-solid fa-bolt"></i></div>
+                    <div class="stat-info"><p>Tokens Analyzed</p><h3>12.4K</h3><span>Today</span></div>
                 </div>
                 <div class="stat-card glass">
-                    <div class="stat-icon icon-red"><i class="fa-solid fa-fire"></i></div>
-                    <div class="stat-info">
-                        <h4>HOT TOKENS</h4>
-                        <h2>247</h2>
-                        <p>RIGHT NOW</p>
-                    </div>
+                    <div class="stat-icon" style="color: #ff4757;"><i class="fa-solid fa-fire"></i></div>
+                    <div class="stat-info"><p>Hot Tokens</p><h3>247</h3><span>Right Now</span></div>
                 </div>
                 <div class="stat-card glass">
-                    <div class="stat-icon icon-purple"><i class="fa-solid fa-bullseye"></i></div>
-                    <div class="stat-info">
-                        <h4>SUCCESS RATE</h4>
-                        <h2>78.6%</h2>
-                        <p>LAST 7D</p>
-                    </div>
+                    <div class="stat-icon" style="color: var(--accent-purple);"><i class="fa-solid fa-bullseye"></i></div>
+                    <div class="stat-info"><p>Success Rate</p><h3>78.6%</h3><span>Last 7D</span></div>
                 </div>
                 <div class="stat-card glass">
-                    <div class="stat-icon icon-blue"><i class="fa-solid fa-users"></i></div>
-                    <div class="stat-info">
-                        <h4>ACTIVE USERS</h4>
-                        <h2>3.9K</h2>
-                        <p>ONLINE</p>
-                    </div>
+                    <div class="stat-icon" style="color: #3742fa;"><i class="fa-solid fa-users"></i></div>
+                    <div class="stat-info"><p>Active Users</p><h3>3.9K</h3><span>Online</span></div>
                 </div>
             </section>
 
-            <section class="analyzer-panel glass">
+            <section class="analyzer-box glass">
                 <div class="analyzer-header">
-                    <h3>ANALYZER</h3>
+                    <h3>• ANALYZER</h3>
                     <p>PASTE TOKEN ADDRESS BELOW TO START REAL-TIME ANALYSIS</p>
                 </div>
                 <div class="input-group">
-                    <div class="input-wrapper">
-                        <input type="text" placeholder="Do2egGsrSWSRVzeDPQmUKnhJunTfJm5ZVJEzrbACpump" readonly>
-                    </div>
-                    <button class="btn-analyze">ANALYZE TOKEN</button>
-                    <div class="strong-buy">
+                    <input type="text" value="Do2egGsrSWSRVzeDPQmUKnhJunTfJm5ZVJEzrbACpump" readonly>
+                    <button class="btn-primary">ANALYZE TOKEN</button>
+                    <div class="strong-buy-select">
                         STRONG BUY ≥ 
                         <select>
                             <option>6</option>
@@ -328,156 +371,134 @@
                     </div>
                 </div>
             </section>
-            
-            <button class="btn-copy"><i class="fa-regular fa-copy"></i> COPY RESULT</button>
 
-            <section class="dashboard-grid">
-                
+            <button class="btn-copy glass"><i class="fa-regular fa-copy"></i> COPY RESULT</button>
+
+            <section class="bottom-grid">
                 <div class="list-panel glass">
                     <div class="list-header">
                         <span><i class="fa-solid fa-clock-rotate-left"></i> LAST TOKENS</span>
-                        <a href="#" class="view-all">VIEW ALL</a>
+                        <span style="cursor: pointer;">VIEW ALL</span>
                     </div>
-                    
                     <div class="list-item">
                         <div class="item-left">
-                            <div class="token-icon" style="background: #4CAF50;">🐸</div>
-                            <div class="item-info">
-                                <h5>PEPE 2.0</h5>
-                                <p>0x7d3...a91f</p>
-                            </div>
+                            <div class="item-icon" style="background: #2ed573;"></div>
+                            <div class="item-name"><h4>PEPE 2.0</h4><p>0x7d3...a91f</p></div>
                         </div>
-                        <div class="item-right">
-                            <span class="tag-buy">STRONG BUY</span>
-                            <span class="time">2s ago</span>
-                            <i class="fa-solid fa-chevron-right" style="color: #444;"></i>
-                        </div>
+                        <span class="badge-buy">STRONG BUY</span>
+                        <div class="item-right">2s ago <i class="fa-solid fa-chevron-right"></i></div>
                     </div>
-
                     <div class="list-item">
                         <div class="item-left">
-                            <div class="token-icon" style="background: #FFC107;">🐕</div>
-                            <div class="item-info">
-                                <h5>DOGE AI</h5>
-                                <p>0x9f8...c2b1</p>
-                            </div>
+                            <div class="item-icon" style="background: #eccc68;"></div>
+                            <div class="item-name"><h4>DOGE AI</h4><p>0x9f8...c2b1</p></div>
                         </div>
-                        <div class="item-right">
-                            <span class="tag-buy regular">BUY</span>
-                            <span class="time">12s ago</span>
-                            <i class="fa-solid fa-chevron-right" style="color: #444;"></i>
-                        </div>
+                        <span class="badge-buy" style="color: #eccc68; border-color: #eccc68;">BUY</span>
+                        <div class="item-right">12s ago <i class="fa-solid fa-chevron-right"></i></div>
                     </div>
-
                     <div class="list-item">
                         <div class="item-left">
-                            <div class="token-icon" style="background: #9C27B0;">🐱</div>
-                            <div class="item-info">
-                                <h5>MOON CAT</h5>
-                                <p>0x1b2...e7f3</p>
-                            </div>
+                            <div class="item-icon" style="background: #70a1ff;"></div>
+                            <div class="item-name"><h4>MOON CAT</h4><p>0x1b2...e7f3</p></div>
                         </div>
-                        <div class="item-right">
-                            <span class="tag-buy">STRONG BUY</span>
-                            <span class="time">45s ago</span>
-                            <i class="fa-solid fa-chevron-right" style="color: #444;"></i>
-                        </div>
+                        <span class="badge-buy">STRONG BUY</span>
+                        <div class="item-right">45s ago <i class="fa-solid fa-chevron-right"></i></div>
                     </div>
                 </div>
 
                 <div class="list-panel glass">
                     <div class="list-header">
-                        <span><i class="fa-solid fa-circle" style="color: var(--accent-green); font-size: 0.6rem; margin-right: 5px;"></i> LIVE FEED</span>
-                        <span class="live-tag">LIVE</span>
+                        <span style="color: var(--accent-green);">• LIVE FEED</span>
+                        <span class="badge-live">LIVE</span>
                     </div>
-                    
                     <div class="list-item">
                         <div class="item-left">
-                            <div class="token-icon" style="background: transparent; border: 1px solid #0a84ff; color: #0a84ff;"><i class="fa-solid fa-wallet"></i></div>
-                            <div class="item-info">
-                                <h5>Whale bought $PEPE 2.0</h5>
-                                <p>2s ago</p>
-                            </div>
+                            <i class="fa-solid fa-wallet" style="color: #70a1ff; font-size: 1.2rem;"></i>
+                            <div class="item-name"><h4>Whale bought $PEPE 2.0</h4><p>2s ago</p></div>
                         </div>
-                        <div class="item-right">
-                            <span class="value-green">+12.4 SOL</span>
-                        </div>
+                        <div class="item-right" style="color: var(--accent-green);">+12.4 SOL</div>
                     </div>
-
                     <div class="list-item">
                         <div class="item-left">
-                            <div class="token-icon" style="background: transparent; border: 1px solid #ffd700; color: #ffd700;"><i class="fa-solid fa-water"></i></div>
-                            <div class="item-info">
-                                <h5>New pool created: $DOGE AI</h5>
-                                <p>5s ago</p>
-                            </div>
+                            <i class="fa-solid fa-water" style="color: #eccc68; font-size: 1.2rem;"></i>
+                            <div class="item-name"><h4>New pool created: $DOGE AI</h4><p>5s ago</p></div>
                         </div>
-                        <div class="item-right">
-                            <span style="color: var(--text-muted);">Raydium</span>
-                        </div>
+                        <div class="item-right">Raydium</div>
                     </div>
-
                     <div class="list-item">
                         <div class="item-left">
-                            <div class="token-icon" style="background: transparent; border: 1px solid #ff9d00; color: #ff9d00;"><i class="fa-solid fa-crosshairs"></i></div>
-                            <div class="item-info">
-                                <h5>Sniper user earned 3.2x</h5>
-                                <p>18s ago</p>
-                            </div>
+                            <i class="fa-solid fa-crosshairs" style="color: var(--accent-orange); font-size: 1.2rem;"></i>
+                            <div class="item-name"><h4>Sniper user earned 3.2x</h4><p>18s ago</p></div>
                         </div>
-                        <div class="item-right">
-                            <span class="value-green">$1,240</span>
-                        </div>
+                        <div class="item-right" style="color: var(--accent-green);">$1,240</div>
                     </div>
                 </div>
             </section>
         </div>
 
         <div id="watchlist" class="tab-content glass">
-            <div class="empty-tab-placeholder">
-                <h2><i class="fa-regular fa-star"></i> WATCHLIST</h2>
-                <p style="margin-top: 10px;">Tutaj dodasz zawartość swojej listy obserwowanych (tabela, grid itp.).</p>
+            <div class="empty-state">
+                <h2>Watchlist</h2>
+                <p>Tutaj możesz dodać swoją zawartość dla Watchlisty.</p>
             </div>
         </div>
-
+        
         <div id="leaderboard" class="tab-content glass">
-            <div class="empty-tab-placeholder">
-                <h2><i class="fa-solid fa-trophy"></i> LEADERBOARD</h2>
-                <p style="margin-top: 10px;">Tutaj znajdzie się ranking użytkowników lub tokenów.</p>
+            <div class="empty-state">
+                <h2>Leaderboard</h2>
+                <p>Tutaj możesz dodać swoją zawartość dla tabeli wyników.</p>
             </div>
         </div>
 
         <div id="docs" class="tab-content glass">
-            <div class="empty-tab-placeholder">
-                <h2><i class="fa-regular fa-file-lines"></i> DOCUMENTATION</h2>
-                <p style="margin-top: 10px;">Miejsce na dokumentację API, instrukcje i regulamin.</p>
+            <div class="empty-state">
+                <h2>Dokumentacja</h2>
+                <p>Miejsce na pliki pomocy i opisy algorytmów.</p>
             </div>
         </div>
 
-        <footer style="text-align: center; color: var(--text-muted); font-size: 0.7rem; letter-spacing: 1px; padding: 20px 0;">
-            BUILT FOR SPEED. POWERED BY DATA. MADE FOR WINNERS.
-        </footer>
-    </div>
+    </main>
+
+    <footer>
+        BUILT FOR SPEED. POWERED BY DATA. MADE FOR WINNERS.
+    </footer>
+
+    <aside class="settings-sidebar" id="settingsSidebar">
+        <div class="settings-header">
+            <h3>USTAWIENIA</h3>
+            <button class="close-settings" id="closeSettings">&times;</button>
+        </div>
+        <div class="settings-content">
+            <p style="color: var(--text-muted); font-size: 0.9rem;">
+                To jest panel ustawień. Możesz tu dodać przełączniki RPC, ustawienia slippage, podłączenie portfela itp.
+            </p>
+            </div>
+    </aside>
 
     <script>
-        function openTab(evt, tabName) {
-            // Ukryj wszystkie zakładki
-            var i, tabcontent, tablinks;
-            tabcontent = document.getElementsByClassName("tab-content");
-            for (i = 0; i < tabcontent.length; i++) {
-                tabcontent[i].classList.remove("active");
-            }
-
-            // Usuń klasę 'active' ze wszystkich przycisków w menu
-            tablinks = document.getElementsByClassName("tab-link");
-            for (i = 0; i < tablinks.length; i++) {
-                tablinks[i].classList.remove("active");
-            }
-
-            // Pokaż wybraną zakładkę i dodaj klasę 'active' do klikniętego przycisku
-            document.getElementById(tabName).classList.add("active");
-            evt.currentTarget.classList.add("active");
+        // Logika przełączania zakładek
+        function switchTab(tabId) {
+            // Usuń aktywną klasę ze wszystkich zakładek i przycisków
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.nav-tabs button').forEach(btn => btn.classList.remove('active'));
+            
+            // Dodaj aktywną klasę do wybranego elementu
+            document.getElementById(tabId).classList.add('active');
+            event.target.classList.add('active');
         }
+
+        // Logika panelu ustawień
+        const settingsSidebar = document.getElementById('settingsSidebar');
+        const settingsBtn = document.getElementById('settingsBtn');
+        const closeSettings = document.getElementById('closeSettings');
+
+        settingsBtn.addEventListener('click', () => {
+            settingsSidebar.classList.add('open');
+        });
+
+        closeSettings.addEventListener('click', () => {
+            settingsSidebar.classList.remove('open');
+        });
     </script>
 </body>
 </html>
